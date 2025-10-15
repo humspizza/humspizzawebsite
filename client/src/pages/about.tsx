@@ -3,6 +3,7 @@ import SEOHead from "@/components/SEOHead";
 import { useQuery } from "@tanstack/react-query";
 import type { AboutContent } from "@shared/schema";
 import { usePageSeo } from "@/hooks/usePageSeo";
+import { formatImageUrl } from "@/lib/imageUtils";
 
 export default function About() {
   const { t, language } = useLanguage();
@@ -70,7 +71,7 @@ export default function About() {
             {aboutContent?.storyImageUrl && (
               <div 
                 className="flex-1 min-h-[200px] bg-cover bg-center rounded-lg"
-                style={{ backgroundImage: `url('${aboutContent.storyImageUrl}')` }}
+                style={{ backgroundImage: `url('${formatImageUrl(aboutContent.storyImageUrl)}')` }}
               />
             )}
             
@@ -78,7 +79,7 @@ export default function About() {
             {aboutContent?.storyImageUrl2 && (
               <div 
                 className="flex-1 min-h-[200px] bg-cover bg-center rounded-lg"
-                style={{ backgroundImage: `url('${aboutContent.storyImageUrl2}')` }}
+                style={{ backgroundImage: `url('${formatImageUrl(aboutContent.storyImageUrl2)}')` }}
               />
             )}
           </div>
@@ -162,7 +163,7 @@ export default function About() {
               {aboutContent?.member1ImageUrl && (
                 <div 
                   className="w-48 h-48 bg-cover bg-center rounded-full mx-auto mb-6"
-                  style={{ backgroundImage: `url('${aboutContent.member1ImageUrl}')` }}
+                  style={{ backgroundImage: `url('${formatImageUrl(aboutContent.member1ImageUrl)}')` }}
                 />
               )}
               <h3 className="text-xl font-semibold mb-2">
@@ -181,7 +182,7 @@ export default function About() {
               {aboutContent?.member2ImageUrl && (
                 <div 
                   className="w-48 h-48 bg-cover bg-center rounded-full mx-auto mb-6"
-                  style={{ backgroundImage: `url('${aboutContent.member2ImageUrl}')` }}
+                  style={{ backgroundImage: `url('${formatImageUrl(aboutContent.member2ImageUrl)}')` }}
                 />
               )}
               <h3 className="text-xl font-semibold mb-2">
@@ -200,7 +201,7 @@ export default function About() {
               {aboutContent?.member3ImageUrl && (
                 <div 
                   className="w-48 h-48 bg-cover bg-center rounded-full mx-auto mb-6"
-                  style={{ backgroundImage: `url('${aboutContent.member3ImageUrl}')` }}
+                  style={{ backgroundImage: `url('${formatImageUrl(aboutContent.member3ImageUrl)}')` }}
                 />
               )}
               <h3 className="text-xl font-semibold mb-2">

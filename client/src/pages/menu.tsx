@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useContentTranslation } from "@/hooks/useContentTranslation";
 import { formatPrice } from "@/lib/currency";
 import { queryClient } from "@/lib/queryClient";
+import { formatImageUrl } from "@/lib/imageUtils";
 import type { MenuItem, Category } from "@shared/schema";
 import CustomizationModal from "@/components/modals/customization-modal";
 import MultiCustomizationModal from "@/components/modals/multi-customization-modal";
@@ -281,7 +282,7 @@ export default function Menu() {
                   {item.imageUrl && (
                     <div 
                       className="aspect-[4/3] bg-cover bg-center rounded-md"
-                      style={{ backgroundImage: `url(${item.imageUrl})` }}
+                      style={{ backgroundImage: `url('${formatImageUrl(item.imageUrl)}')` }}
                     />
                   )}
                   
@@ -330,7 +331,7 @@ export default function Menu() {
                       {item.imageUrl && (
                         <div 
                           className="aspect-[4/3] bg-cover bg-center"
-                          style={{ backgroundImage: `url(${item.imageUrl})` }}
+                          style={{ backgroundImage: `url('${formatImageUrl(item.imageUrl)}')` }}
                         />
                       )}
                       <div className="p-4 pb-2">
