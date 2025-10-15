@@ -10,7 +10,7 @@ import fs from "fs";
 import { 
   insertReservationSchema, insertOrderSchema, insertContactMessageSchema,
   insertCategorySchema, insertMenuItemSchema, insertBlogPostSchema, insertCustomizationSchemaSchema,
-  insertAboutContentSchema, insertNotificationSchema, insertPageSeoSchema
+  insertAboutContentSchema, insertNotificationSchema, insertPageSeoSchema, insertCustomerReviewSchema
 } from "@shared/schema";
 import { z } from "zod";
 import {
@@ -1286,7 +1286,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { insertCustomerReviewSchema } = await import("@shared/schema");
       const parsed = insertCustomerReviewSchema.parse(req.body);
       const review = await storage.createCustomerReview(parsed);
       res.json(review);
@@ -1371,7 +1370,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload hero video to object storage and then to attached_assets
   app.post("/api/upload-hero-video", requireAuth, async (req, res) => {
     try {
-      const { ObjectStorageService } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getImageUploadURL();
       res.json({ uploadURL });
