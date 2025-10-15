@@ -78,11 +78,6 @@ export default function Header({ onOpenCart }: HeaderProps) {
               src="/api/assets/logo.humpizza.png" 
               alt="Hum's Pizza Logo" 
               className="h-12 w-auto"
-              onError={(e) => {
-                // Fallback if logo not found
-                const target = e.target as HTMLImageElement;
-                target.src = "/favicon.png";
-              }}
             />
           </Link>
 
