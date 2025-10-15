@@ -6,6 +6,7 @@ import { registerRoutes } from "./routes";
 import { seedUsers } from "./seed";
 import { seedAboutContent } from "./seed-about";
 import { setupVite, serveStatic, log } from "./vite";
+import { storage } from "./storage";
 
 // Extend Express session interface
 declare module 'express-session' {
@@ -103,8 +104,6 @@ app.use((req, res, next) => {
   await initAutoArchiveSystem();
 
 async function seedHomeContent() {
-  const { storage } = await import("./storage");
-  
   try {
     const existingHomeContent = await storage.getHomeContent();
     if (!existingHomeContent) {
@@ -140,8 +139,6 @@ async function seedHomeContent() {
 
 // Auto archive system - runs every 3 months to prevent database overload
 async function initAutoArchiveSystem() {
-  const { storage } = await import("./storage");
-  
   try {
     // Check if we need to run archiving on startup
     const stats = await storage.getDataStatistics();

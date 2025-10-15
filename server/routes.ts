@@ -950,10 +950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to commit video from object storage to attached_assets
   async function commitVideoToAttachedAssets(videoUrl: string, videoType: 'hero' | 'reservation') {
     try {
-      const { ObjectStorageService } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
-      const fs = await import('fs');
-      const path = await import('path');
       
       // Determine file name based on video type
       const fileName = videoType === 'hero' ? 'hero.landingpage.mp4' : 'hero2.landingpage.mp4';
@@ -1419,9 +1416,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Check hero videos status (including pending videos)
   app.get("/api/hero-videos/status", async (req, res) => {
     try {
-      const fs = await import('fs');
-      const path = await import('path');
-      
       // Get pending video URLs from home content
       const homeContent = await storage.getHomeContent();
       
@@ -1478,10 +1472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Download video from object storage to attached_assets
   app.post("/api/restore-videos", async (req, res) => {
     try {
-      const { ObjectStorageService } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
-      const fs = await import('fs');
-      const path = await import('path');
       
       const videoFiles = ['hero.landingpage.mp4', 'hero2.landingpage.mp4'];
       const results: any[] = [];
