@@ -13,10 +13,7 @@ import {
   insertAboutContentSchema, insertNotificationSchema, insertPageSeoSchema, insertCustomerReviewSchema
 } from "@shared/schema";
 import { z } from "zod";
-import {
-  ObjectStorageService,
-  ObjectNotFoundError,
-} from "./objectStorage";
+import { uploadImage, uploadVideo, getUploadedFileUrl } from "./fileUpload";
 
 // Utility function to generate URL-friendly slugs
 function generateSlug(text: string): string {
@@ -603,27 +600,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Image upload for news posts
-  app.post("/api/news-images/upload", requireAuth, async (req, res) => {
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getImageUploadURL();
-      res.json({ uploadURL });
-    } catch (error: any) {
-      console.error("Error getting news image upload URL:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+  app.post("/api/news-images/upload", requireAuth, (req, res) => {
+    uploadImage(req, res, (err) => {
+      if (err) {
+        console.error("Error uploading news image:", err);
+        return res.status(400).json({ error: err.message });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      
+      const fileUrl = getUploadedFileUrl(req.file.filename);
+      res.json({ 
+        url: fileUrl,
+        filename: req.file.filename 
+      });
+    });
   });
 
   // Open Graph image upload endpoint
-  app.post("/api/og-images/upload", requireAuth, async (req, res) => {
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getImageUploadURL();
-      res.json({ uploadURL });
-    } catch (error: any) {
-      console.error("Error getting OG image upload URL:", error);
-      res.status(500).json({ error: "Failed to get upload URL" });
-    }
+  app.post("/api/og-images/upload", requireAuth, (req, res) => {
+    uploadImage(req, res, (err) => {
+      if (err) {
+        console.error("Error uploading OG image:", err);
+        return res.status(400).json({ error: err.message });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      
+      const fileUrl = getUploadedFileUrl(req.file.filename);
+      res.json({ 
+        url: fileUrl,
+        filename: req.file.filename 
+      });
+    });
   });
 
   // Set Open Graph image metadata after upload
@@ -633,15 +646,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const objectStorageService = new ObjectStorageService();
-      const objectPath = objectStorageService.normalizeObjectEntityPath(
-        req.body.imageURL,
-      );
-
-      // For Open Graph images, make them publicly accessible
+      // For local files, just return the URL as-is
+      const publicURL = req.body.imageURL.startsWith('http') 
+        ? req.body.imageURL 
+        : `${req.protocol}://${req.get('host')}${req.body.imageURL}`;
+      
       res.status(200).json({
-        objectPath: objectPath,
-        publicURL: `${req.protocol}://${req.get('host')}${objectPath}`,
+        objectPath: req.body.imageURL,
+        publicURL: publicURL,
       });
     } catch (error: any) {
       console.error("Error setting OG image:", error);
@@ -649,18 +661,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve news images
+  // Serve images from attached_assets (legacy /objects/ route for backward compatibility)
   app.get("/objects/:objectPath(*)", async (req, res) => {
-    const objectStorageService = new ObjectStorageService();
     try {
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      objectStorageService.downloadObject(objectFile, res);
-    } catch (error) {
-      if (error instanceof ObjectNotFoundError) {
-        // This is normal when news post doesn't have an image - no need to log as error
+      // Extract filename from path (e.g., /objects/images/abc-123 -> abc-123.jpg)
+      const pathParts = req.params.objectPath.split('/');
+      const filename = pathParts[pathParts.length - 1];
+      
+      // Try with .jpg extension first, then other extensions
+      const extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', ''];
+      let filePath = '';
+      
+      for (const ext of extensions) {
+        const testPath = path.join(process.cwd(), 'attached_assets', `${filename}${ext}`);
+        if (fs.existsSync(testPath)) {
+          filePath = testPath;
+          break;
+        }
+      }
+      
+      if (!filePath) {
         return res.sendStatus(404);
       }
-      console.error("Error serving news image:", error);
+      
+      // Set cache headers and send file
+      res.set('Cache-Control', 'public, max-age=31536000'); // 1 year
+      res.sendFile(filePath);
+    } catch (error) {
+      console.error("Error serving legacy image:", error);
       return res.sendStatus(500);
     }
   });
@@ -947,32 +975,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Helper function to commit video from object storage to attached_assets
+  // Helper function to commit video - now videos are uploaded directly to attached_assets
   async function commitVideoToAttachedAssets(videoUrl: string, videoType: 'hero' | 'reservation') {
     try {
-      const objectStorageService = new ObjectStorageService();
-      
-      // Determine file name based on video type
+      // Videos are already uploaded to attached_assets, no need to move them
       const fileName = videoType === 'hero' ? 'hero.landingpage.mp4' : 'hero2.landingpage.mp4';
-      
-      // Get object path from URL
-      const objectPath = objectStorageService.normalizeObjectEntityPath(videoUrl);
-      
-      // Get the file from object storage
-      const file = await objectStorageService.getObjectEntityFile(objectPath);
-      
-      // Copy to attached_assets
-      const localPath = path.join(process.cwd(), 'attached_assets', fileName);
-      const writeStream = fs.createWriteStream(localPath);
-      const readStream = file.createReadStream();
-      
-      await new Promise((resolve, reject) => {
-        readStream.pipe(writeStream);
-        writeStream.on('finish', resolve);
-        writeStream.on('error', reject);
-      });
-      
-      console.log(`Video ${videoType} committed to attached_assets: ${fileName}`);
+      console.log(`Video ${videoType} already in attached_assets: ${fileName}`);
     } catch (error) {
       console.error(`Error committing video ${videoType}:`, error);
       throw error;
@@ -1351,32 +1359,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/media/upload", requireAuth, async (req, res) => {
-    try {
-      const { fileName } = req.body;
-      if (!fileName) {
-        return res.status(400).json({ error: "fileName is required" });
+  app.post("/api/media/upload", requireAuth, (req, res) => {
+    uploadImage(req, res, (err) => {
+      if (err) {
+        console.error("Error uploading media:", err);
+        return res.status(400).json({ error: err.message });
       }
       
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getImageUploadURL();
-      res.json({ uploadURL });
-    } catch (error: any) {
-      console.error("Error getting upload URL:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      
+      const fileUrl = getUploadedFileUrl(req.file.filename);
+      res.json({ 
+        url: fileUrl,
+        filename: req.file.filename 
+      });
+    });
   });
 
-  // Upload hero video to object storage and then to attached_assets
-  app.post("/api/upload-hero-video", requireAuth, async (req, res) => {
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getImageUploadURL();
-      res.json({ uploadURL });
-    } catch (error: any) {
-      console.error("Error getting video upload URL:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+  // Upload hero video directly to attached_assets
+  app.post("/api/upload-hero-video", requireAuth, (req, res) => {
+    uploadVideo(req, res, (err) => {
+      if (err) {
+        console.error("Error uploading hero video:", err);
+        return res.status(400).json({ error: err.message });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      
+      const fileUrl = getUploadedFileUrl(req.file.filename);
+      res.json({ 
+        url: fileUrl,
+        filename: req.file.filename 
+      });
+    });
   });
 
   // Save uploaded video URL to pending state (not yet committed to attached_assets)
@@ -1467,34 +1486,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Download video from object storage to attached_assets
+  // Restore videos - now videos are in attached_assets already, no need to download
   app.post("/api/restore-videos", async (req, res) => {
     try {
-      const objectStorageService = new ObjectStorageService();
-      
       const videoFiles = ['hero.landingpage.mp4', 'hero2.landingpage.mp4'];
       const results: any[] = [];
       
       for (const fileName of videoFiles) {
-        try {
-          const file = await objectStorageService.searchPublicObject(fileName);
-          if (file) {
-            const localPath = path.join(process.cwd(), 'attached_assets', fileName);
-            const writeStream = fs.createWriteStream(localPath);
-            const readStream = file.createReadStream();
-            
-            await new Promise((resolve, reject) => {
-              readStream.pipe(writeStream);
-              writeStream.on('finish', resolve);
-              writeStream.on('error', reject);
-            });
-            
-            results.push({ fileName, status: 'downloaded', path: localPath });
-          } else {
-            results.push({ fileName, status: 'not_found' });
-          }
-        } catch (error: any) {
-          results.push({ fileName, status: 'error', error: error.message });
+        const localPath = path.join(process.cwd(), 'attached_assets', fileName);
+        if (fs.existsSync(localPath)) {
+          results.push({ fileName, status: 'already_exists', path: localPath });
+        } else {
+          results.push({ fileName, status: 'not_found' });
         }
       }
       
@@ -1505,17 +1508,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // News Images Upload API
-  app.post("/api/news-images/upload", requireAuth, async (req, res) => {
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getImageUploadURL();
-      res.json({ uploadURL });
-    } catch (error: any) {
-      console.error("Error getting news image upload URL:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
+  // News Images Upload API - already implemented above, this is duplicate
+  // Removed duplicate /api/news-images/upload endpoint
 
   // Customization Schema APIs
   app.get("/api/customization-schemas", async (req, res) => {
@@ -2171,117 +2165,78 @@ Generated by Hum's Pizza Frontend Backup System
     }
   });
 
-  // Save backup to object storage
+  // Save backup to local storage (Object Storage removed)
   app.post("/api/backup/save-to-storage", requireAdmin, async (req, res) => {
     try {
-      console.log('💾 Saving backup to object storage...');
+      console.log('💾 Saving backup to local storage...');
       
       // Create database backup
       const dbBackup = await storage.createBackup();
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       
-      try {
-        const objectStorageService = new ObjectStorageService();
-        
-        // Create backup data
-        const backupData = {
-          database: dbBackup,
-          metadata: {
-            version: '1.0',
-            createdAt: new Date().toISOString(),
-            type: 'database-only',
-            source: 'Hum\'s Pizza Restaurant System'
-          }
-        };
-        
-        // Get upload URL from object storage
-        const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-        
-        // Upload backup to object storage
-        const response = await fetch(uploadURL, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(backupData, null, 2)
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+      // Create backup data
+      const backupData = {
+        database: dbBackup,
+        metadata: {
+          version: '1.0',
+          createdAt: new Date().toISOString(),
+          type: 'database-only',
+          source: 'Hum\'s Pizza Restaurant System'
         }
-        
-        // Set ACL policy for the uploaded backup
-        const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
-          uploadURL,
-          {
-            owner: req.session.userId,
-            visibility: "private" // Keep backups private
-          }
-        );
-        
-        console.log('✅ Backup saved to object storage successfully');
-        res.json({ 
-          message: 'Backup saved to storage successfully',
-          objectPath,
-          timestamp,
-          size: JSON.stringify(backupData).length
-        });
-        
-      } catch (storageError) {
-        console.error('❌ Object storage error:', storageError);
-        res.status(500).json({ message: 'Failed to save to object storage: ' + storageError });
+      };
+      
+      // Save backup to local file
+      const backupDir = path.join(process.cwd(), 'backups');
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true });
       }
       
+      const backupPath = path.join(backupDir, `backup-${timestamp}.json`);
+      fs.writeFileSync(backupPath, JSON.stringify(backupData, null, 2));
+      
+      console.log('✅ Backup saved to local storage successfully');
+      res.json({ 
+        message: 'Backup saved successfully',
+        path: backupPath,
+        timestamp,
+        size: JSON.stringify(backupData).length
+      });
+      
     } catch (error: any) {
-      console.error('❌ Backup to storage failed:', error);
+      console.error('❌ Backup failed:', error);
       res.status(500).json({ message: 'Failed to create backup: ' + error.message });
     }
   });
 
-  // Save backend backup to storage
+  // Save backend backup to local storage
   app.post("/api/backup/save-backend-to-storage", requireAdmin, async (req, res) => {
     try {
-      console.log('🔧 Saving backend backup to object storage...');
+      console.log('🔧 Saving backend backup to local storage...');
       
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const backupDir = path.join(process.cwd(), 'backups');
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true });
+      }
       
-      // Create backend archive in memory
+      const backupPath = path.join(backupDir, `backend-${timestamp}.zip`);
+      const output = fs.createWriteStream(backupPath);
       const archive = archiver('zip', { zlib: { level: 9 } });
-      const chunks: Buffer[] = [];
       
-      archive.on('data', (chunk: any) => chunks.push(chunk));
-      archive.on('end', async () => {
-        try {
-          const zipBuffer = Buffer.concat(chunks);
-          
-          // Upload to storage
-          const response = await fetch(uploadURL, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/zip' },
-            body: zipBuffer
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Upload failed: ${response.status}`);
-          }
-          
-          const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
-            uploadURL, { owner: req.session.userId, visibility: "private" }
-          );
-          
-          res.json({ 
-            message: 'Backend backup saved to storage successfully',
-            objectPath,
-            size: zipBuffer.length,
-            type: 'backend'
-          });
-          
-        } catch (uploadError) {
-          console.error('❌ Backend upload error:', uploadError);
-          res.status(500).json({ message: 'Failed to upload backend backup' });
-        }
+      output.on('close', () => {
+        res.json({ 
+          message: 'Backend backup saved successfully',
+          path: backupPath,
+          size: archive.pointer(),
+          type: 'backend'
+        });
       });
+      
+      archive.on('error', (err: any) => {
+        throw err;
+      });
+      
+      archive.pipe(output);
       
       const projectRoot = process.cwd();
       archive.directory(path.join(projectRoot, 'server'), 'server');
@@ -2298,55 +2253,40 @@ Generated by Hum's Pizza Frontend Backup System
       archive.finalize();
       
     } catch (error: any) {
-      console.error('❌ Backend backup to storage failed:', error);
+      console.error('❌ Backend backup failed:', error);
       res.status(500).json({ message: 'Failed to save backend backup: ' + error.message });
     }
   });
 
-  // Save frontend backup to storage  
+  // Save frontend backup to local storage
   app.post("/api/backup/save-frontend-to-storage", requireAdmin, async (req, res) => {
     try {
-      console.log('🎨 Saving frontend backup to object storage...');
+      console.log('🎨 Saving frontend backup to local storage...');
       
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const backupDir = path.join(process.cwd(), 'backups');
+      if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true });
+      }
       
-      // Create frontend archive in memory
+      const backupPath = path.join(backupDir, `frontend-${timestamp}.zip`);
+      const output = fs.createWriteStream(backupPath);
       const archive = archiver('zip', { zlib: { level: 9 } });
-      const chunks: Buffer[] = [];
       
-      archive.on('data', (chunk: any) => chunks.push(chunk));
-      archive.on('end', async () => {
-        try {
-          const zipBuffer = Buffer.concat(chunks);
-          
-          // Upload to storage
-          const response = await fetch(uploadURL, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/zip' },
-            body: zipBuffer
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Upload failed: ${response.status}`);
-          }
-          
-          const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
-            uploadURL, { owner: req.session.userId, visibility: "private" }
-          );
-          
-          res.json({ 
-            message: 'Frontend backup saved to storage successfully',
-            objectPath,
-            size: zipBuffer.length,
-            type: 'frontend'
-          });
-          
-        } catch (uploadError) {
-          console.error('❌ Frontend upload error:', uploadError);
-          res.status(500).json({ message: 'Failed to upload frontend backup' });
-        }
+      output.on('close', () => {
+        res.json({ 
+          message: 'Frontend backup saved successfully',
+          path: backupPath,
+          size: archive.pointer(),
+          type: 'frontend'
+        });
       });
+      
+      archive.on('error', (err: any) => {
+        throw err;
+      });
+      
+      archive.pipe(output);
       
       const projectRoot = process.cwd();
       archive.directory(path.join(projectRoot, 'client'), 'client');
@@ -2367,7 +2307,7 @@ Generated by Hum's Pizza Frontend Backup System
       archive.finalize();
       
     } catch (error: any) {
-      console.error('❌ Frontend backup to storage failed:', error);
+      console.error('❌ Frontend backup failed:', error);
       res.status(500).json({ message: 'Failed to save frontend backup: ' + error.message });
     }
   });
