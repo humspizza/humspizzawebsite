@@ -1,37 +1,25 @@
 #!/bin/bash
+set -e
 
-# Production Build Script for Hum's Pizza
-# This script ensures proper file structure for deployment
+echo "🔨 Building for production..."
 
-echo "🏗️  Starting production build..."
+# Clean dist folder
+rm -rf dist
 
-# Step 1: Build the application
-echo "📦 Building frontend and backend..."
-npm run build
+# Build frontend (outputs to dist/public)
+echo "📦 Building frontend..."
+NODE_ENV=production npm run build
 
-# Step 2: Fix deployment structure
-echo "🔧 Fixing deployment file structure..."
-node fix-deployment.js
+# Copy attached_assets to dist for production serving
+echo "📂 Copying assets..."
+cp -r attached_assets dist/
 
-# Step 3: Verify structure
-echo "✅ Verifying deployment structure..."
-if [ -f "dist/index.html" ]; then
-    echo "✓ index.html found in dist/"
-else
-    echo "❌ index.html NOT found in dist/ - deployment may fail"
-    exit 1
+# Copy .env for production (if exists)
+if [ -f .env ]; then
+  cp .env dist/
 fi
 
-if [ -f "dist/index.js" ]; then
-    echo "✓ server bundle found in dist/"
-else
-    echo "❌ server bundle NOT found in dist/ - deployment may fail"
-    exit 1
-fi
-
-echo "🎉 Production build completed successfully!"
-echo "📁 Files are ready for deployment in dist/ directory"
+echo "✅ Production build complete!"
 echo ""
-echo "To deploy:"
-echo "1. Upload dist/ contents to your server"
-echo "2. Run: NODE_ENV=production node index.js"
+echo "To run in production:"
+echo "  cd dist && NODE_ENV=production node index.js"
