@@ -21,7 +21,7 @@ export default function Footer() {
                   onError={(e) => {
                     // Fallback if logo not found
                     const target = e.target as HTMLImageElement;
-                    target.src = "/api/assets/favicon.png";
+                    target.src = "/favicon.png";
                   }}
                 />
               </div>

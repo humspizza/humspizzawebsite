@@ -1347,7 +1347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         {
           name: "favicon.png",
-          url: "/public-objects/materials/favicon.png",
+          url: "/favicon.png",
           category: "icons",
           description: "Website Favicon"
         }
@@ -1737,7 +1737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <link rel="icon" type="image/png" href="/public-objects/materials/favicon.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     
     <!-- SEO Meta Tags -->
     <title>${seoTitle}</title>
