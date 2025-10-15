@@ -79,7 +79,7 @@ function HeroSection({ onOpenBooking }: HeroSectionProps) {
         controlsList="nodownload nofullscreen noremoteplayback"
         webkit-playsinline="true"
         x-webkit-airplay="deny"
-        poster="/api/assets/hero-poster.jpg"
+        poster="/og.bg.png"
         style={{ 
           objectFit: 'cover',
           WebkitTouchCallout: 'none',
@@ -100,7 +100,7 @@ function HeroSection({ onOpenBooking }: HeroSectionProps) {
           video.play().catch(() => {});
         }}
       >
-        <source src="/api/assets/hero.landingpage.mp4" type="video/mp4" />
+        <source src="/hero.landingpage.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
       {/* Video Overlay */}

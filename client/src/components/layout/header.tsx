@@ -75,7 +75,7 @@ export default function Header({ onOpenCart }: HeaderProps) {
           {/* Logo */}
           <Link href="/" className="flex items-center" data-testid="link-home">
             <img 
-              src="/api/assets/logo.humpizza.png" 
+              src="/logo.humpizza.png" 
               alt="Hum's Pizza Logo" 
               className="h-12 w-auto"
             />

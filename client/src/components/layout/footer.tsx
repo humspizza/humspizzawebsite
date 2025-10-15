@@ -15,7 +15,7 @@ export default function Footer() {
             <div className="lg:col-span-6">
               <div className="mb-4">
                 <img 
-                  src="/api/assets/logo.humpizza.png" 
+                  src="/logo.humpizza.png" 
                   alt="Hum's Pizza Logo" 
                   className="h-12 w-auto mb-4"
                   onError={(e) => {

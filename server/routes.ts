@@ -1335,21 +1335,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = [
         {
           name: "logo.humpizza.png",
-          url: "/public-objects/materials/logo.humpizza.png",
+          url: "/logo.humpizza.png",
           category: "logos",
           description: "Hum's Pizza Logo"
         },
         {
           name: "hero.landingpage.mp4",
-          url: "/public-objects/materials/hero.landingpage.mp4",
+          url: "/hero.landingpage.mp4",
           category: "videos",
           description: "Hero Landing Page Video"
+        },
+        {
+          name: "hero2.landingpage.mp4",
+          url: "/hero2.landingpage.mp4",
+          category: "videos",
+          description: "Reservation Section Video"
         },
         {
           name: "favicon.png",
           url: "/favicon.png",
           category: "icons",
           description: "Website Favicon"
+        },
+        {
+          name: "og.bg.png",
+          url: "/og.bg.png",
+          category: "images",
+          description: "Default OG Image"
         }
       ];
       res.json(files);

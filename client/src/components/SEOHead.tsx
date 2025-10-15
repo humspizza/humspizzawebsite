@@ -29,7 +29,7 @@ export default function SEOHead({
   const { language } = useLanguage();
   
   // Default OG image fallback
-  const defaultOgImage = `${window.location.origin}/api/assets/og.bg.png`;
+  const defaultOgImage = `${window.location.origin}/og.bg.png`;
   const finalOgImage = ogImage || defaultOgImage;
 
   useEffect(() => {

@@ -92,7 +92,7 @@ export default function ReservationSection() {
     if (hasIntersected && videoRef.current) {
       const video = videoRef.current;
       try {
-        video.src = `/api/assets/hero2.landingpage.mp4?v=${Date.now()}`;
+        video.src = `/hero2.landingpage.mp4?v=${Date.now()}`;
         video.load(); // Ensure video loads properly
         video.play().catch((error) => {
           // Video autoplay blocked, user interaction required
