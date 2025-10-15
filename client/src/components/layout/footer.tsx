@@ -15,13 +15,13 @@ export default function Footer() {
             <div className="lg:col-span-6">
               <div className="mb-4">
                 <img 
-                  src="/public-objects/materials/logo.humpizza.png" 
+                  src="/api/assets/logo.humpizza.png" 
                   alt="Hum's Pizza Logo" 
                   className="h-12 w-auto mb-4"
                   onError={(e) => {
-                    // Fallback to attached asset if object storage fails
+                    // Fallback if logo not found
                     const target = e.target as HTMLImageElement;
-                    target.src = "/attached_assets/logo.humspizza.png";
+                    target.src = "/api/assets/favicon.png";
                   }}
                 />
               </div>

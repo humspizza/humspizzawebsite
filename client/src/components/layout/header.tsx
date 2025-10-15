@@ -75,13 +75,13 @@ export default function Header({ onOpenCart }: HeaderProps) {
           {/* Logo */}
           <Link href="/" className="flex items-center" data-testid="link-home">
             <img 
-              src="/public-objects/materials/logo.humpizza.png" 
+              src="/api/assets/logo.humpizza.png" 
               alt="Hum's Pizza Logo" 
               className="h-12 w-auto"
               onError={(e) => {
-                // Fallback to attached asset if object storage fails
+                // Fallback if logo not found
                 const target = e.target as HTMLImageElement;
-                target.src = "/attached_assets/logo.humspizza.png";
+                target.src = "/api/assets/favicon.png";
               }}
             />
           </Link>

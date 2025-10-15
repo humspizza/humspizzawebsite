@@ -40,7 +40,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/",
         ogTitle: "Hum's Pizza | Gắn Kết Yêu Thương, Đậm Đà Vị Việt",
         ogDescription: "Hum's Pizza | Nhà hàng pizza phong cách Chicago & Ý, đến từ Việt Nam. Chúng tôi mang đến hương vị phô mai ngập tràn, vỏ bánh giòn thơm và trải nghiệm chuẩn vị trong từng lát bánh.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/",
         ogType: "website"
       },
@@ -51,7 +51,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/",
         ogTitle: "Hum's Pizza | Connecting Hearts, Authentic Vietnamese Taste",
         ogDescription: "Hum's Pizza | Connecting Hearts, Authentic Vietnamese Taste. We bring unique Vietnamese-style pizzas, crispy crusts, and authentic experiences in every slice.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/",
         ogType: "website"
       }
@@ -64,7 +64,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/menu",
         ogTitle: "Thực Đơn Pizza Đặc Biệt - Hum's Pizza",
         ogDescription: "Thực đơn pizza đa dạng với hương vị Việt Nam độc đáo tại Hum's Pizza.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/menu",
         ogType: "website"
       },
@@ -75,7 +75,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/menu",
         ogTitle: "Special Pizza Menu - Hum's Pizza",
         ogDescription: "Diverse pizza menu with unique Vietnamese flavors at Hum's Pizza.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/menu",
         ogType: "website"
       }
@@ -88,7 +88,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/about",
         ogTitle: "Câu Chuyện Hum's Pizza - Kết Nối Trái Tim",
         ogDescription: "Khám phá câu chuyện đằng sau Hum's Pizza và sứ mệnh kết nối trái tim qua hương vị.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/about",
         ogType: "website"
       },
@@ -99,7 +99,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/about",
         ogTitle: "The Story of Hum's Pizza - Connecting Hearts",
         ogDescription: "Discover the story behind Hum's Pizza and our mission to connect hearts through flavors.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/about",
         ogType: "website"
       }
@@ -112,7 +112,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/contact",
         ogTitle: "Liên Hệ Đặt Bàn - Hum's Pizza",
         ogDescription: "Liên hệ ngay với Hum's Pizza để đặt bàn và thưởng thức pizza tuyệt vời.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/contact",
         ogType: "website"
       },
@@ -123,7 +123,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/contact",
         ogTitle: "Contact & Reservations - Hum's Pizza",
         ogDescription: "Contact Hum's Pizza now for reservations and enjoy amazing pizza.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/contact",
         ogType: "website"
       }
@@ -136,7 +136,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/booking",
         ogTitle: "Đặt Bàn Online - Hum's Pizza",
         ogDescription: "Đặt bàn dễ dàng tại Hum's Pizza. Đảm bảo chỗ ngồi cho trải nghiệm tuyệt vời.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/booking",
         ogType: "website"
       },
@@ -147,7 +147,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/booking",
         ogTitle: "Online Table Booking - Hum's Pizza",
         ogDescription: "Easy table booking at Hum's Pizza. Secure your seat for an amazing experience.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/booking",
         ogType: "website"
       }
@@ -160,7 +160,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/news",
         ogTitle: "Tin Tức & Blog - Hum's Pizza",
         ogDescription: "Theo dõi tin tức mới nhất, khuyến mãi và sự kiện đặc biệt từ Hum's Pizza.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/news",
         ogType: "website"
       },
@@ -171,7 +171,7 @@ const getCurrentPageSEO = (pageKey: string, language: string) => {
         canonicalUrl: "https://humspizza.com/news",
         ogTitle: "News & Blog - Hum's Pizza",
         ogDescription: "Follow the latest news, promotions and special events from Hum's Pizza.",
-        ogImageUrl: "/public-objects/materials/og.bg.png",
+        ogImageUrl: "/api/assets/og.bg.png",
         ogUrl: "https://humspizza.com/news",
         ogType: "website"
       }

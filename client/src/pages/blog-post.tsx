@@ -166,7 +166,7 @@ export default function BlogPostPage() {
   const canonicalUrl = post ? (post.canonicalUrl || getProperBlogUrl()) : '';
 
   // Generate OG image URL - use ogImageUrl first, then coverImageUrl (thumbnail), then imageUrl, fallback to default OG image
-  const ogImageUrl = post ? (post.ogImageUrl || post.coverImageUrl || post.imageUrl || `${window.location.origin}/public-objects/materials/og.bg.png`) : '';
+  const ogImageUrl = post ? (post.ogImageUrl || post.coverImageUrl || post.imageUrl || `${window.location.origin}/api/assets/og.bg.png`) : '';
 
   // JSON-LD structured data effect
   useEffect(() => {
@@ -187,7 +187,7 @@ export default function BlogPostPage() {
           "name": "Hum's Pizza",
           "logo": {
             "@type": "ImageObject",
-            "url": `${window.location.origin}/public-objects/materials/logo.humpizza.png`
+            "url": `${window.location.origin}/api/assets/logo.humpizza.png`
           }
         },
         "datePublished": post.createdAt,

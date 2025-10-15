@@ -44,7 +44,7 @@ export default function Home({ onOpenBooking }: HomeProps) {
     canonicalUrl: "https://humspizza.com/",
     ogTitle: defaultOgTitle,
     ogDescription: defaultOgDescription,
-    ogImage: `${typeof window !== 'undefined' ? window.location.origin : ''}/public-objects/materials/og.bg.png`,
+    ogImage: `${typeof window !== 'undefined' ? window.location.origin : ''}/api/assets/og.bg.png`,
     ogUrl: "https://humspizza.com/",
     ogType: "website",
   });
