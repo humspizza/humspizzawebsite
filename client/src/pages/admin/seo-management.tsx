@@ -17,7 +17,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { Save, Upload, Eye, Link as LinkIcon, ImageIcon } from "lucide-react";
 import type { PageSeo } from "@shared/schema";
 import { ObjectUploader } from "@/components/ObjectUploader";
-import type { UploadResult } from "@uppy/core";
 
 // Page keys for different sections
 const pageKeys = [
@@ -270,7 +269,7 @@ export default function SeoManagement() {
   const text = t[currentLanguage];
 
   // Fetch SEO data for selected page and language
-  const { data: seoData, isLoading } = useQuery({
+  const { data: seoData, isLoading } = useQuery<PageSeo>({
     queryKey: [`/api/seo/pages/${selectedPage}/${editingLanguage}`],
     enabled: !!selectedPage && !!editingLanguage,
   });
@@ -338,30 +337,18 @@ export default function SeoManagement() {
   }, [selectedPage, editingLanguage, form]);
 
   // Handle upload
-  const handleGetUploadParameters = async () => {
-    const response = await apiRequest("POST", "/api/og-images/upload");
-    const data = await response.json();
-    return {
-      method: "PUT" as const,
-      url: data.uploadURL,
-    };
-  };
-
-  const handleUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+  const handleUploadComplete = async (result: {
+    successful: Array<{ uploadURL: string }>;
+    failed?: Array<{ error: any }>;
+  }) => {
+    setIsUploading(true);
     try {
-      setIsUploading(true);
       if (result.successful && result.successful.length > 0) {
-        const uploadedFile = result.successful[0];
-        const imageURL = uploadedFile.uploadURL;
+        const uploadURL = result.successful[0].uploadURL;
         
-        // Set ACL and get public URL
-        const response = await apiRequest("PUT", "/api/og-images", { imageURL });
-        const data = await response.json();
-        
-        // Update form with the public URL 
-        const publicURL = data.publicURL;
-        form.setValue("ogImageUrl", publicURL);
-        setUploadedImageUrl(publicURL);
+        // Update form with the uploaded URL
+        form.setValue("ogImageUrl", uploadURL);
+        setUploadedImageUrl(uploadURL);
         
         toast({
           title: "Upload thành công",
@@ -599,12 +586,9 @@ export default function SeoManagement() {
                               />
                               <ObjectUploader
                                 maxNumberOfFiles={1}
-                                maxFileSize={10485760} // 10MB for Open Graph images
-                                allowedFileTypes={['image/jpeg', 'image/jpg', 'image/png', 'image/webp']}
-                                onGetUploadParameters={handleGetUploadParameters}
+                                maxFileSize={10485760}
                                 onComplete={handleUploadComplete}
                                 buttonClassName="border-zinc-700 text-white hover:bg-zinc-700 px-3"
-                                disabled={isUploading}
                               >
                                 <div className="flex items-center gap-2">
                                   <ImageIcon className="w-4 h-4" />

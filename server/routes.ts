@@ -1086,28 +1086,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Object Storage endpoints - REMOVED (using local files only via /api/assets)
-  // All files now served from attached_assets/ folder
-  
-  /*
-  app.get("/public-objects/:filePath(*)", async (req, res) => {
-    // REMOVED - use /api/assets instead
+  // Local file upload endpoint for admin (replaces object storage)
+  app.post("/api/upload-image", requireAuth, (req, res) => {
+    uploadImage(req, res, (err) => {
+      if (err) {
+        console.error("Error uploading image:", err);
+        return res.status(400).json({ error: err.message });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      
+      const fileUrl = getUploadedFileUrl(req.file.filename);
+      res.json({ 
+        url: fileUrl,
+        filename: req.file.filename 
+      });
+    });
   });
-
-  app.get("/objects/:objectPath(*)", async (req, res) => {
-    // REMOVED - use /api/assets instead
-  });
-
-  app.post("/api/objects/upload", requireAuth, async (req, res) => {
-    // REMOVED - files stored locally now
-  });
-
-  app.put("/api/menu-images", requireAuth, async (req, res) => {
-    // REMOVED - not needed for local files
-  });
-  */
-  
-  // Note: All static assets now served via /api/assets route defined in server/index.ts
 
   // User management routes
   app.get("/api/users", requireAdmin, async (req, res) => {

@@ -172,21 +172,10 @@ export default function MenuManagement() {
     },
   });
 
-  const handleGetUploadParameters = async () => {
-    const response = await apiRequest("POST", "/api/objects/upload");
-    const data = await response.json();
-    return {
-      method: 'PUT' as const,
-      url: data.uploadURL,
-    };
-  };
-
   const handleUploadComplete = async (result: {
     successful: Array<{ uploadURL: string }>;
     failed?: Array<{ error: any }>;
   }) => {
-    console.log("Upload result:", result);
-    
     if (result.successful && result.successful.length > 0) {
       const uploadURL = result.successful[0].uploadURL;
       
@@ -196,13 +185,6 @@ export default function MenuManagement() {
       toast({
         title: "Thành công",
         description: "Hình ảnh đã được tải lên thành công",
-      });
-    } else if (result.failed && result.failed.length > 0) {
-      console.error("Upload failed:", result.failed);
-      toast({
-        title: "Lỗi tải lên",
-        description: "Không thể tải lên hình ảnh. Vui lòng thử lại.",
-        variant: "destructive",
       });
     }
   };
@@ -795,7 +777,6 @@ export default function MenuManagement() {
                         <ObjectUploader
                           maxNumberOfFiles={1}
                           maxFileSize={10485760}
-                          onGetUploadParameters={handleGetUploadParameters}
                           onComplete={handleUploadComplete}
                           buttonClassName="bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-600"
                         >

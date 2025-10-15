@@ -6,10 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
   maxFileSize?: number;
-  onGetUploadParameters: () => Promise<{
-    method: "PUT";
-    url: string;
-  }>;
+  uploadEndpoint?: string; // Local upload endpoint
   onComplete?: (result: {
     successful: Array<{ uploadURL: string }>;
     failed?: Array<{ error: any }>;
@@ -20,12 +17,12 @@ interface ObjectUploaderProps {
 
 /**
  * A simple file upload component that opens the native file dialog directly.
- * No complex modal interface, just click and select files from your computer.
+ * Uploads files to local server via FormData.
  */
 export function ObjectUploader({
   maxNumberOfFiles = 1,
   maxFileSize = 10485760, // 10MB default
-  onGetUploadParameters,
+  uploadEndpoint = "/api/upload-image",
   onComplete,
   buttonClassName,
   children,
@@ -66,51 +63,25 @@ export function ObjectUploader({
     setUploading(true);
     
     try {
-      // Get upload URL
-      const { url } = await onGetUploadParameters();
+      // Upload file via FormData
+      const formData = new FormData();
+      formData.append('image', file);
       
-      // Upload file
-      const response = await fetch(url, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
+      const response = await fetch(uploadEndpoint, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include', // Include session cookie
       });
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
+        const error = await response.json();
+        throw new Error(error.error || `Upload failed: ${response.status}`);
       }
 
-      // Call completion callback with normalized URL
-      const objectStorageService = { normalizeObjectEntityPath: (rawPath: string) => {
-        if (!rawPath.startsWith("https://storage.googleapis.com/")) {
-          return rawPath;
-        }
-        
-        const url = new URL(rawPath);
-        const rawObjectPath = url.pathname;
-        
-        // Extract bucket and object path
-        const pathParts = rawObjectPath.split("/");
-        if (pathParts.length < 3) return rawObjectPath;
-        
-        const bucketName = pathParts[1];
-        const objectName = pathParts.slice(2).join("/");
-        
-        // Check if it's in private directory
-        if (objectName.startsWith(".private/")) {
-          const entityId = objectName.replace(".private/", "");
-          return `/objects/${entityId}`;
-        }
-        
-        return rawObjectPath;
-      }};
-      
-      const normalizedURL = objectStorageService.normalizeObjectEntityPath(url.split('?')[0]);
+      const data = await response.json();
       
       onComplete?.({
-        successful: [{ uploadURL: normalizedURL }]
+        successful: [{ uploadURL: data.url }]
       });
 
     } catch (error) {
@@ -118,6 +89,12 @@ export function ObjectUploader({
       onComplete?.({
         successful: [],
         failed: [{ error }]
+      });
+      
+      toast({
+        title: "Lỗi tải lên",
+        description: error instanceof Error ? error.message : "Không thể tải file lên",
+        variant: "destructive",
       });
     } finally {
       setUploading(false);
