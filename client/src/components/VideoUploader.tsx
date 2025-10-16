@@ -84,27 +84,26 @@ export function VideoUploader({
     setUploading(true);
     
     try {
-      // Get upload URL
-      const { uploadURL } = await apiRequest("/upload-hero-video", {
-        method: "POST",
-      });
+      // Upload file via FormData
+      const formData = new FormData();
+      formData.append('video', file);
       
-      // Upload file to object storage
-      const response = await fetch(uploadURL, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
+      const response = await fetch('/api/upload-hero-video', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include', // Include session cookie
       });
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Upload failed: ${response.status}`);
       }
 
-      // Save the video to attached_assets
+      const data = await response.json();
+
+      // Save the video to pending state
       const result = await saveVideoMutation.mutateAsync({
-        videoUrl: uploadURL.split('?')[0], // Remove query parameters
+        videoUrl: data.url,
         videoType,
       });
 
