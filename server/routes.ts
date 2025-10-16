@@ -1462,36 +1462,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
       
       const status = videos.map(video => {
-        const filePath = path.join(process.cwd(), 'attached_assets', video.fileName);
-        const exists = fs.existsSync(filePath);
         let fileSize = 0;
         let lastModified = null;
         let videoUrl = null;
         let isPending = false;
+        let exists = false;
+        let actualFileName = video.fileName;
         
-        // Check for pending video first
+        // Priority 1: Check for pending video (not yet committed)
         const pendingUrl = video.type === 'hero' 
           ? homeContent?.pendingHeroVideoUrl 
           : homeContent?.pendingReservationVideoUrl;
           
         if (pendingUrl) {
+          // Has pending video waiting to be committed
           isPending = true;
-          videoUrl = pendingUrl; // Use object storage URL for pending
-          // Try to get file info from object storage if possible
-          fileSize = 0; // Will be determined by frontend
-          lastModified = new Date().toISOString(); // Current time as pending indicator
-        } else if (exists) {
-          const stats = fs.statSync(filePath);
-          fileSize = Math.round(stats.size / 1024 / 1024 * 100) / 100; // MB with 2 decimals
-          lastModified = stats.mtime.toISOString();
-          videoUrl = `/api/assets/${video.fileName}`;
+          videoUrl = pendingUrl;
+          exists = true;
+          
+          // Try to extract file name from URL for size checking
+          const urlMatch = pendingUrl.match(/\/([^/]+)$/);
+          if (urlMatch) {
+            const pendingFileName = urlMatch[1];
+            const pendingFilePath = path.join(process.cwd(), 'attached_assets', pendingFileName);
+            if (fs.existsSync(pendingFilePath)) {
+              const stats = fs.statSync(pendingFilePath);
+              fileSize = Math.round(stats.size / 1024 / 1024 * 100) / 100;
+            }
+          }
+          lastModified = new Date().toISOString();
+        } else {
+          // Priority 2: Check committed video URL from database
+          const committedUrl = video.type === 'hero' 
+            ? homeContent?.heroVideoUrl 
+            : homeContent?.reservationVideoUrl;
+            
+          if (committedUrl) {
+            // Has committed video in database
+            videoUrl = committedUrl;
+            exists = true;
+            
+            // Extract file name from URL to get file info
+            const urlMatch = committedUrl.match(/\/([^/]+)$/);
+            if (urlMatch) {
+              actualFileName = urlMatch[1];
+              const committedFilePath = path.join(process.cwd(), 'attached_assets', actualFileName);
+              if (fs.existsSync(committedFilePath)) {
+                const stats = fs.statSync(committedFilePath);
+                fileSize = Math.round(stats.size / 1024 / 1024 * 100) / 100;
+                lastModified = stats.mtime.toISOString();
+              }
+            }
+          } else {
+            // Priority 3: Fallback to default video file
+            const filePath = path.join(process.cwd(), 'attached_assets', video.fileName);
+            exists = fs.existsSync(filePath);
+            
+            if (exists) {
+              const stats = fs.statSync(filePath);
+              fileSize = Math.round(stats.size / 1024 / 1024 * 100) / 100;
+              lastModified = stats.mtime.toISOString();
+              videoUrl = `/api/assets/${video.fileName}`;
+            }
+          }
         }
         
         return {
           type: video.type,
-          fileName: video.fileName,
+          fileName: actualFileName,
           displayName: video.displayName,
-          exists: exists || isPending,
+          exists,
           fileSize: fileSize > 0 ? `${fileSize} MB` : (isPending ? 'Đang chờ lưu...' : null),
           lastModified,
           url: videoUrl,
