@@ -61,6 +61,7 @@ export default function HomeManagement() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/home-content"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/hero-videos/status"] });
       toast({
         title: "Thành công",
         description: "Nội dung trang chủ đã được cập nhật!",
