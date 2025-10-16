@@ -21,13 +21,22 @@ function HeroSection({ onOpenBooking }: HeroSectionProps) {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
+  const videoUrl = homeContent?.heroVideoUrl || "/hero.landingpage.mp4";
+
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
+      // Reset loaded state when URL changes
+      setVideoLoaded(false);
+      setVideoError(false);
+      
       // Set video properties for immediate playback
       video.muted = true;
       video.playsInline = true;
       video.defaultMuted = true;
+      
+      // Force reload video source
+      video.load();
       
       const playVideo = async () => {
         try {
@@ -52,7 +61,7 @@ function HeroSection({ onOpenBooking }: HeroSectionProps) {
         video.removeEventListener('canplay', handleCanPlay);
       };
     }
-  }, []);
+  }, [videoUrl]);
   
   return (
     <section className="hero relative h-screen overflow-hidden bg-black">
@@ -101,7 +110,7 @@ function HeroSection({ onOpenBooking }: HeroSectionProps) {
         }}
       >
         <source 
-          src={homeContent?.heroVideoUrl || "/hero.landingpage.mp4"} 
+          src={videoUrl} 
           type="video/mp4" 
         />
         Your browser does not support the video tag.
