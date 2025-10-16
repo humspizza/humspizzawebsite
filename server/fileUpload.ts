@@ -4,6 +4,8 @@ import fs from 'fs';
 import { randomUUID } from 'crypto';
 
 // Ensure attached_assets directory exists
+// In production, use attached_assets at root level (not inside dist/)
+// This ensures uploaded files persist across builds
 const attachedAssetsDir = path.join(process.cwd(), 'attached_assets');
 if (!fs.existsSync(attachedAssetsDir)) {
   fs.mkdirSync(attachedAssetsDir, { recursive: true });
