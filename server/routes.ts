@@ -933,21 +933,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if this update request includes video commit flag
       if (updates.commitPendingVideos === true) {
+        console.log('🎬 Committing pending videos...');
+        
         // Process pending hero video
         if (currentContent?.pendingHeroVideoUrl) {
-          await commitVideoToAttachedAssets(currentContent.pendingHeroVideoUrl, 'hero');
+          const committedUrl = await commitVideoToAttachedAssets(currentContent.pendingHeroVideoUrl, 'hero');
+          console.log(`✅ Hero video committed: ${committedUrl}`);
+          updates.heroVideoUrl = committedUrl; // Set the committed video URL
           updates.pendingHeroVideoUrl = null; // Clear pending URL
         }
         
         // Process pending reservation video  
         if (currentContent?.pendingReservationVideoUrl) {
-          await commitVideoToAttachedAssets(currentContent.pendingReservationVideoUrl, 'reservation');
+          const committedUrl = await commitVideoToAttachedAssets(currentContent.pendingReservationVideoUrl, 'reservation');
+          console.log(`✅ Reservation video committed: ${committedUrl}`);
+          updates.reservationVideoUrl = committedUrl; // Set the committed video URL
           updates.pendingReservationVideoUrl = null; // Clear pending URL
         }
         
         // Remove the flag from updates so it's not stored in DB
         delete updates.commitPendingVideos;
       }
+      
+      console.log('📝 Updating home content with:', { 
+        heroVideoUrl: updates.heroVideoUrl, 
+        reservationVideoUrl: updates.reservationVideoUrl 
+      });
       
       const updatedContent = await storage.updateHomeContent(updates);
       res.json(updatedContent);
@@ -976,11 +987,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Helper function to commit video - now videos are uploaded directly to attached_assets
-  async function commitVideoToAttachedAssets(videoUrl: string, videoType: 'hero' | 'reservation') {
+  async function commitVideoToAttachedAssets(videoUrl: string, videoType: 'hero' | 'reservation'): Promise<string> {
     try {
-      // Videos are already uploaded to attached_assets, no need to move them
-      const fileName = videoType === 'hero' ? 'hero.landingpage.mp4' : 'hero2.landingpage.mp4';
-      console.log(`Video ${videoType} already in attached_assets: ${fileName}`);
+      // Videos are already uploaded to attached_assets, just return the URL
+      console.log(`✅ Committing video ${videoType}: ${videoUrl}`);
+      return videoUrl; // Return the URL to be stored in heroVideoUrl/reservationVideoUrl
     } catch (error) {
       console.error(`Error committing video ${videoType}:`, error);
       throw error;

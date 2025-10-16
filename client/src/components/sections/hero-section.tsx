@@ -100,7 +100,10 @@ function HeroSection({ onOpenBooking }: HeroSectionProps) {
           video.play().catch(() => {});
         }}
       >
-        <source src="/hero.landingpage.mp4" type="video/mp4" />
+        <source 
+          src={homeContent?.heroVideoUrl || "/hero.landingpage.mp4"} 
+          type="video/mp4" 
+        />
         Your browser does not support the video tag.
       </video>
       {/* Video Overlay */}

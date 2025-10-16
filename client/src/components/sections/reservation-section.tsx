@@ -92,7 +92,8 @@ export default function ReservationSection() {
     if (hasIntersected && videoRef.current) {
       const video = videoRef.current;
       try {
-        video.src = `/hero2.landingpage.mp4?v=${Date.now()}`;
+        const videoUrl = homeContent?.reservationVideoUrl || `/hero2.landingpage.mp4`;
+        video.src = `${videoUrl}?v=${Date.now()}`;
         video.load(); // Ensure video loads properly
         video.play().catch((error) => {
           // Video autoplay blocked, user interaction required
@@ -101,7 +102,7 @@ export default function ReservationSection() {
         // Error loading video
       }
     }
-  }, [hasIntersected]);
+  }, [hasIntersected, homeContent]);
 
   return (
     <section ref={elementRef} className="relative py-20 overflow-hidden">

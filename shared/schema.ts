@@ -488,6 +488,10 @@ export const homeContent = pgTable("home_content", {
   blogSubtitle: text("blog_subtitle").notNull(),
   blogSubtitleVi: text("blog_subtitle_vi").notNull(),
 
+  // Video URLs for hero and reservation sections (committed videos)
+  heroVideoUrl: text("hero_video_url"),
+  reservationVideoUrl: text("reservation_video_url"),
+  
   // Pending video URLs from object storage (before committing to attached_assets)
   pendingHeroVideoUrl: text("pending_hero_video_url"),
   pendingReservationVideoUrl: text("pending_reservation_video_url"),
