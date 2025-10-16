@@ -8,8 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { InsertHomeContent } from "@shared/schema";
 import { VideoUploader } from "@/components/VideoUploader";
 import { VideoPreview } from "@/components/VideoPreview";
-import { Upload } from "lucide-react";
+import { Upload, Link } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const API_BASE = "/api";
 
@@ -34,6 +35,8 @@ export default function HomeManagement() {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   const [formData, setFormData] = useState<Partial<InsertHomeContent>>({});
+  const [heroVideoUrl, setHeroVideoUrl] = useState("");
+  const [reservationVideoUrl, setReservationVideoUrl] = useState("");
 
   // Fetch current home content
   const { data: homeContent, isLoading } = useQuery({
@@ -121,6 +124,80 @@ export default function HomeManagement() {
 
   const handleInputChange = (field: keyof InsertHomeContent, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Handle video URL paste for hero video
+  const handleHeroVideoUrlSubmit = async () => {
+    if (!heroVideoUrl.trim()) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng nhập URL video",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await apiRequest("/save-hero-video", {
+        method: "POST",
+        body: JSON.stringify({ 
+          videoUrl: heroVideoUrl, 
+          videoType: "hero" 
+        }),
+      });
+
+      toast({
+        title: "Thành công",
+        description: "URL video đã được lưu. Bấm 'Lưu thay đổi' để áp dụng.",
+      });
+
+      setHeroVideoUrl(""); // Clear input
+      queryClient.invalidateQueries({ queryKey: ["/api/hero-videos/status"] });
+      refetchVideos();
+    } catch (error: any) {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Không thể lưu URL video",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle video URL paste for reservation video
+  const handleReservationVideoUrlSubmit = async () => {
+    if (!reservationVideoUrl.trim()) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng nhập URL video",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await apiRequest("/save-hero-video", {
+        method: "POST",
+        body: JSON.stringify({ 
+          videoUrl: reservationVideoUrl, 
+          videoType: "reservation" 
+        }),
+      });
+
+      toast({
+        title: "Thành công",
+        description: "URL video đã được lưu. Bấm 'Lưu thay đổi' để áp dụng.",
+      });
+
+      setReservationVideoUrl(""); // Clear input
+      queryClient.invalidateQueries({ queryKey: ["/api/hero-videos/status"] });
+      refetchVideos();
+    } catch (error: any) {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Không thể lưu URL video",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -221,6 +298,7 @@ export default function HomeManagement() {
 
                 {/* Upload Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Hero Video */}
                   <div className="flex flex-col h-full">
                     <div className="flex-1 space-y-4">
                       <div>
@@ -230,29 +308,59 @@ export default function HomeManagement() {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4">
-                      <VideoUploader
-                        videoType="hero"
-                        onComplete={(result) => {
-                          if (result.success) {
-                            toast({
-                              title: "Video đã tải lên!",
-                              description: "Video sẽ áp dụng khi bấm 'Lưu thay đổi' bên dưới",
-                            });
-                            // Refresh video status to show pending state
-                            queryClient.invalidateQueries({ queryKey: ["/api/hero-videos/status"] });
-                            refetchVideos();
-                          }
-                        }}
-                        buttonClassName="w-full"
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <Upload className="w-4 h-4" />
-                          <span>{t("home.uploadMainBtn")}</span>
-                        </div>
-                      </VideoUploader>
-                    </div>
+                    <Tabs defaultValue="upload" className="mt-4">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="upload" data-testid="tab-upload-hero">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Tải lên
+                        </TabsTrigger>
+                        <TabsTrigger value="url" data-testid="tab-url-hero">
+                          <Link className="w-4 h-4 mr-2" />
+                          Dùng URL
+                        </TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="upload" className="mt-4">
+                        <VideoUploader
+                          videoType="hero"
+                          onComplete={(result) => {
+                            if (result.success) {
+                              toast({
+                                title: "Video đã tải lên!",
+                                description: "Video sẽ áp dụng khi bấm 'Lưu thay đổi' bên dưới",
+                              });
+                              queryClient.invalidateQueries({ queryKey: ["/api/hero-videos/status"] });
+                              refetchVideos();
+                            }
+                          }}
+                          buttonClassName="w-full"
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <Upload className="w-4 h-4" />
+                            <span>{t("home.uploadMainBtn")}</span>
+                          </div>
+                        </VideoUploader>
+                      </TabsContent>
+                      <TabsContent value="url" className="mt-4 space-y-3">
+                        <Input
+                          placeholder="https://example.com/video.mp4"
+                          value={heroVideoUrl}
+                          onChange={(e) => setHeroVideoUrl(e.target.value)}
+                          className="w-full"
+                          data-testid="input-hero-video-url"
+                        />
+                        <Button 
+                          onClick={handleHeroVideoUrlSubmit}
+                          className="w-full"
+                          data-testid="button-submit-hero-url"
+                        >
+                          <Link className="w-4 h-4 mr-2" />
+                          Lưu URL Video
+                        </Button>
+                      </TabsContent>
+                    </Tabs>
                   </div>
+
+                  {/* Reservation Video */}
                   <div className="flex flex-col h-full">
                     <div className="flex-1 space-y-4">
                       <div>
@@ -262,33 +370,62 @@ export default function HomeManagement() {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4">
-                      <VideoUploader
-                        videoType="reservation"
-                        onComplete={(result) => {
-                          if (result.success) {
-                            toast({
-                              title: "Video đã tải lên!",
-                              description: "Video sẽ áp dụng khi bấm 'Lưu thay đổi' bên dưới",
-                            });
-                            // Refresh video status to show pending state
-                            queryClient.invalidateQueries({ queryKey: ["/api/hero-videos/status"] });
-                            refetchVideos();
-                          }
-                        }}
-                        buttonClassName="w-full"
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <Upload className="w-4 h-4" />
-                          <span>{t("home.uploadReservationBtn")}</span>
-                        </div>
-                      </VideoUploader>
-                    </div>
+                    <Tabs defaultValue="upload" className="mt-4">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="upload" data-testid="tab-upload-reservation">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Tải lên
+                        </TabsTrigger>
+                        <TabsTrigger value="url" data-testid="tab-url-reservation">
+                          <Link className="w-4 h-4 mr-2" />
+                          Dùng URL
+                        </TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="upload" className="mt-4">
+                        <VideoUploader
+                          videoType="reservation"
+                          onComplete={(result) => {
+                            if (result.success) {
+                              toast({
+                                title: "Video đã tải lên!",
+                                description: "Video sẽ áp dụng khi bấm 'Lưu thay đổi' bên dưới",
+                              });
+                              queryClient.invalidateQueries({ queryKey: ["/api/hero-videos/status"] });
+                              refetchVideos();
+                            }
+                          }}
+                          buttonClassName="w-full"
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <Upload className="w-4 h-4" />
+                            <span>{t("home.uploadReservationBtn")}</span>
+                          </div>
+                        </VideoUploader>
+                      </TabsContent>
+                      <TabsContent value="url" className="mt-4 space-y-3">
+                        <Input
+                          placeholder="https://example.com/video.mp4"
+                          value={reservationVideoUrl}
+                          onChange={(e) => setReservationVideoUrl(e.target.value)}
+                          className="w-full"
+                          data-testid="input-reservation-video-url"
+                        />
+                        <Button 
+                          onClick={handleReservationVideoUrlSubmit}
+                          className="w-full"
+                          data-testid="button-submit-reservation-url"
+                        >
+                          <Link className="w-4 h-4 mr-2" />
+                          Lưu URL Video
+                        </Button>
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 </div>
                 <div className="mt-3 p-3 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">
-                    {t("home.videoNote")}
+                    <strong>Lưu ý:</strong> Video sẽ được áp dụng khi bấm "Lưu thay đổi" bên dưới. 
+                    Bạn có thể tải video từ máy (tối đa 200MB) hoặc dùng URL từ nguồn khác (CDN, YouTube, v.v.).
                   </p>
                 </div>
               </div>
