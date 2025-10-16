@@ -88,7 +88,6 @@ function HeroSection({ onOpenBooking }: HeroSectionProps) {
         controlsList="nodownload nofullscreen noremoteplayback"
         webkit-playsinline="true"
         x-webkit-airplay="deny"
-        poster="/og.bg.png"
         style={{ 
           objectFit: 'cover',
           WebkitTouchCallout: 'none',
