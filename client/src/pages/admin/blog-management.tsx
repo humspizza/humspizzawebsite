@@ -719,6 +719,46 @@ export default function BlogManagement() {
                       {/* Upload component - only show if less than 5 images */}
                       {contentImages.length < 5 ? (
                         <LocalImageUpload
+                          allowMultiple={true}
+                          onMultipleUploaded={(urls) => {
+                            // Handle multiple files uploaded at once
+                            const remainingSlots = 5 - contentImages.length;
+                            
+                            if (remainingSlots <= 0) {
+                              toast({
+                                title: "Giới hạn 5 ảnh",
+                                description: "Đã đạt giới hạn tối đa 5 ảnh. Xóa ảnh cũ để thêm ảnh mới.",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+                            
+                            const urlsToAdd = urls.slice(0, remainingSlots);
+                            
+                            // Add to content images list
+                            setContentImages(prev => [...prev, ...urlsToAdd]);
+                            
+                            const currentContent = form.getValues().content || '';
+                            const currentContentVi = form.getValues().contentVi || '';
+                            
+                            // Append all images to end of content
+                            const imageMarkdowns = urlsToAdd.map(url => `\n\n![Ảnh](${url})`).join('');
+                            form.setValue('content', currentContent + imageMarkdowns);
+                            form.setValue('contentVi', currentContentVi + imageMarkdowns);
+                            
+                            toast({
+                              title: `Đã thêm ${urlsToAdd.length} ảnh nội dung`,
+                              description: "Các ảnh đã được chèn vào cuối bài viết tự động",
+                            });
+                            
+                            if (urls.length > remainingSlots) {
+                              toast({
+                                title: "Giới hạn 5 ảnh",
+                                description: `Chỉ thêm được ${remainingSlots} ảnh còn lại (tối đa 5 ảnh). Xóa ảnh cũ để thêm thêm.`,
+                                variant: "destructive"
+                              });
+                            }
+                          }}
                           onFileUploaded={(url) => {
                             // Handle error messages
                             if (url.startsWith('ERROR:')) {
@@ -731,7 +771,7 @@ export default function BlogManagement() {
                               return;
                             }
 
-                            // Check limit before adding
+                            // Check limit before adding (single file upload)
                             if (contentImages.length >= 5) {
                               toast({
                                 title: "Giới hạn 5 ảnh",
@@ -759,7 +799,7 @@ export default function BlogManagement() {
                           }}
                           uploadEndpoint="/api/news-images/upload"
                           maxSize={10}
-                          placeholder="Kéo thả ảnh nội dung vào đây hoặc click để chọn file"
+                          placeholder="Kéo thả ảnh nội dung vào đây (có thể chọn nhiều ảnh cùng lúc)"
                           className="w-full"
                         />
                       ) : (

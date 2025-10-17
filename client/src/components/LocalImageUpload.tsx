@@ -5,6 +5,7 @@ import { ImageCropper } from './ImageCropper';
 
 interface LocalImageUploadProps {
   onFileUploaded: (url: string) => void;
+  onMultipleUploaded?: (urls: string[]) => void;
   uploadEndpoint: string; // e.g., '/api/news-images/upload'
   accept?: string;
   maxSize?: number; // in MB
@@ -12,10 +13,12 @@ interface LocalImageUploadProps {
   currentImage?: string;
   className?: string;
   cropType?: 'thumbnail' | 'cover' | 'none'; // thumbnail = 4:3, cover = 16:9, none = no crop
+  allowMultiple?: boolean;
 }
 
 export function LocalImageUpload({
   onFileUploaded,
+  onMultipleUploaded,
   uploadEndpoint,
   accept = "image/*",
   maxSize = 10,
@@ -23,6 +26,7 @@ export function LocalImageUpload({
   currentImage,
   className = "",
   cropType = 'none',
+  allowMultiple = false,
 }: LocalImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -48,16 +52,72 @@ export function LocalImageUpload({
     
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      handleFileUpload(files[0]);
+      if (allowMultiple && files.length > 1) {
+        handleMultipleFileUpload(files);
+      } else {
+        handleFileUpload(files[0]);
+      }
     }
-  }, []);
+  }, [allowMultiple]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFileUpload(files[0]);
+      const fileArray = Array.from(files);
+      if (allowMultiple && fileArray.length > 1) {
+        handleMultipleFileUpload(fileArray);
+      } else {
+        handleFileUpload(fileArray[0]);
+      }
     }
-  }, []);
+  }, [allowMultiple]);
+
+  const handleMultipleFileUpload = async (files: File[]) => {
+    const uploadedUrls: string[] = [];
+    
+    for (const file of files) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        onFileUploaded('ERROR:Chỉ được upload file ảnh');
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > maxSize * 1024 * 1024) {
+        onFileUploaded(`ERROR:File ${file.name} vượt quá ${maxSize}MB`);
+        continue;
+      }
+
+      try {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch(uploadEndpoint, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error(`Upload failed for ${file.name}`);
+        }
+
+        const result = await response.json();
+        uploadedUrls.push(result.url);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
+        onFileUploaded(`ERROR:${errorMessage}`);
+      }
+    }
+
+    setIsUploading(false);
+
+    // Notify parent with all uploaded URLs
+    if (uploadedUrls.length > 0 && onMultipleUploaded) {
+      onMultipleUploaded(uploadedUrls);
+    }
+  };
 
   const handleFileUpload = async (file: File) => {
     // Validate file type
@@ -131,7 +191,8 @@ export function LocalImageUpload({
         xhr.send(formData);
       });
 
-      // Notify parent with uploaded URL
+      // Update preview to real URL and notify parent
+      setPreviewUrl(uploadResult.url);
       onFileUploaded(uploadResult.url);
 
     } catch (error) {
@@ -167,6 +228,7 @@ export function LocalImageUpload({
           accept={accept}
           onChange={handleFileSelect}
           className="hidden"
+          multiple={allowMultiple}
         />
         
         <div
