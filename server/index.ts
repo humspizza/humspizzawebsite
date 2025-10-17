@@ -92,6 +92,72 @@ app.use((req, res, next) => {
   next();
 });
 
+// Crawler meta tags injection for SEO - handles Facebook, Twitter, WhatsApp, etc.
+app.use(async (req, res, next) => {
+  const userAgent = req.headers['user-agent'] || '';
+  
+  // Detect social media crawlers
+  const isCrawler = /facebookexternalhit|twitterbot|LinkedInBot|WhatsApp|TelegramBot|Slackbot/i.test(userAgent);
+  
+  // Only handle blog post URLs from crawlers
+  if (isCrawler && req.path.startsWith('/news/') && !req.path.includes('.')) {
+    const slug = req.path.replace('/news/', '').split('?')[0];
+    
+    if (slug && slug !== 'undefined') {
+      try {
+        const post = await storage.getBlogPostBySlug(slug);
+        
+        if (post) {
+          const metaTitle = post.metaTitle || post.title;
+          const metaDescription = post.metaDescription || post.excerpt;
+          const ogImage = post.ogImageUrl || post.coverImageUrl || post.imageUrl;
+          const fullImageUrl = ogImage?.startsWith('http') ? ogImage : `${req.protocol}://${req.get('host')}${ogImage}`;
+          const canonicalUrl = post.canonicalUrl || `${req.protocol}://${req.get('host')}/news/${slug}`;
+          
+          // Return simple HTML with meta tags for crawlers
+          const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${metaTitle}</title>
+  <meta name="description" content="${metaDescription}" />
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="${metaTitle}" />
+  <meta property="og:description" content="${metaDescription}" />
+  <meta property="og:image" content="${fullImageUrl}" />
+  <meta property="og:url" content="${canonicalUrl}" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Hum's Pizza" />
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${metaTitle}" />
+  <meta name="twitter:description" content="${metaDescription}" />
+  <meta name="twitter:image" content="${fullImageUrl}" />
+  
+  <link rel="canonical" href="${canonicalUrl}" />
+  <meta http-equiv="refresh" content="0;url=${canonicalUrl}" />
+</head>
+<body>
+  <h1>${metaTitle}</h1>
+  <p>${metaDescription}</p>
+  <p>Redirecting to article...</p>
+</body>
+</html>`;
+          
+          return res.set('Content-Type', 'text/html').send(html);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching blog post for crawler:', error);
+      }
+    }
+  }
+  
+  next();
+});
+
 (async () => {
   const server = await registerRoutes(app);
 
@@ -185,10 +251,13 @@ async function initAutoArchiveSystem() {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
+  log("📋 About to setup Vite/Static middleware. Crawler middleware should be registered now.");
   if (app.get("env") === "development") {
     await setupVite(app, server);
+    log("✅ Vite middleware registered");
   } else {
     serveStatic(app);
+    log("✅ Static middleware registered");
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
