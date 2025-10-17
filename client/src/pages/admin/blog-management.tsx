@@ -308,7 +308,8 @@ export default function BlogManagement() {
     const existingImages: string[] = [];
     let match;
     while ((match = imageRegex.exec(post.content || '')) !== null) {
-      if (match[1].startsWith('/objects/')) {
+      // Accept both old (/objects/) and new (/api/assets/) image URLs
+      if (match[1].startsWith('/objects/') || match[1].startsWith('/api/assets/')) {
         existingImages.push(match[1]);
       }
     }
