@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Eye, Edit, Plus, Pin, PinOff, Calendar, User, Upload, Image, Trash2, Clipboard } from 'lucide-react';
-import { InlineDragDrop } from '@/components/InlineDragDrop';
+import { LocalImageUpload } from '@/components/LocalImageUpload';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiRequest } from '@/lib/queryClient';
@@ -564,25 +564,23 @@ export default function BlogManagement() {
                           <FormLabel className="text-white">Ảnh Thu Nhỏ (Upload từ máy tính)</FormLabel>
                           <FormControl>
                             <div className="space-y-3">
-                              <InlineDragDrop
+                              <LocalImageUpload
                                 onFileUploaded={(url) => {
+                                  if (url.startsWith('ERROR:')) {
+                                    toast({
+                                      title: "Lỗi Upload",
+                                      description: url.replace('ERROR:', ''),
+                                      variant: "destructive",
+                                    });
+                                    return;
+                                  }
                                   field.onChange(url);
                                   toast({
                                     title: "Ảnh thu nhỏ đã upload",
                                     description: "Ảnh thu nhỏ đã được upload thành công",
                                   });
                                 }}
-                                onGetUploadUrl={async () => {
-                                  const response = await fetch('/api/news-images/upload', {
-                                    method: 'POST',
-                                    credentials: 'include',
-                                  });
-                                  if (!response.ok) {
-                                    throw new Error('Upload authentication failed');
-                                  }
-                                  const data = await response.json();
-                                  return data.uploadURL;
-                                }}
+                                uploadEndpoint="/api/news-images/upload"
                                 maxSize={10}
                                 placeholder="Kéo thả ảnh thu nhỏ vào đây hoặc click để chọn file"
                                 currentImage={field.value}
@@ -609,25 +607,23 @@ export default function BlogManagement() {
                           <FormLabel className="text-white">Ảnh Bìa (Upload từ máy tính)</FormLabel>
                           <FormControl>
                             <div className="space-y-3">
-                              <InlineDragDrop
+                              <LocalImageUpload
                                 onFileUploaded={(url) => {
+                                  if (url.startsWith('ERROR:')) {
+                                    toast({
+                                      title: "Lỗi Upload",
+                                      description: url.replace('ERROR:', ''),
+                                      variant: "destructive",
+                                    });
+                                    return;
+                                  }
                                   field.onChange(url);
                                   toast({
                                     title: "Ảnh bìa đã upload",
                                     description: "Ảnh bìa bài viết đã được upload thành công",
                                   });
                                 }}
-                                onGetUploadUrl={async () => {
-                                  const response = await fetch('/api/news-images/upload', {
-                                    method: 'POST',
-                                    credentials: 'include',
-                                  });
-                                  if (!response.ok) {
-                                    throw new Error('Upload authentication failed');
-                                  }
-                                  const data = await response.json();
-                                  return data.uploadURL;
-                                }}
+                                uploadEndpoint="/api/news-images/upload"
                                 maxSize={10}
                                 placeholder="Kéo thả ảnh bìa vào đây hoặc click để chọn file"
                                 currentImage={field.value}
@@ -722,47 +718,7 @@ export default function BlogManagement() {
                       
                       {/* Upload component - only show if less than 5 images */}
                       {contentImages.length < 5 ? (
-                        <InlineDragDrop
-                          allowMultiple={true}
-                          onMultipleUploaded={(urls) => {
-                            // Handle multiple files uploaded at once
-                            const remainingSlots = 5 - contentImages.length;
-                            
-                            if (remainingSlots <= 0) {
-                              toast({
-                                title: "Giới hạn 5 ảnh",
-                                description: "Đã đạt giới hạn tối đa 5 ảnh. Xóa ảnh cũ để thêm ảnh mới.",
-                                variant: "destructive"
-                              });
-                              return;
-                            }
-                            
-                            const urlsToAdd = urls.slice(0, remainingSlots);
-                            
-                            // Add to content images list
-                            setContentImages(prev => [...prev, ...urlsToAdd]);
-                            
-                            const currentContent = form.getValues().content || '';
-                            const currentContentVi = form.getValues().contentVi || '';
-                            
-                            // Append all images to end of content
-                            const imageMarkdowns = urlsToAdd.map(url => `\n\n![Ảnh](${url})`).join('');
-                            form.setValue('content', currentContent + imageMarkdowns);
-                            form.setValue('contentVi', currentContentVi + imageMarkdowns);
-                            
-                            toast({
-                              title: `Đã thêm ${urlsToAdd.length} ảnh nội dung`,
-                              description: "Các ảnh đã được chèn vào cuối bài viết tự động",
-                            });
-                            
-                            if (urls.length > remainingSlots) {
-                              toast({
-                                title: "Giới hạn 5 ảnh",
-                                description: `Chỉ thêm được ${remainingSlots} ảnh còn lại (tối đa 5 ảnh). Xóa ảnh cũ để thêm thêm.`,
-                                variant: "destructive"
-                              });
-                            }
-                          }}
+                        <LocalImageUpload
                           onFileUploaded={(url) => {
                             // Handle error messages
                             if (url.startsWith('ERROR:')) {
@@ -774,74 +730,37 @@ export default function BlogManagement() {
                               });
                               return;
                             }
-                            
-                            // Handle success messages
-                            if (url.startsWith('SUCCESS:')) {
-                              const successMessage = url.replace('SUCCESS:', '');
+
+                            // Check limit before adding
+                            if (contentImages.length >= 5) {
                               toast({
-                                title: "Upload Thành Công",
-                                description: successMessage,
+                                title: "Giới hạn 5 ảnh",
+                                description: "Đã đạt giới hạn tối đa 5 ảnh nội dung",
+                                variant: "destructive"
                               });
                               return;
                             }
-
-                            // Handle content images being appended to end of post
-                            if (url.startsWith('APPEND_TO_END:')) {
-                              const actualUrl = url.replace('APPEND_TO_END:', '');
-                              
-                              // Check limit before adding
-                              if (contentImages.length >= 5) {
-                                toast({
-                                  title: "Giới hạn 5 ảnh",
-                                  description: "Đã đạt giới hạn tối đa 5 ảnh nội dung",
-                                  variant: "destructive"
-                                });
-                                return;
-                              }
-                              
-                              // Add to content images list
-                              setContentImages(prev => [...prev, actualUrl]);
-                              
-                              const currentContent = form.getValues().content || '';
-                              const currentContentVi = form.getValues().contentVi || '';
-                              
-                              // Append image markdown to end of content
-                              const imageMarkdown = `\n\n![Ảnh](${actualUrl})`;
-                              form.setValue('content', currentContent + imageMarkdown);
-                              form.setValue('contentVi', currentContentVi + imageMarkdown);
-                              
-                              toast({
-                                title: "Ảnh nội dung đã thêm",
-                                description: "Ảnh đã được chèn vào cuối bài viết tự động",
-                              });
-                            } else if (url) {
-                              // Regular handling for backward compatibility
-                              const markdownImage = `![Ảnh](${url})`;
-                              navigator.clipboard.writeText(markdownImage);
-                              toast({
-                                title: "Ảnh nội dung đã upload",
-                                description: "Markdown đã copy vào clipboard. Paste vào phần nội dung bài viết.",
-                              });
-                            }
-                          }}
-                          onGetUploadUrl={async () => {
-                            if (contentImages.length >= 5) {
-                              throw new Error('Chỉ được upload tối đa 5 ảnh nội dung');
-                            }
-                            const response = await fetch('/api/news-images/upload', {
-                              method: 'POST',
-                              credentials: 'include',
+                            
+                            // Add to content images list
+                            setContentImages(prev => [...prev, url]);
+                            
+                            const currentContent = form.getValues().content || '';
+                            const currentContentVi = form.getValues().contentVi || '';
+                            
+                            // Append image markdown to end of content
+                            const imageMarkdown = `\n\n![Ảnh](${url})`;
+                            form.setValue('content', currentContent + imageMarkdown);
+                            form.setValue('contentVi', currentContentVi + imageMarkdown);
+                            
+                            toast({
+                              title: "Ảnh nội dung đã thêm",
+                              description: "Ảnh đã được chèn vào cuối bài viết tự động",
                             });
-                            if (!response.ok) {
-                              throw new Error('Upload authentication failed');
-                            }
-                            const data = await response.json();
-                            return data.uploadURL;
                           }}
+                          uploadEndpoint="/api/news-images/upload"
                           maxSize={10}
                           placeholder="Kéo thả ảnh nội dung vào đây hoặc click để chọn file"
                           className="w-full"
-                          isContentImage={true}
                         />
                       ) : (
                         <div className="text-center py-6 border-2 border-dashed border-zinc-600 rounded-lg">
