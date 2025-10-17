@@ -99,24 +99,81 @@ app.use(async (req, res, next) => {
   // Detect social media crawlers
   const isCrawler = /facebookexternalhit|twitterbot|LinkedInBot|WhatsApp|TelegramBot|Slackbot/i.test(userAgent);
   
-  // Only handle blog post URLs from crawlers
-  if (isCrawler && req.path.startsWith('/news/') && !req.path.includes('.')) {
-    const slug = req.path.replace('/news/', '').split('?')[0];
-    
-    if (slug && slug !== 'undefined') {
-      try {
+  if (!isCrawler) {
+    return next();
+  }
+
+  // Skip static files
+  if (req.path.includes('.')) {
+    return next();
+  }
+
+  try {
+    let metaTitle = '';
+    let metaDescription = '';
+    let ogImage = '';
+    let canonicalUrl = '';
+    let pageType = 'website';
+
+    // Handle blog posts
+    if (req.path.startsWith('/news/')) {
+      const slug = req.path.replace('/news/', '').split('?')[0];
+      
+      if (slug && slug !== 'undefined') {
         const post = await storage.getBlogPostBySlug(slug);
         
         if (post) {
-          const metaTitle = post.metaTitle || post.title;
-          const metaDescription = post.metaDescription || post.excerpt;
-          const ogImage = post.ogImageUrl || post.coverImageUrl || post.imageUrl;
-          const fullImageUrl = ogImage?.startsWith('http') ? ogImage : `${req.protocol}://${req.get('host')}${ogImage}`;
-          const canonicalUrl = post.canonicalUrl || `${req.protocol}://${req.get('host')}/news/${slug}`;
-          
-          // Return simple HTML with meta tags for crawlers
-          const html = `<!DOCTYPE html>
-<html lang="en">
+          metaTitle = post.metaTitle || post.title || 'Hum\'s Pizza';
+          metaDescription = post.metaDescription || post.excerpt || '';
+          ogImage = post.ogImageUrl || post.coverImageUrl || post.imageUrl || '/og.bg.png';
+          canonicalUrl = post.canonicalUrl || `${req.protocol}://${req.get('host')}/news/${slug}`;
+          pageType = 'article';
+        } else {
+          return next();
+        }
+      } else {
+        return next();
+      }
+    } 
+    // Handle static pages (home, menu, about, booking, contact)
+    else {
+      // Map route path to pageKey
+      const routeToPageKey: Record<string, string> = {
+        '/': 'home',
+        '/menu': 'menu',
+        '/about': 'about',
+        '/booking': 'booking',
+        '/contact': 'contact',
+        '/news': 'blog'
+      };
+
+      const pageKey = routeToPageKey[req.path];
+      
+      if (!pageKey) {
+        return next();
+      }
+
+      // Detect language from path or use default (vi for Vietnamese)
+      const language = 'vi';
+      
+      const pageSeo = await storage.getPageSeoWithFallback(pageKey, language);
+      
+      if (pageSeo) {
+        metaTitle = pageSeo.metaTitle || 'Hum\'s Pizza';
+        metaDescription = pageSeo.metaDescription || 'Nhà hàng pizza Việt Nam';
+        ogImage = pageSeo.ogImageUrl || '/og.bg.png';
+        canonicalUrl = pageSeo.canonicalUrl || `${req.protocol}://${req.get('host')}${req.path}`;
+      } else {
+        return next();
+      }
+    }
+
+    // Build full image URL
+    const fullImageUrl = ogImage?.startsWith('http') ? ogImage : `${req.protocol}://${req.get('host')}${ogImage}`;
+
+    // Return HTML with meta tags for crawlers
+    const html = `<!DOCTYPE html>
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -128,7 +185,7 @@ app.use(async (req, res, next) => {
   <meta property="og:description" content="${metaDescription}" />
   <meta property="og:image" content="${fullImageUrl}" />
   <meta property="og:url" content="${canonicalUrl}" />
-  <meta property="og:type" content="article" />
+  <meta property="og:type" content="${pageType}" />
   <meta property="og:site_name" content="Hum's Pizza" />
   
   <!-- Twitter Card Meta Tags -->
@@ -143,19 +200,15 @@ app.use(async (req, res, next) => {
 <body>
   <h1>${metaTitle}</h1>
   <p>${metaDescription}</p>
-  <p>Redirecting to article...</p>
+  <p>Redirecting...</p>
 </body>
 </html>`;
-          
-          return res.set('Content-Type', 'text/html').send(html);
-        }
-      } catch (error) {
-        console.error('❌ Error fetching blog post for crawler:', error);
-      }
-    }
+    
+    return res.set('Content-Type', 'text/html').send(html);
+  } catch (error) {
+    console.error('❌ Error in crawler middleware:', error);
+    return next();
   }
-  
-  next();
 });
 
 (async () => {
@@ -251,13 +304,10 @@ async function initAutoArchiveSystem() {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  log("📋 About to setup Vite/Static middleware. Crawler middleware should be registered now.");
   if (app.get("env") === "development") {
     await setupVite(app, server);
-    log("✅ Vite middleware registered");
   } else {
     serveStatic(app);
-    log("✅ Static middleware registered");
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
