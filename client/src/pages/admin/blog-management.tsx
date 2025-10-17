@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Eye, Edit, Plus, Pin, PinOff, Calendar, User, Upload, Image, Trash2, Clipboard } from 'lucide-react';
 import { LocalImageUpload } from '@/components/LocalImageUpload';
 
@@ -944,6 +944,51 @@ export default function BlogManagement() {
                           </FormItem>
                         )}
                       />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="canonicalUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">Canonical URL (Optional)</FormLabel>
+                          <FormControl>
+                            <Input {...field} className="bg-zinc-800 border-zinc-700 text-white" placeholder="https://humspizza.com/news/post-slug" />
+                          </FormControl>
+                          <FormDescription className="text-zinc-400 text-xs">
+                            URL chính thức của bài viết (mặc định sẽ dùng URL hiện tại nếu để trống)
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="space-y-3">
+                      <FormLabel className="text-white">URL Ảnh Open Graph (Social Media Sharing)</FormLabel>
+                      <div className="space-y-2">
+                        <LocalImageUpload
+                          currentImage={form.watch('ogImageUrl') || ''}
+                          onFileUploaded={(url: string) => {
+                            form.setValue('ogImageUrl', url);
+                            toast({
+                              title: "Ảnh OG đã tải lên",
+                              description: "Ảnh sẽ hiển thị khi chia sẻ trên Facebook, Twitter, WhatsApp...",
+                            });
+                          }}
+                          uploadEndpoint="/api/news-images/upload"
+                          maxSize={10}
+                          placeholder="Kéo thả ảnh Open Graph vào đây (khuyến nghị 1200x630px)"
+                          allowMultiple={false}
+                          data-testid="input-og-image"
+                        />
+                        <p className="text-xs text-zinc-400">
+                          Ảnh này sẽ hiển thị khi chia sẻ bài viết trên Facebook, Twitter, WhatsApp...
+                          <br />
+                          <strong>Kích thước khuyến nghị:</strong> 1200x630px (tỉ lệ 1.91:1) hoặc 1200x1200px (vuông)
+                          <br />
+                          <strong>Fallback:</strong> Nếu không upload, sẽ dùng Cover Image hoặc Thumbnail
+                        </p>
+                      </div>
                     </div>
 
                   </div>
