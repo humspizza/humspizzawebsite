@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,11 +12,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
-import { Save, Upload, Eye, Link as LinkIcon, ImageIcon } from "lucide-react";
+import { Save, ImageIcon } from "lucide-react";
 import type { PageSeo } from "@shared/schema";
 import { ObjectUploader } from "@/components/ObjectUploader";
 
-// Page keys for different sections
 const pageKeys = [
   { key: "home", labelVi: "Trang Chủ", labelEn: "Homepage" },
   { key: "menu", labelVi: "Thực Đơn", labelEn: "Menu" },
@@ -28,172 +25,28 @@ const pageKeys = [
   { key: "news", labelVi: "Tin Tức", labelEn: "News" },
 ];
 
-// Current hardcoded SEO data from pages - để reference và auto-fill
-const getCurrentPageSEO = (pageKey: string, language: string) => {
-  const data: Record<string, Record<string, any>> = {
-    home: {
-      vi: {
-        metaTitle: "Hum's Pizza | Gắn Kết Yêu Thương, Đậm Đà Vị Việt",
-        metaDescription: "Khám phá những chiếc pizza tuyệt vời tại Hum's Pizza | nơi gắn kết yêu thương và đậm đà vị Việt. Đặt bàn ngay hôm nay để thưởng thức pizza tươi ngon từ nguyên liệu cao cấp.",
-        keywords: "pizza, pizza Ý, pizza thủ công, nhà hàng pizza, Bình Dương, đặt bàn, pizza tươi",
-        canonicalUrl: "https://humspizza.com/",
-        ogTitle: "Hum's Pizza | Gắn Kết Yêu Thương, Đậm Đà Vị Việt",
-        ogDescription: "Hum's Pizza | Nhà hàng pizza phong cách Chicago & Ý, đến từ Việt Nam. Chúng tôi mang đến hương vị phô mai ngập tràn, vỏ bánh giòn thơm và trải nghiệm chuẩn vị trong từng lát bánh.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/",
-        ogType: "website"
-      },
-      en: {
-        metaTitle: "Hum's Pizza | Connecting Hearts, Authentic Vietnamese Taste",
-        metaDescription: "Discover amazing pizzas at Hum's Pizza | where we connect hearts with authentic Vietnamese taste. Book your table today to enjoy fresh, delicious pizzas made from premium ingredients.",
-        keywords: "pizza, Vietnamese pizza, authentic taste, pizza restaurant, Binh Duong, table booking, fresh pizza",
-        canonicalUrl: "https://humspizza.com/",
-        ogTitle: "Hum's Pizza | Connecting Hearts, Authentic Vietnamese Taste",
-        ogDescription: "Hum's Pizza | Connecting Hearts, Authentic Vietnamese Taste. We bring unique Vietnamese-style pizzas, crispy crusts, and authentic experiences in every slice.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/",
-        ogType: "website"
-      }
-    },
-    menu: {
-      vi: {
-        metaTitle: "Thực Đơn Pizza - Hum's Pizza",
-        metaDescription: "Khám phá thực đơn pizza đa dạng tại Hum's Pizza với các món ăn chất lượng cao, tươi ngon.",
-        keywords: "thực đơn pizza, menu pizza, pizza việt nam, hums pizza",
-        canonicalUrl: "https://humspizza.com/menu",
-        ogTitle: "Thực Đơn Pizza Đặc Biệt - Hum's Pizza",
-        ogDescription: "Thực đơn pizza đa dạng với hương vị Việt Nam độc đáo tại Hum's Pizza.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/menu",
-        ogType: "website"
-      },
-      en: {
-        metaTitle: "Pizza Menu - Hum's Pizza",
-        metaDescription: "Explore our diverse pizza menu at Hum's Pizza with high-quality, fresh and delicious dishes.",
-        keywords: "pizza menu, vietnamese pizza, hums pizza menu",
-        canonicalUrl: "https://humspizza.com/menu",
-        ogTitle: "Special Pizza Menu - Hum's Pizza",
-        ogDescription: "Diverse pizza menu with unique Vietnamese flavors at Hum's Pizza.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/menu",
-        ogType: "website"
-      }
-    },
-    about: {
-      vi: {
-        metaTitle: "Giới Thiệu - Hum's Pizza",
-        metaDescription: "Tìm hiểu về Hum's Pizza - nhà hàng pizza Việt Nam với sứ mệnh kết nối trái tim qua hương vị đặc biệt.",
-        keywords: "giới thiệu hums pizza, về chúng tôi, nhà hàng pizza việt nam",
-        canonicalUrl: "https://humspizza.com/about",
-        ogTitle: "Câu Chuyện Hum's Pizza - Kết Nối Trái Tim",
-        ogDescription: "Khám phá câu chuyện đằng sau Hum's Pizza và sứ mệnh kết nối trái tim qua hương vị.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/about",
-        ogType: "website"
-      },
-      en: {
-        metaTitle: "About Us - Hum's Pizza",
-        metaDescription: "Learn about Hum's Pizza - Vietnamese pizza restaurant with a mission to connect hearts through special flavors.",
-        keywords: "about hums pizza, vietnamese pizza restaurant, our story",
-        canonicalUrl: "https://humspizza.com/about",
-        ogTitle: "The Story of Hum's Pizza - Connecting Hearts",
-        ogDescription: "Discover the story behind Hum's Pizza and our mission to connect hearts through flavors.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/about",
-        ogType: "website"
-      }
-    },
-    contact: {
-      vi: {
-        metaTitle: "Liên Hệ - Hum's Pizza",
-        metaDescription: "Liên hệ với Hum's Pizza để đặt bàn, đặt hàng hoặc biết thêm thông tin về nhà hàng.",
-        keywords: "liên hệ hums pizza, đặt bàn, số điện thoại, địa chỉ",
-        canonicalUrl: "https://humspizza.com/contact",
-        ogTitle: "Liên Hệ Đặt Bàn - Hum's Pizza",
-        ogDescription: "Liên hệ ngay với Hum's Pizza để đặt bàn và thưởng thức pizza tuyệt vời.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/contact",
-        ogType: "website"
-      },
-      en: {
-        metaTitle: "Contact Us - Hum's Pizza",
-        metaDescription: "Contact Hum's Pizza for reservations, orders or more information about our restaurant.",
-        keywords: "contact hums pizza, reservations, phone number, address",
-        canonicalUrl: "https://humspizza.com/contact",
-        ogTitle: "Contact & Reservations - Hum's Pizza",
-        ogDescription: "Contact Hum's Pizza now for reservations and enjoy amazing pizza.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/contact",
-        ogType: "website"
-      }
-    },
-    booking: {
-      vi: {
-        metaTitle: "Đặt Bàn - Hum's Pizza",
-        metaDescription: "Đặt bàn online tại Hum's Pizza. Nhanh chóng, tiện lợi và đảm bảo chỗ ngồi cho bạn.",
-        keywords: "đặt bàn online, reservation, hums pizza booking",
-        canonicalUrl: "https://humspizza.com/booking",
-        ogTitle: "Đặt Bàn Online - Hum's Pizza",
-        ogDescription: "Đặt bàn dễ dàng tại Hum's Pizza. Đảm bảo chỗ ngồi cho trải nghiệm tuyệt vời.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/booking",
-        ogType: "website"
-      },
-      en: {
-        metaTitle: "Book a Table - Hum's Pizza",
-        metaDescription: "Book a table online at Hum's Pizza. Fast, convenient and guaranteed seating for you.",
-        keywords: "online booking, table reservation, hums pizza reservation",
-        canonicalUrl: "https://humspizza.com/booking",
-        ogTitle: "Online Table Booking - Hum's Pizza",
-        ogDescription: "Easy table booking at Hum's Pizza. Secure your seat for an amazing experience.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/booking",
-        ogType: "website"
-      }
-    },
-    news: {
-      vi: {
-        metaTitle: "Tin Tức - Hum's Pizza",
-        metaDescription: "Cập nhật tin tức mới nhất từ Hum's Pizza về menu, khuyến mãi và sự kiện đặc biệt.",
-        keywords: "tin tức hums pizza, blog, khuyến mãi, sự kiện",
-        canonicalUrl: "https://humspizza.com/news",
-        ogTitle: "Tin Tức & Blog - Hum's Pizza",
-        ogDescription: "Theo dõi tin tức mới nhất, khuyến mãi và sự kiện đặc biệt từ Hum's Pizza.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/news",
-        ogType: "website"
-      },
-      en: {
-        metaTitle: "News - Hum's Pizza",
-        metaDescription: "Stay updated with the latest news from Hum's Pizza about menu, promotions and special events.",
-        keywords: "hums pizza news, blog, promotions, events",
-        canonicalUrl: "https://humspizza.com/news",
-        ogTitle: "News & Blog - Hum's Pizza",
-        ogDescription: "Follow the latest news, promotions and special events from Hum's Pizza.",
-        ogImageUrl: "/og.bg.png",
-        ogUrl: "https://humspizza.com/news",
-        ogType: "website"
-      }
-    }
-  };
-  
-  return data[pageKey]?.[language] || null;
-};
-
-// Form schema for SEO data
 const seoFormSchema = z.object({
   pageKey: z.string().min(1, "Page key is required"),
-  language: z.string().min(1, "Language is required"),
-  metaTitle: z.string().optional(),
-  metaDescription: z.string().optional(),
-  keywords: z.string().optional(),
-  canonicalUrl: z.string().optional(),
-  ogTitle: z.string().optional(),
-  ogDescription: z.string().optional(),
+  
+  // Vietnamese fields
+  metaTitleVi: z.string().optional(),
+  metaDescriptionVi: z.string().optional(),
+  keywordsVi: z.string().optional(),
+  ogTitleVi: z.string().optional(),
+  ogDescriptionVi: z.string().optional(),
+  
+  // English fields
+  metaTitleEn: z.string().optional(),
+  metaDescriptionEn: z.string().optional(),
+  keywordsEn: z.string().optional(),
+  ogTitleEn: z.string().optional(),
+  ogDescriptionEn: z.string().optional(),
+  
+  // Shared fields
   ogImageUrl: z.string().optional(),
-  ogType: z.string().default("website"),
+  canonicalUrl: z.string().optional(),
   ogUrl: z.string().optional(),
-  noIndex: z.boolean().default(false),
+  ogType: z.string().default("website"),
 });
 
 type SeoFormData = z.infer<typeof seoFormSchema>;
@@ -203,140 +56,129 @@ export default function SeoManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedPage, setSelectedPage] = useState("home");
-  const [editingLanguage, setEditingLanguage] = useState("vi");
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
 
-  const t = {
+  const text = {
     vi: {
       title: "Quản Lý SEO & Open Graph",
       subtitle: "Quản lý metadata SEO và Open Graph cho từng trang",
       pageSelect: "Chọn trang:",
-      languageSelect: "Ngôn ngữ:",
+      
+      viSection: "Tiếng Việt",
+      enSection: "English",
+      sharedSection: "Thông Tin Chung",
+      
       metaTitle: "Tiêu đề Meta",
-      metaDescription: "Mô tả Meta", 
+      metaDescription: "Mô tả Meta",
       keywords: "Từ khóa (phân cách bằng dấu phẩy)",
-      canonicalUrl: "URL Canonical",
       ogTitle: "Tiêu đề Open Graph",
       ogDescription: "Mô tả Open Graph",
+      
       ogImageUrl: "URL Ảnh Open Graph",
-      ogType: "Loại Open Graph",
+      canonicalUrl: "URL Canonical (Optional)",
       ogUrl: "URL Open Graph",
-      noIndex: "Không lập chỉ mục",
+      ogType: "Loại Open Graph",
+      
       save: "Lưu",
       saving: "Đang lưu...",
-      success: "Cập nhật thành công",
+      success: "Đã cập nhật thành công",
       error: "Có lỗi xảy ra",
-      preview: "Xem trước",
-      uploadImage: "Upload ảnh",
-      currentData: "Dữ liệu hiện tại",
-      newData: "Tạo mới",
+      uploadImage: "Upload",
+      
       website: "Trang web",
       article: "Bài viết",
-      profile: "Hồ sơ",
-      product: "Sản phẩm",
     },
     en: {
       title: "SEO & Open Graph Management",
       subtitle: "Manage SEO metadata and Open Graph for each page",
       pageSelect: "Select page:",
-      languageSelect: "Language:",
+      
+      viSection: "Vietnamese",
+      enSection: "English",
+      sharedSection: "Shared Information",
+      
       metaTitle: "Meta Title",
       metaDescription: "Meta Description",
       keywords: "Keywords (comma separated)",
-      canonicalUrl: "Canonical URL",
       ogTitle: "Open Graph Title",
-      ogDescription: "Open Graph Description", 
+      ogDescription: "Open Graph Description",
+      
       ogImageUrl: "Open Graph Image URL",
-      ogType: "Open Graph Type",
+      canonicalUrl: "Canonical URL (Optional)",
       ogUrl: "Open Graph URL",
-      noIndex: "No Index",
+      ogType: "Open Graph Type",
+      
       save: "Save",
       saving: "Saving...",
       success: "Updated successfully",
       error: "An error occurred",
-      preview: "Preview",
-      uploadImage: "Upload image",
-      currentData: "Current data",
-      newData: "Create new",
+      uploadImage: "Upload",
+      
       website: "Website",
-      article: "Article", 
-      profile: "Profile",
-      product: "Product",
+      article: "Article",
     }
   };
 
-  const text = t[currentLanguage];
+  const t = text[currentLanguage];
 
-  // Fetch SEO data for selected page and language
-  const { data: seoData, isLoading } = useQuery<PageSeo>({
-    queryKey: [`/api/seo/pages/${selectedPage}/${editingLanguage}`],
-    enabled: !!selectedPage && !!editingLanguage,
+  // Fetch SEO data for both languages
+  const { data: seoDataVi } = useQuery<PageSeo>({
+    queryKey: [`/api/seo/pages/${selectedPage}/vi`],
+    enabled: !!selectedPage,
+  });
+
+  const { data: seoDataEn } = useQuery<PageSeo>({
+    queryKey: [`/api/seo/pages/${selectedPage}/en`],
+    enabled: !!selectedPage,
   });
 
   const form = useForm<SeoFormData>({
     resolver: zodResolver(seoFormSchema),
     defaultValues: {
       pageKey: selectedPage,
-      language: editingLanguage,
-      metaTitle: "",
-      metaDescription: "",
-      keywords: "",
-      canonicalUrl: "",
-      ogTitle: "",
-      ogDescription: "",
+      metaTitleVi: "",
+      metaDescriptionVi: "",
+      keywordsVi: "",
+      ogTitleVi: "",
+      ogDescriptionVi: "",
+      metaTitleEn: "",
+      metaDescriptionEn: "",
+      keywordsEn: "",
+      ogTitleEn: "",
+      ogDescriptionEn: "",
       ogImageUrl: "",
-      ogType: "website",
+      canonicalUrl: "",
       ogUrl: "",
-      noIndex: false,
+      ogType: "website",
     },
   });
 
   // Update form when data changes
   useEffect(() => {
-    if (seoData) {
-      // Use database data if available
-      form.reset({
-        pageKey: seoData.pageKey,
-        language: seoData.language,
-        metaTitle: seoData.metaTitle || "",
-        metaDescription: seoData.metaDescription || "",
-        keywords: seoData.keywords || "",
-        canonicalUrl: seoData.canonicalUrl || "",
-        ogTitle: seoData.ogTitle || "",
-        ogDescription: seoData.ogDescription || "",
-        ogImageUrl: seoData.ogImageUrl || "",
-        ogType: seoData.ogType || "website",
-        ogUrl: seoData.ogUrl || "",
-        noIndex: seoData.noIndex || false,
-      });
-    } else {
-      // Auto-fill with current hardcoded SEO data from pages
-      const currentSEO = getCurrentPageSEO(selectedPage, editingLanguage);
+    if (seoDataVi || seoDataEn) {
       form.reset({
         pageKey: selectedPage,
-        language: editingLanguage,
-        metaTitle: currentSEO?.metaTitle || "",
-        metaDescription: currentSEO?.metaDescription || "",
-        keywords: currentSEO?.keywords || "",
-        canonicalUrl: currentSEO?.canonicalUrl || "",
-        ogTitle: currentSEO?.ogTitle || "",
-        ogDescription: currentSEO?.ogDescription || "",
-        ogImageUrl: currentSEO?.ogImageUrl || "",
-        ogType: currentSEO?.ogType || "website",
-        ogUrl: currentSEO?.ogUrl || "",
-        noIndex: false,
+        // Vietnamese data
+        metaTitleVi: seoDataVi?.metaTitle || "",
+        metaDescriptionVi: seoDataVi?.metaDescription || "",
+        keywordsVi: seoDataVi?.keywords || "",
+        ogTitleVi: seoDataVi?.ogTitle || "",
+        ogDescriptionVi: seoDataVi?.ogDescription || "",
+        // English data
+        metaTitleEn: seoDataEn?.metaTitle || "",
+        metaDescriptionEn: seoDataEn?.metaDescription || "",
+        keywordsEn: seoDataEn?.keywords || "",
+        ogTitleEn: seoDataEn?.ogTitle || "",
+        ogDescriptionEn: seoDataEn?.ogDescription || "",
+        // Shared data (use Vietnamese as primary, fallback to English)
+        ogImageUrl: seoDataVi?.ogImageUrl || seoDataEn?.ogImageUrl || "",
+        canonicalUrl: seoDataVi?.canonicalUrl || seoDataEn?.canonicalUrl || "",
+        ogUrl: seoDataVi?.ogUrl || seoDataEn?.ogUrl || "",
+        ogType: seoDataVi?.ogType || seoDataEn?.ogType || "website",
       });
     }
-  }, [seoData, selectedPage, editingLanguage, form]);
+  }, [seoDataVi, seoDataEn, selectedPage, form]);
 
-  // Update form when page or language changes
-  useEffect(() => {
-    form.setValue("pageKey", selectedPage);
-    form.setValue("language", editingLanguage);
-  }, [selectedPage, editingLanguage, form]);
-
-  // Handle upload
   const handleUploadComplete = async (result: {
     successful: Array<{ uploadURL: string }>;
     failed?: Array<{ error: any }>;
@@ -345,14 +187,11 @@ export default function SeoManagement() {
     try {
       if (result.successful && result.successful.length > 0) {
         const uploadURL = result.successful[0].uploadURL;
-        
-        // Update form with the uploaded URL
         form.setValue("ogImageUrl", uploadURL);
-        setUploadedImageUrl(uploadURL);
         
         toast({
           title: "Upload thành công",
-          description: "Ảnh Open Graph đã được upload và cập nhật.",
+          description: "Ảnh Open Graph đã được upload.",
         });
       }
     } catch (error: any) {
@@ -367,17 +206,50 @@ export default function SeoManagement() {
   };
 
   const saveMutation = useMutation({
-    mutationFn: (data: SeoFormData) => apiRequest("PUT", `/api/seo/pages`, data),
+    mutationFn: async (data: SeoFormData) => {
+      // Save Vietnamese version
+      await apiRequest("PUT", `/api/seo/pages`, {
+        pageKey: data.pageKey,
+        language: "vi",
+        metaTitle: data.metaTitleVi,
+        metaDescription: data.metaDescriptionVi,
+        keywords: data.keywordsVi,
+        ogTitle: data.ogTitleVi,
+        ogDescription: data.ogDescriptionVi,
+        ogImageUrl: data.ogImageUrl,
+        canonicalUrl: data.canonicalUrl,
+        ogUrl: data.ogUrl,
+        ogType: data.ogType,
+        noIndex: false,
+      });
+
+      // Save English version
+      await apiRequest("PUT", `/api/seo/pages`, {
+        pageKey: data.pageKey,
+        language: "en",
+        metaTitle: data.metaTitleEn,
+        metaDescription: data.metaDescriptionEn,
+        keywords: data.keywordsEn,
+        ogTitle: data.ogTitleEn,
+        ogDescription: data.ogDescriptionEn,
+        ogImageUrl: data.ogImageUrl,
+        canonicalUrl: data.canonicalUrl,
+        ogUrl: data.ogUrl,
+        ogType: data.ogType,
+        noIndex: false,
+      });
+    },
     onSuccess: () => {
       toast({
-        title: text.success,
-        description: seoData ? text.currentData : text.newData,
+        title: t.success,
+        description: "Đã lưu SEO cho cả 2 ngôn ngữ",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/seo/pages/${selectedPage}/${editingLanguage}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/seo/pages/${selectedPage}/vi`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/seo/pages/${selectedPage}/en`] });
     },
     onError: (error: any) => {
       toast({
-        title: text.error,
+        title: t.error,
         description: error.message,
         variant: "destructive",
       });
@@ -388,199 +260,266 @@ export default function SeoManagement() {
     saveMutation.mutate(data);
   };
 
-  const handlePageChange = (newPage: string) => {
-    setSelectedPage(newPage);
-  };
-
-  const handleLanguageChange = (newLanguage: string) => {
-    setEditingLanguage(newLanguage);
-  };
-
-  const currentPageInfo = pageKeys.find(p => p.key === selectedPage);
-
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 max-w-7xl">
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
-          <CardTitle className="text-white">{text.title}</CardTitle>
-          <CardDescription className="text-zinc-400">
-            {text.subtitle}
-          </CardDescription>
+          <CardTitle className="text-white text-2xl">{t.title}</CardTitle>
+          <CardDescription className="text-zinc-400">{t.subtitle}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Page and Language Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white">{text.pageSelect}</label>
-              <Select value={selectedPage} onValueChange={handlePageChange}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  {pageKeys.map((page) => (
-                    <SelectItem key={page.key} value={page.key} className="text-white">
-                      {currentLanguage === 'vi' ? page.labelVi : page.labelEn}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white">{text.languageSelect}</label>
-              <Select value={editingLanguage} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  <SelectItem value="vi" className="text-white">Tiếng Việt</SelectItem>
-                  <SelectItem value="en" className="text-white">English</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <CardContent>
+          {/* Page Selection */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-white mb-2 block">{t.pageSelect}</label>
+            <Select value={selectedPage} onValueChange={setSelectedPage}>
+              <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white max-w-md">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-800 border-zinc-700">
+                {pageKeys.map((page) => (
+                  <SelectItem key={page.key} value={page.key} className="text-white">
+                    {currentLanguage === 'vi' ? page.labelVi : page.labelEn}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* SEO Form */}
+          {/* Bilingual SEO Form */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Meta Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Meta Information</h3>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Vietnamese Section */}
+                <div className="space-y-6 p-6 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                  <h3 className="text-xl font-semibold text-yellow-400 flex items-center gap-2">
+                    🇻🇳 {t.viSection}
+                  </h3>
                   
-                  <FormField
-                    control={form.control}
-                    name="metaTitle"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white">{text.metaTitle}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Enter meta title..."
-                            className="bg-zinc-800 border-zinc-700 text-white"
-                            data-testid="input-meta-title"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="metaTitleVi"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.metaTitle} (VI)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Hum's Pizza | Gắn Kết Yêu Thương..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              data-testid="input-meta-title-vi"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="metaDescription"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white">{text.metaDescription}</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Enter meta description..."
-                            className="bg-zinc-800 border-zinc-700 text-white"
-                            rows={3}
-                            data-testid="textarea-meta-description"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="metaDescriptionVi"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.metaDescription} (VI)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              placeholder="Khám phá những chiếc pizza tuyệt vời..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              rows={3}
+                              data-testid="textarea-meta-description-vi"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="keywords"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white">{text.keywords}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="keyword1, keyword2, keyword3..."
-                            className="bg-zinc-800 border-zinc-700 text-white"
-                            data-testid="input-keywords"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="keywordsVi"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.keywords} (VI)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="pizza, pizza Ý, nhà hàng pizza, Bình Dương..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              data-testid="input-keywords-vi"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="canonicalUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white">{text.canonicalUrl}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="https://example.com/page"
-                            className="bg-zinc-800 border-zinc-700 text-white"
-                            data-testid="input-canonical-url"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="ogTitleVi"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.ogTitle} (VI)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Hum's Pizza | Gắn Kết Yêu Thương..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              data-testid="input-og-title-vi"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="ogDescriptionVi"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.ogDescription} (VI)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              placeholder="Hum's Pizza | Nhà hàng pizza phong cách Chicago & Ý..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              rows={3}
+                              data-testid="textarea-og-description-vi"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
 
-                {/* Open Graph Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Open Graph</h3>
+                {/* English Section */}
+                <div className="space-y-6 p-6 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                  <h3 className="text-xl font-semibold text-yellow-400 flex items-center gap-2">
+                    🇬🇧 {t.enSection}
+                  </h3>
                   
-                  <FormField
-                    control={form.control}
-                    name="ogTitle"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white">{text.ogTitle}</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Enter Open Graph title..."
-                            className="bg-zinc-800 border-zinc-700 text-white"
-                            data-testid="input-og-title"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="metaTitleEn"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.metaTitle} (EN)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Hum's Pizza | Connecting Hearts..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              data-testid="input-meta-title-en"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="ogDescription"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white">{text.ogDescription}</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Enter Open Graph description..."
-                            className="bg-zinc-800 border-zinc-700 text-white"
-                            rows={3}
-                            data-testid="textarea-og-description"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="metaDescriptionEn"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.metaDescription} (EN)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              placeholder="Discover amazing pizzas at Hum's Pizza..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              rows={3}
+                              data-testid="textarea-meta-description-en"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
+                    <FormField
+                      control={form.control}
+                      name="keywordsEn"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.keywords} (EN)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="pizza, Italian pizza, pizza restaurant, Binh Duong..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              data-testid="input-keywords-en"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="ogTitleEn"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.ogTitle} (EN)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Hum's Pizza | Connecting Hearts..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              data-testid="input-og-title-en"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="ogDescriptionEn"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">{t.ogDescription} (EN)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              placeholder="Hum's Pizza | Connecting Hearts, Authentic Vietnamese Taste..."
+                              className="bg-zinc-800 border-zinc-700 text-white"
+                              rows={3}
+                              data-testid="textarea-og-description-en"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Shared Section */}
+              <div className="space-y-6 p-6 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                <h3 className="text-xl font-semibold text-yellow-400">{t.sharedSection}</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="ogImageUrl"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white">{text.ogImageUrl}</FormLabel>
+                      <FormItem className="md:col-span-2">
+                        <FormLabel className="text-white">{t.ogImageUrl}</FormLabel>
                         <FormControl>
                           <div className="space-y-3">
                             <div className="flex gap-2">
                               <Input
                                 {...field}
-                                placeholder="https://example.com/image.jpg"
+                                placeholder="/api/assets/..."
                                 className="bg-zinc-800 border-zinc-700 text-white flex-1"
                                 data-testid="input-og-image-url"
                               />
@@ -588,29 +527,28 @@ export default function SeoManagement() {
                                 maxNumberOfFiles={1}
                                 maxFileSize={10485760}
                                 onComplete={handleUploadComplete}
-                                buttonClassName="border-zinc-700 text-white hover:bg-zinc-700 px-3"
+                                buttonClassName="border-zinc-700 text-white hover:bg-zinc-700 px-4"
                               >
                                 <div className="flex items-center gap-2">
                                   <ImageIcon className="w-4 h-4" />
-                                  <span>{isUploading ? "Uploading..." : "Upload"}</span>
+                                  <span>{isUploading ? "Uploading..." : t.uploadImage}</span>
                                 </div>
                               </ObjectUploader>
                             </div>
                             
-                            {/* Image Preview */}
-                            {(field.value || uploadedImageUrl) && (
+                            {field.value && (
                               <div className="relative">
                                 <img
-                                  src={field.value || uploadedImageUrl}
-                                  alt="Open Graph Preview"
-                                  className="w-full max-w-md h-40 object-cover rounded-lg border border-zinc-700"
+                                  src={field.value}
+                                  alt="OG Preview"
+                                  className="w-full max-w-2xl h-48 object-cover rounded-lg border border-zinc-700"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.style.display = 'none';
                                   }}
                                 />
                                 <div className="mt-2 text-xs text-zinc-400">
-                                  Preview: Open Graph Image (tối đa 10MB, định dạng: JPG, PNG, WebP)
+                                  Khuyến nghị: 1200x630px, tối đa 10MB, định dạng JPG/PNG/WebP
                                 </div>
                               </div>
                             )}
@@ -623,22 +561,17 @@ export default function SeoManagement() {
 
                   <FormField
                     control={form.control}
-                    name="ogType"
+                    name="canonicalUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-white">{text.ogType}</FormLabel>
+                        <FormLabel className="text-white">{t.canonicalUrl}</FormLabel>
                         <FormControl>
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white" data-testid="select-og-type">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-zinc-800 border-zinc-700">
-                              <SelectItem value="website" className="text-white">{text.website}</SelectItem>
-                              <SelectItem value="article" className="text-white">{text.article}</SelectItem>
-                              <SelectItem value="profile" className="text-white">{text.profile}</SelectItem>
-                              <SelectItem value="product" className="text-white">{text.product}</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Input
+                            {...field}
+                            placeholder="https://humspizza.com/..."
+                            className="bg-zinc-800 border-zinc-700 text-white"
+                            data-testid="input-canonical-url"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -650,11 +583,11 @@ export default function SeoManagement() {
                     name="ogUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-white">{text.ogUrl}</FormLabel>
+                        <FormLabel className="text-white">{t.ogUrl}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="https://example.com/page"
+                            placeholder="https://humspizza.com/..."
                             className="bg-zinc-800 border-zinc-700 text-white"
                             data-testid="input-og-url"
                           />
@@ -663,73 +596,45 @@ export default function SeoManagement() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="ogType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">{t.ogType}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-zinc-800 border-zinc-700">
+                            <SelectItem value="website" className="text-white">{t.website}</SelectItem>
+                            <SelectItem value="article" className="text-white">{t.article}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </div>
 
-              {/* Additional Options */}
-              <div className="border-t border-zinc-700 pt-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Advanced Options</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="noIndex"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-zinc-700 p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base text-white">
-                          {text.noIndex}
-                        </FormLabel>
-                        <div className="text-sm text-zinc-400">
-                          Prevent search engines from indexing this page
-                        </div>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="switch-no-index"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-4 pt-6">
+              {/* Save Button */}
+              <div className="flex justify-end">
                 <Button
                   type="submit"
-                  className="bg-amber-600 hover:bg-amber-700 text-black"
                   disabled={saveMutation.isPending}
-                  data-testid="button-save-seo"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8"
+                  data-testid="button-save"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {saveMutation.isPending ? text.saving : text.save}
+                  {saveMutation.isPending ? t.saving : t.save}
                 </Button>
               </div>
             </form>
           </Form>
-
-          {/* Current Status */}
-          <div className="border-t border-zinc-700 pt-6">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-zinc-400">
-                <span className="font-medium">Status:</span>{" "}
-                {isLoading ? "Loading..." : seoData ? (
-                  <span className="text-green-400">✓ {text.currentData} (Database)</span>
-                ) : (
-                  <span className="text-amber-400">⚠ {text.newData} (Auto-filled từ code hiện tại)</span>
-                )}
-              </div>
-              <div className="text-sm text-zinc-400">
-                Page: <span className="font-medium text-amber-400">
-                  {currentPageInfo ? (currentLanguage === 'vi' ? currentPageInfo.labelVi : currentPageInfo.labelEn) : selectedPage}
-                </span>
-                {" • "}
-                Language: <span className="font-medium text-amber-400">{editingLanguage === 'vi' ? 'Tiếng Việt' : 'English'}</span>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
