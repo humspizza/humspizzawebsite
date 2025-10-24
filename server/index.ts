@@ -123,8 +123,18 @@ app.use(async (req, res, next) => {
         const post = await storage.getBlogPostBySlug(slug);
         
         if (post) {
-          metaTitle = post.metaTitle || post.title || 'Hum\'s Pizza';
-          metaDescription = post.metaDescription || post.excerpt || '';
+          // Detect language based on slug
+          const isVietnamese = slug === post.slugVi;
+          
+          // Use language-specific fields
+          metaTitle = isVietnamese 
+            ? (post.metaTitleVi || post.titleVi || post.metaTitle || post.title || 'Hum\'s Pizza')
+            : (post.metaTitle || post.title || 'Hum\'s Pizza');
+          
+          metaDescription = isVietnamese
+            ? (post.metaDescriptionVi || post.excerptVi || post.metaDescription || post.excerpt || '')
+            : (post.metaDescription || post.excerpt || '');
+          
           ogImage = post.ogImageUrl || post.coverImageUrl || post.imageUrl || '/og.bg.png';
           canonicalUrl = post.canonicalUrl || `${req.protocol}://${req.get('host')}/news/${slug}`;
           pageType = 'article';

@@ -1794,6 +1794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (post.keywordsVi || post.keywords || '') :
         (post.keywords || '');
       const canonicalUrl = post.canonicalUrl || `${req.protocol}://${req.get('host')}/news/${slug}`;
+      const ogImage = post.ogImageUrl || post.coverImageUrl || post.imageUrl || '';
       
       // Simple HTML template with proper SEO metadata
       const html = `<!DOCTYPE html>
@@ -1814,7 +1815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     <meta property="og:type" content="article" />
     <meta property="og:url" content="${canonicalUrl}" />
     <meta property="og:site_name" content="Hum's Pizza" />
-    ${post.imageUrl ? `<meta property="og:image" content="${post.imageUrl}" />` : ''}
+    ${ogImage ? `<meta property="og:image" content="${ogImage}" />` : ''}
     <meta property="article:published_time" content="${new Date(post.createdAt).toISOString()}" />
     <meta property="article:modified_time" content="${new Date(post.updatedAt).toISOString()}" />
     <meta property="article:author" content="Hum's Pizza Team" />
@@ -1823,7 +1824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${seoTitle}" />
     <meta name="twitter:description" content="${seoDescription}" />
-    ${post.imageUrl ? `<meta name="twitter:image" content="${post.imageUrl}" />` : ''}
+    ${ogImage ? `<meta name="twitter:image" content="${ogImage}" />` : ''}
     
     <!-- Canonical URL -->
     <link rel="canonical" href="${canonicalUrl}" />
@@ -1835,7 +1836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "@type": "NewsArticle",
       "headline": "${seoTitle}",
       "description": "${seoDescription}",
-      "image": "${post.imageUrl || ''}",
+      "image": "${ogImage || ''}",
       "author": {
         "@type": "Organization",
         "name": "Hum's Pizza Team"
