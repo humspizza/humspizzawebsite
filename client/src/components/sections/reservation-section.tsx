@@ -241,7 +241,7 @@ export default function ReservationSection() {
                 />
               </div>
 
-              <div className="text-center space-y-2">
+              <div className="text-center space-y-4">
                 <Button
                   type="submit"
                   disabled={createReservation.isPending}

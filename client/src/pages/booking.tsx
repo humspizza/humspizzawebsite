@@ -264,7 +264,7 @@ export default function BookingPage() {
               </Button>
 
               {/* Confirmation Note */}
-              <p className="text-xs text-gray-400 text-center mt-2">
+              <p className="text-xs text-gray-400 text-center mt-4">
                 {language === 'vi' 
                   ? 'Sau khi Quý khách hoàn tất đặt bàn, nhân viên của nhà hàng sẽ liên hệ để xác nhận thông tin.'
                   : 'After completing your reservation, our staff will contact you to confirm the details.'
