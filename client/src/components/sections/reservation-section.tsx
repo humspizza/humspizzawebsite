@@ -241,7 +241,7 @@ export default function ReservationSection() {
                 />
               </div>
 
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <Button
                   type="submit"
                   disabled={createReservation.isPending}
@@ -249,6 +249,14 @@ export default function ReservationSection() {
                 >
                   {createReservation.isPending ? t('booking.confirming') : t('booking.confirm')}
                 </Button>
+                
+                {/* Confirmation Note */}
+                <p className="text-xs text-gray-400">
+                  {language === 'vi' 
+                    ? 'Sau khi Quý khách hoàn tất đặt bàn, nhân viên của nhà hàng sẽ liên hệ để xác nhận thông tin.'
+                    : 'After completing your reservation, our staff will contact you to confirm the details.'
+                  }
+                </p>
               </div>
             </form>
           </div>
