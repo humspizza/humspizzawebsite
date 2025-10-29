@@ -1728,9 +1728,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve static assets from attached_assets directory with aggressive caching
-  // Always serve from root/attached_assets (not dist/attached_assets)
+  // IMPORTANT: Always serve from root/attached_assets (not dist/attached_assets)
   // This ensures uploaded files are accessible in both dev and production
-  const assetsPath = path.join(process.cwd(), 'attached_assets');
+  // In production, server runs from dist/, so we go up one level to find attached_assets
+  const isDev = process.env.NODE_ENV === 'development';
+  const assetsPath = isDev
+    ? path.join(process.cwd(), 'attached_assets')
+    : path.join(process.cwd(), '..', 'attached_assets'); // Go up from dist/ to root
+  
+  console.log('📁 Assets path:', assetsPath);
+  console.log('📁 Current working directory:', process.cwd());
+  console.log('📁 NODE_ENV:', process.env.NODE_ENV);
   
   app.use('/api/assets', express.static(assetsPath, {
     maxAge: '365d', // Cache for 1 year
