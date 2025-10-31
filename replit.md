@@ -36,8 +36,11 @@ All pages leverage dynamic SEO metadata fetched from an API, and comprehensive S
 # External Dependencies
 
 ## Database Services
-- **Neon Database**: Serverless PostgreSQL hosting.
-- **@neondatabase/serverless**: Optimized driver for serverless connections.
+- **Custom PostgreSQL Server**: Self-hosted PostgreSQL at 103.138.88.63
+- **pg**: Standard PostgreSQL driver for Node.js (replaced @neondatabase/serverless)
+- Database: `hum94111_pizza`
+- User: `hum94111_pizza_user`
+- SSL: Disabled (`sslmode=none`)
 
 ## UI & Styling Framework
 - **Shadcn/ui**: Pre-built component library based on Radix UI.
