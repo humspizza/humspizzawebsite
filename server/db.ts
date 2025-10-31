@@ -1,9 +1,8 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import pg from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,5 +10,31 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+// Parse DATABASE_URL and remove sslmode parameter for pg driver
+let connectionString = process.env.DATABASE_URL;
+let sslConfig: any = false; // Default: no SSL
+
+if (connectionString.includes('sslmode=')) {
+  const url = new URL(connectionString.replace('postgresql://', 'postgres://'));
+  const sslmode = url.searchParams.get('sslmode');
+  
+  // Remove sslmode from connection string
+  url.searchParams.delete('sslmode');
+  connectionString = url.toString();
+  
+  // Configure SSL based on sslmode
+  if (sslmode === 'require') {
+    sslConfig = { rejectUnauthorized: false };
+  } else if (sslmode === 'none' || sslmode === 'disable') {
+    sslConfig = false;
+  }
+}
+
+// Use standard PostgreSQL driver instead of Neon serverless
+// This works with any PostgreSQL server (Neon, custom servers, etc.)
+export const pool = new Pool({ 
+  connectionString,
+  ssl: sslConfig
+});
+
+export const db = drizzle(pool, { schema });
