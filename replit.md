@@ -36,11 +36,11 @@ All pages leverage dynamic SEO metadata fetched from an API, and comprehensive S
 # External Dependencies
 
 ## Database Services
-- **Custom PostgreSQL Server**: Self-hosted PostgreSQL at 103.138.88.63
+- **Custom PostgreSQL Server**: Self-hosted PostgreSQL at s88d63.cloudnetwork.vn
 - **pg**: Standard PostgreSQL driver for Node.js (replaced @neondatabase/serverless)
 - Database: `hum94111_pizza`
 - User: `hum94111_pizza_user`
-- SSL: Disabled (`sslmode=none`)
+- SSL: Enabled (using domain name for certificate compatibility)
 
 ## UI & Styling Framework
 - **Shadcn/ui**: Pre-built component library based on Radix UI.
