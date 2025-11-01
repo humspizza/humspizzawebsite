@@ -3,15 +3,20 @@ import path from 'path';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
 import { fileURLToPath } from 'url';
+import { getNodeEnv, isProduction as isProd } from './envUtils';
 
 // ES modules compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Force read NODE_ENV from .env file (not from environment variables)
+const nodeEnv = getNodeEnv();
+console.log('✅ Using NODE_ENV from .env file:', nodeEnv);
+
 // Ensure attached_assets directory exists
 // In production (server runs from dist/): use ../attached_assets
 // In development (server runs from root): use ./attached_assets
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = isProd();
 const attachedAssetsDir = isProduction
   ? path.join(__dirname, '..', 'attached_assets')  // dist/../attached_assets
   : path.join(process.cwd(), 'attached_assets');    // ./attached_assets
@@ -26,18 +31,12 @@ if (!fs.existsSync(attachedAssetsDir)) {
 // Configure multer for local file storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    console.log('🔍 Multer upload destination:', attachedAssetsDir);
-    console.log('🔍 __dirname:', __dirname);
-    console.log('🔍 process.cwd():', process.cwd());
-    console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
-    console.log('🔍 isProduction:', isProduction);
     cb(null, attachedAssetsDir);
   },
   filename: (req, file, cb) => {
     // Generate unique filename with original extension
     const ext = path.extname(file.originalname);
     const uniqueName = `${randomUUID()}${ext}`;
-    console.log('📝 Generated filename:', uniqueName);
     cb(null, uniqueName);
   }
 });

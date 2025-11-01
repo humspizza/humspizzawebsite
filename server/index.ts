@@ -243,8 +243,9 @@ app.use(async (req, res, next) => {
   // Serve attached_assets directory for uploaded files
   // In production (server runs from dist/): serve ../attached_assets
   // In development (server runs from root): serve ./attached_assets
-  const isProduction = process.env.NODE_ENV === 'production';
-  const attachedAssetsPath = isProduction 
+  const { isProduction } = await import('./envUtils');
+  const isProd = isProduction();
+  const attachedAssetsPath = isProd
     ? path.join(__dirname, '..', 'attached_assets')  // dist/../attached_assets
     : path.join(process.cwd(), 'attached_assets');    // ./attached_assets
   
