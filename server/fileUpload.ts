@@ -64,8 +64,9 @@ export const uploadVideo = multer({
 }).single('video');
 
 // Helper to get uploaded file URL
+// For Nginx + Passenger: serve from /dist/attached_assets/
 export function getUploadedFileUrl(filename: string): string {
-  return `/api/assets/${filename}`;
+  return `/dist/attached_assets/${filename}`;
 }
 
 // Helper to delete file

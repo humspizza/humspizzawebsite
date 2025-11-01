@@ -10,8 +10,8 @@ export function formatImageUrl(url: string | null | undefined): string {
     return url;
   }
   
-  // If it's a local asset path (/api/assets/...), return as is
-  if (url.startsWith('/api/assets/')) {
+  // If it's a local asset path (/dist/attached_assets/...), return as is
+  if (url.startsWith('/dist/attached_assets/')) {
     return url;
   }
   

@@ -1522,7 +1522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const stats = fs.statSync(filePath);
               fileSize = Math.round(stats.size / 1024 / 1024 * 100) / 100;
               lastModified = stats.mtime.toISOString();
-              videoUrl = `/api/assets/${video.fileName}`;
+              videoUrl = `/dist/attached_assets/${video.fileName}`;
             }
           }
         }
@@ -1728,16 +1728,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve static assets from attached_assets directory with aggressive caching
-  // IMPORTANT: Always serve from root/attached_assets (same location for upload and serve)
-  // Both development and production use the same path: process.cwd()/attached_assets
-  // This ensures uploaded files are accessible in both dev and production
+  // For Nginx + Passenger deployment: serve from /dist/attached_assets/
+  // Server runs from dist/ directory, so files are in dist/attached_assets/
   const assetsPath = path.join(process.cwd(), 'attached_assets');
   
   console.log('📁 Assets path:', assetsPath);
   console.log('📁 Current working directory:', process.cwd());
   console.log('📁 NODE_ENV:', process.env.NODE_ENV);
   
-  app.use('/api/assets', express.static(assetsPath, {
+  app.use('/dist/attached_assets', express.static(assetsPath, {
     maxAge: '365d', // Cache for 1 year
     immutable: true,
     setHeaders: (res, filePath) => {
