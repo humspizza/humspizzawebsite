@@ -26,12 +26,18 @@ if (!fs.existsSync(attachedAssetsDir)) {
 // Configure multer for local file storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    console.log('🔍 Multer upload destination:', attachedAssetsDir);
+    console.log('🔍 __dirname:', __dirname);
+    console.log('🔍 process.cwd():', process.cwd());
+    console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
+    console.log('🔍 isProduction:', isProduction);
     cb(null, attachedAssetsDir);
   },
   filename: (req, file, cb) => {
     // Generate unique filename with original extension
     const ext = path.extname(file.originalname);
     const uniqueName = `${randomUUID()}${ext}`;
+    console.log('📝 Generated filename:', uniqueName);
     cb(null, uniqueName);
   }
 });
