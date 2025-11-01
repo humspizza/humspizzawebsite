@@ -2,17 +2,36 @@ import 'dotenv/config'; // CRITICAL: Load .env BEFORE accessing process.env
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 const { Pool } = pg;
 
-if (!process.env.DATABASE_URL) {
+// IMPORTANT: Force use custom database by reading .env file directly
+// This prevents Replit's environment variable from overriding our config
+let databaseUrl = process.env.DATABASE_URL;
+
+// Force override: Read DATABASE_URL from .env file if exists
+try {
+  const envPath = resolve(process.cwd(), '.env');
+  const envContent = readFileSync(envPath, 'utf-8');
+  const match = envContent.match(/^DATABASE_URL=(.+)$/m);
+  if (match && match[1]) {
+    databaseUrl = match[1].trim();
+    console.log('✅ Using DATABASE_URL from .env file (not Replit environment)');
+  }
+} catch (error) {
+  console.log('⚠️ Could not read .env file, using environment variable');
+}
+
+if (!databaseUrl) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );
 }
 
 // Parse DATABASE_URL and configure SSL
-let connectionString = process.env.DATABASE_URL;
+let connectionString = databaseUrl;
 let sslConfig: any = false; // Default: no SSL
 
 // Clean up connection string and determine SSL mode

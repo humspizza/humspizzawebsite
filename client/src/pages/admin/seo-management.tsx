@@ -519,7 +519,7 @@ export default function SeoManagement() {
                             <div className="flex gap-2">
                               <Input
                                 {...field}
-                                placeholder="/api/assets/..."
+                                placeholder="/dist/attached_assets/..."
                                 className="bg-zinc-800 border-zinc-700 text-white flex-1"
                                 data-testid="input-og-image-url"
                               />
