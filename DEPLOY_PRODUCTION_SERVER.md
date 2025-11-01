@@ -154,9 +154,31 @@ curl http://localhost:5000/api/home-content
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
+
+# Test assets serving (if you have uploaded files)
+curl -I http://localhost:5000/api/assets/some-file.jpg
 ```
 
 **Nếu tất cả trả về 200 OK → Deploy thành công!** ✅
+
+### ✅ Kiểm Tra Assets Path (Quan Trọng!)
+
+Đảm bảo assets được serve đúng:
+
+```bash
+# Check assets directory exists
+ls -lh attached_assets/
+
+# Should show uploaded files like:
+# abc123.mp4
+# def456.jpg
+# etc.
+```
+
+**IMPORTANT:** 
+- Files PHẢI ở `attached_assets/` (cùng cấp với `dist/`)
+- KHÔNG được ở `dist/attached_assets/`
+- Serve path và upload path PHẢI giống nhau!
 
 ---
 

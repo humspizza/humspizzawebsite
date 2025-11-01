@@ -40,7 +40,15 @@ All pages leverage dynamic SEO metadata fetched from an API, and comprehensive S
 - **pg**: Standard PostgreSQL driver for Node.js (replaced @neondatabase/serverless)
 - Database: `hum94111_pizza`
 - User: `hum94111_pizza_user`
-- SSL: Enabled (using domain name for certificate compatibility)
+- SSL: Disabled (sslmode=none) to prevent certificate mismatch errors
+- Code automatically detects and disables SSL for both IP (103.138.88.63) and domain (s88d63.cloudnetwork.vn)
+
+## File Storage System
+- **Local File Storage**: All uploads stored in `attached_assets/` directory at project root
+- **Assets Path**: Both development and production use `process.cwd()/attached_assets`
+- **Upload Path**: Files saved to `attached_assets/{uuid}.{ext}`
+- **Serve Path**: Files served from `/api/assets/{uuid}.{ext}`
+- **Important**: Upload and serve paths are identical in both dev and production (no path mismatch)
 
 ## UI & Styling Framework
 - **Shadcn/ui**: Pre-built component library based on Radix UI.
