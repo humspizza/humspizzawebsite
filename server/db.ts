@@ -31,11 +31,13 @@ if (connectionString.includes('sslmode=')) {
   }
 }
 
-// IMPORTANT: Force disable SSL for IP-based connections (103.138.88.63)
+// IMPORTANT: Force disable SSL for this custom database server
 // This prevents "Hostname/IP does not match certificate's altnames" errors
-if (connectionString.includes('103.138.88.63')) {
+// Works for both IP (103.138.88.63) and domain (s88d63.cloudnetwork.vn)
+if (connectionString.includes('103.138.88.63') || 
+    connectionString.includes('s88d63.cloudnetwork.vn')) {
   sslConfig = false;
-  console.log('🔓 SSL disabled for IP-based database connection');
+  console.log('🔓 SSL disabled for custom database connection');
 }
 
 // Use standard PostgreSQL driver instead of Neon serverless
