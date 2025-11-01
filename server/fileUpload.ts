@@ -2,13 +2,25 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
+import { fileURLToPath } from 'url';
+
+// ES modules compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Ensure attached_assets directory exists
-// In production, use attached_assets at root level (not inside dist/)
-// This ensures uploaded files persist across builds
-const attachedAssetsDir = path.join(process.cwd(), 'attached_assets');
+// In production (server runs from dist/): use ../attached_assets
+// In development (server runs from root): use ./attached_assets
+const isProduction = process.env.NODE_ENV === 'production';
+const attachedAssetsDir = isProduction
+  ? path.join(__dirname, '..', 'attached_assets')  // dist/../attached_assets
+  : path.join(process.cwd(), 'attached_assets');    // ./attached_assets
+
+console.log('📁 Assets upload path:', attachedAssetsDir);
+
 if (!fs.existsSync(attachedAssetsDir)) {
   fs.mkdirSync(attachedAssetsDir, { recursive: true });
+  console.log('✅ Created attached_assets directory at:', attachedAssetsDir);
 }
 
 // Configure multer for local file storage

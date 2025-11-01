@@ -1727,32 +1727,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve static assets from attached_assets directory with aggressive caching
-  // For Nginx + Passenger deployment: serve from /dist/attached_assets/
-  // Server runs from dist/ directory, so files are in dist/attached_assets/
-  const assetsPath = path.join(process.cwd(), 'attached_assets');
-  
-  console.log('📁 Assets path:', assetsPath);
-  console.log('📁 Current working directory:', process.cwd());
-  console.log('📁 NODE_ENV:', process.env.NODE_ENV);
-  
-  app.use('/dist/attached_assets', express.static(assetsPath, {
-    maxAge: '365d', // Cache for 1 year
-    immutable: true,
-    setHeaders: (res, filePath) => {
-      if (filePath.endsWith('.mp4')) {
-        res.set('Content-Type', 'video/mp4');
-        res.set('Cache-Control', 'public, max-age=31536000, immutable');
-        res.set('Accept-Ranges', 'bytes');
-      } else if (filePath.endsWith('.webm')) {
-        res.set('Content-Type', 'video/webm');
-        res.set('Cache-Control', 'public, max-age=31536000, immutable');
-        res.set('Accept-Ranges', 'bytes');
-      }
-      res.set('Access-Control-Allow-Origin', '*');
-      res.set('Expires', new Date(Date.now() + 31536000000).toUTCString());
-    }
-  }));
+  // NOTE: Static files serving moved to server/index.ts
+  // It now correctly handles production (dist/../attached_assets) and development paths
 
   // Blog Post SEO Routes - Server-side rendering for SEO
   // Server-side rendering for SEO - support both slug and ID

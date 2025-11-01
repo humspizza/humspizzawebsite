@@ -3,11 +3,16 @@ import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import path from "path";
+import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
 import { seedUsers } from "./seed";
 import { seedAboutContent } from "./seed-about";
 import { setupVite, serveStatic, log } from "./vite";
 import { storage } from "./storage";
+
+// ES modules compatibility: create __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Extend Express session interface
 declare module 'express-session' {
@@ -243,6 +248,7 @@ app.use(async (req, res, next) => {
     ? path.join(__dirname, '..', 'attached_assets')  // dist/../attached_assets
     : path.join(process.cwd(), 'attached_assets');    // ./attached_assets
   
+  console.log('📁 Assets serve path:', attachedAssetsPath);
   app.use('/dist/attached_assets', express.static(attachedAssetsPath));
 
   // Initialize seed data
