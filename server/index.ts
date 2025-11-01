@@ -2,6 +2,7 @@ import 'dotenv/config';
 
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { seedUsers } from "./seed";
 import { seedAboutContent } from "./seed-about";
@@ -40,25 +41,35 @@ app.use(session({
   }
 }));
 
-// Add caching headers and MIME types for video assets
-app.use('/api/assets', (req, res, next) => {
+// Serve static assets with proper headers
+// Note: In production, Nginx serves /dist/attached_assets/ directly
+// In development, this middleware provides proper headers for video playback
+app.use('/dist/attached_assets', (req, res, next) => {
+  // Set CORS for all assets
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Accept-Ranges', 'bytes');
+  
+  // Set MIME types based on file extension
   if (req.path.endsWith('.mp4')) {
     res.set('Content-Type', 'video/mp4');
-    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
-    res.set('Expires', new Date(Date.now() + 3600000).toUTCString());
-    res.set('Accept-Ranges', 'bytes');
-    res.set('Access-Control-Allow-Origin', '*');
   } else if (req.path.endsWith('.webm')) {
     res.set('Content-Type', 'video/webm');
-    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
-    res.set('Accept-Ranges', 'bytes');
-    res.set('Access-Control-Allow-Origin', '*');
   } else if (req.path.endsWith('.mov')) {
     res.set('Content-Type', 'video/quicktime');
-    res.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
-    res.set('Accept-Ranges', 'bytes');
-    res.set('Access-Control-Allow-Origin', '*');
+  } else if (req.path.match(/\.(jpg|jpeg)$/)) {
+    res.set('Content-Type', 'image/jpeg');
+  } else if (req.path.endsWith('.png')) {
+    res.set('Content-Type', 'image/png');
+  } else if (req.path.endsWith('.webp')) {
+    res.set('Content-Type', 'image/webp');
   }
+  
+  // Cache control: no-cache in development to see updates immediately
+  // In production, Nginx will override these headers with its own caching rules
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  
   next();
 });
 
@@ -223,6 +234,11 @@ app.use(async (req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // Serve attached_assets directory for uploaded files
+  // This serves /dist/attached_assets/* from the attached_assets folder at project root
+  const attachedAssetsPath = path.join(process.cwd(), 'attached_assets');
+  app.use('/dist/attached_assets', express.static(attachedAssetsPath));
 
   // Initialize seed data
   await seedUsers();
