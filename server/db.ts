@@ -10,24 +10,32 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Parse DATABASE_URL and remove sslmode parameter for pg driver
+// Parse DATABASE_URL and configure SSL
 let connectionString = process.env.DATABASE_URL;
 let sslConfig: any = false; // Default: no SSL
 
+// Clean up connection string and determine SSL mode
 if (connectionString.includes('sslmode=')) {
   const url = new URL(connectionString.replace('postgresql://', 'postgres://'));
   const sslmode = url.searchParams.get('sslmode');
   
-  // Remove sslmode from connection string
+  // Remove sslmode from connection string (pg driver doesn't accept it)
   url.searchParams.delete('sslmode');
   connectionString = url.toString();
   
-  // Configure SSL based on sslmode
+  // Configure SSL based on sslmode parameter
   if (sslmode === 'require') {
     sslConfig = { rejectUnauthorized: false };
   } else if (sslmode === 'none' || sslmode === 'disable') {
     sslConfig = false;
   }
+}
+
+// IMPORTANT: Force disable SSL for IP-based connections (103.138.88.63)
+// This prevents "Hostname/IP does not match certificate's altnames" errors
+if (connectionString.includes('103.138.88.63')) {
+  sslConfig = false;
+  console.log('🔓 SSL disabled for IP-based database connection');
 }
 
 // Use standard PostgreSQL driver instead of Neon serverless
