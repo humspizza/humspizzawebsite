@@ -18,10 +18,10 @@
    - ✅ All URLs in `blog_posts` table updated
    - Migration SQL: `migrate-urls-to-dist.sql`
 
-### 4. **Build Process Fixed**
-   - ✅ Created script: `scripts/copy-assets-to-dist.js`
-   - ✅ Script copies `attached_assets/` → `dist/attached_assets/` after build
-   - ✅ Test passed: 55 files copied successfully
+### 4. **Build Process Simplified**
+   - ✅ **NO NEED to copy files!** Server reads from `../attached_assets/` in production
+   - ✅ Files stay at project root: `attached_assets/`
+   - ✅ Build only needs: `npm run build` (no extra steps)
 
 ### 5. **Cache Headers Optimized**
    - ✅ Development: `no-cache` to force browser refresh
@@ -40,14 +40,13 @@
 # 1. Build project
 npm run build
 
-# 2. Copy assets to dist
-node scripts/copy-assets-to-dist.js
+# 2. Verify folder structure
+ls -la attached_assets/  # Files at project root
+ls -la dist/             # Build output
 
-# 3. Verify structure
-ls -la dist/attached_assets/
-
-# 4. Deploy to server
-# Upload entire dist/ folder (including dist/attached_assets/)
+# 3. Deploy to server
+# Upload ENTIRE project folder (both attached_assets/ and dist/)
+# Server runs from dist/ and reads files from ../attached_assets/
 ```
 
 ## ⚠️ Important Notes
@@ -56,18 +55,18 @@ ls -la dist/attached_assets/
 ```
 User uploads file
     ↓
-Saved to: attached_assets/{uuid}.{ext}
+Saved to: attached_assets/{uuid}.{ext} (at project root)
     ↓
 Database stores: /dist/attached_assets/{uuid}.{ext}
     ↓
-Development: Express serves from attached_assets/
-Production: Nginx serves from dist/attached_assets/
+Development: Express serves from ./attached_assets/
+Production: Express serves from ../attached_assets/ (relative to dist/)
 ```
 
 ### Why `/dist/attached_assets/` in Database?
-- Production Nginx serves files from `dist/` directory
-- URLs must match production serving path
-- Development Express.static maps `/dist/attached_assets/` → `attached_assets/`
+- Public URL path for consistency across dev and production
+- Development: `/dist/attached_assets/` → `./attached_assets/`
+- Production: `/dist/attached_assets/` → `../attached_assets/` (relative to dist/)
 
 ## 🐛 Troubleshooting
 
@@ -93,9 +92,15 @@ Production: Nginx serves from dist/attached_assets/
 ### Problem: Files not found after build
 
 **Solution:**
-1. Run copy script: `node scripts/copy-assets-to-dist.js`
-2. Verify files exist: `ls dist/attached_assets/`
-3. Check file permissions: `chmod 644 dist/attached_assets/*`
+1. Verify files exist at root: `ls attached_assets/`
+2. Check folder structure:
+   ```
+   project-root/
+   ├── attached_assets/  ← Files here!
+   └── dist/
+       └── index.js      ← Server runs here, reads ../attached_assets/
+   ```
+3. Ensure entire project folder is deployed (not just dist/)
 
 ### Problem: Videos not playing
 

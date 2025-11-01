@@ -15,24 +15,35 @@
 
 ```
 /your-app/
+├── attached_assets/       ← Uploaded images/videos (REQUIRED - ở root!)
+│   ├── uuid1.mp4
+│   ├── uuid2.jpg
+│   └── ...
 ├── dist/
 │   ├── index.js           ← Node.js server (REQUIRED)
-│   ├── public/            ← Static assets
-│   └── attached_assets/   ← Uploaded images
+│   └── public/            ← Static assets
 ├── node_modules/          ← Dependencies (hoặc chạy npm install trên server)
 ├── package.json           ← Dependencies list
 ├── package-lock.json      ← Lock file
 └── .env                   ← Environment variables
 ```
 
+**⚠️ QUAN TRỌNG**: 
+- `attached_assets/` phải ở PROJECT ROOT (cùng cấp với `dist/`)
+- Server chạy từ `dist/` và đọc files từ `../attached_assets/`
+- KHÔNG copy `attached_assets/` vào trong `dist/`
+
 ### Cách upload:
 ```bash
 # Trên local (Replit), zip files
-zip -r humspizza-deploy.zip dist/ package.json package-lock.json .env
+zip -r humspizza-deploy.zip dist/ attached_assets/ package.json package-lock.json .env
 
 # Upload lên server qua FTP/SFTP
 # Unzip trên server
 unzip humspizza-deploy.zip -d /var/www/humspizza
+
+# Hoặc dùng rsync (khuyến nghị)
+rsync -avz --progress dist/ attached_assets/ package.json .env user@server:/var/www/humspizza/
 ```
 
 ---
@@ -157,11 +168,12 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
-    # Static assets caching
-    location /assets/ {
-        proxy_pass http://localhost:3000/assets/;
+    # Uploaded assets - serve directly (faster than proxying)
+    location /dist/attached_assets/ {
+        alias /var/www/humspizza/attached_assets/;
         expires 1y;
         add_header Cache-Control "public, immutable";
+        access_log off;
     }
 
     # API routes

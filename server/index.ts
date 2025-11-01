@@ -236,8 +236,13 @@ app.use(async (req, res, next) => {
   const server = await registerRoutes(app);
 
   // Serve attached_assets directory for uploaded files
-  // This serves /dist/attached_assets/* from the attached_assets folder at project root
-  const attachedAssetsPath = path.join(process.cwd(), 'attached_assets');
+  // In production (server runs from dist/): serve ../attached_assets
+  // In development (server runs from root): serve ./attached_assets
+  const isProduction = process.env.NODE_ENV === 'production';
+  const attachedAssetsPath = isProduction 
+    ? path.join(__dirname, '..', 'attached_assets')  // dist/../attached_assets
+    : path.join(process.cwd(), 'attached_assets');    // ./attached_assets
+  
   app.use('/dist/attached_assets', express.static(attachedAssetsPath));
 
   // Initialize seed data

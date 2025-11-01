@@ -1,4 +1,17 @@
 #!/usr/bin/env node
+
+/**
+ * ⚠️ DEPRECATED: This script is NO LONGER NEEDED!
+ * 
+ * The server now automatically reads files from ../attached_assets/ in production.
+ * No need to copy files to dist/attached_assets/ anymore.
+ * 
+ * Just run: npm run build
+ * Then deploy the entire project folder (including attached_assets/ at root).
+ * 
+ * See BUILD_INSTRUCTIONS.md for details.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,38 +19,25 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(__dirname, '..');
 
+console.log('⚠️  DEPRECATED: This script is no longer needed!');
+console.log('');
+console.log('✅ Server now reads from ../attached_assets/ automatically.');
+console.log('');
+console.log('📦 To build for production:');
+console.log('   1. npm run build');
+console.log('   2. Deploy entire project folder (attached_assets/ + dist/)');
+console.log('');
+console.log('See BUILD_INSTRUCTIONS.md for details.');
+console.log('');
+
+// Check if files exist to help with verification
 const srcDir = path.join(rootDir, 'attached_assets');
-const destDir = path.join(rootDir, 'dist', 'attached_assets');
-
-try {
-  // Create attached_assets if it doesn't exist
-  if (!fs.existsSync(srcDir)) {
-    fs.mkdirSync(srcDir, { recursive: true });
-    console.log('✅ Created attached_assets directory');
-  }
-
-  // Create dist/attached_assets
-  if (!fs.existsSync(destDir)) {
-    fs.mkdirSync(destDir, { recursive: true });
-  }
-
-  // Copy all files
-  const files = fs.readdirSync(srcDir);
-  let copied = 0;
-
-  files.forEach(file => {
-    const srcFile = path.join(srcDir, file);
-    const destFile = path.join(destDir, file);
-    
-    // Only copy files (not directories)
-    if (fs.statSync(srcFile).isFile()) {
-      fs.copyFileSync(srcFile, destFile);
-      copied++;
-    }
+if (fs.existsSync(srcDir)) {
+  const files = fs.readdirSync(srcDir).filter(f => {
+    const stat = fs.statSync(path.join(srcDir, f));
+    return stat.isFile();
   });
-
-  console.log(`✅ Copied ${copied} files from attached_assets/ to dist/attached_assets/`);
-} catch (error) {
-  console.error('❌ Error copying assets:', error);
-  process.exit(1);
+  console.log(`✅ Found ${files.length} files in attached_assets/ (ready for deployment)`);
+} else {
+  console.log('⚠️  attached_assets/ directory not found');
 }

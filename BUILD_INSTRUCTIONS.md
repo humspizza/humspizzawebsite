@@ -2,23 +2,7 @@
 
 ## Important: Asset Files Setup
 
-Khi build cho production, cần copy thư mục `attached_assets` vào `dist/` để Nginx + Passenger có thể serve files.
-
-### Cách 1: Tự động (Recommended)
-
-Chạy lệnh sau để build và copy assets tự động:
-
-```bash
-npm run build && node scripts/copy-assets-to-dist.js
-```
-
-### Cách 2: Manual
-
-Sau khi chạy `npm run build`, copy thủ công:
-
-```bash
-cp -r attached_assets dist/
-```
+**KHÔNG CẦN copy `attached_assets` vào `dist/`!** Server tự động đọc từ `../attached_assets/` (relative path).
 
 ## Deployment Checklist
 
@@ -27,27 +11,29 @@ cp -r attached_assets dist/
    npm run build
    ```
 
-2. **Copy assets:**
-   ```bash
-   node scripts/copy-assets-to-dist.js
+2. **Verify folder structure:**
+   ```
+   project-root/
+   ├── attached_assets/  (uploaded files - keep at root!)
+   └── dist/
+       ├── index.js      (backend)
+       └── public/       (frontend)
    ```
 
-3. **Verify dist structure:**
-   ```
-   dist/
-   ├── index.js          (backend)
-   ├── public/           (frontend)
-   └── attached_assets/  (uploaded files) ← MUST EXIST
-   ```
+3. **Upload to server:**
+   - Upload entire project folder (including both `attached_assets/` and `dist/`)
+   - Server will run from `dist/` and read files from `../attached_assets/`
 
-4. **Upload to server:**
-   - Upload entire `dist/` folder
-   - Ensure `attached_assets/` is included
-
-5. **Configure Nginx:**
+4. **Configure Nginx:**
    ```nginx
+   # Option 1: Let Express serve assets (recommended)
    location /dist/attached_assets/ {
-     alias /path/to/your/app/dist/attached_assets/;
+     proxy_pass http://localhost:PORT;
+   }
+   
+   # Option 2: Nginx serve directly (faster)
+   location /dist/attached_assets/ {
+     alias /path/to/your/app/attached_assets/;
      access_log off;
      expires max;
    }
