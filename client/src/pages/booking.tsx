@@ -107,7 +107,6 @@ export default function BookingPage() {
 
   // Filter out locked time slots
   const availableTimeSlots = allTimeSlots.filter(time => !lockedTimeSlots[time]);
-  const lockedCount = Object.keys(lockedTimeSlots).filter(k => lockedTimeSlots[k]).length;
 
   return (
     <div className="min-h-screen bg-black pt-20">
@@ -262,14 +261,6 @@ export default function BookingPage() {
                           ))}
                         </SelectContent>
                       </Select>
-                      {lockedCount > 0 && (
-                        <p className="text-xs text-amber-400 mt-1">
-                          {language === 'vi' 
-                            ? `${lockedCount} khung giờ đã hết bàn`
-                            : `${lockedCount} time slot(s) fully booked`
-                          }
-                        </p>
-                      )}
                     </>
                   )}
                 </div>
