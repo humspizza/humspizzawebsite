@@ -370,11 +370,11 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
                     }
                   </p>
                   <a 
-                    href="tel:+842743818180"
+                    href="tel:+84934699798"
                     className="flex items-center justify-center gap-2 w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-md font-medium transition-colors"
                   >
                     <Phone className="w-4 h-4" />
-                    {language === 'vi' ? 'Gọi Đặt Hàng: 0274 381 8180' : 'Call to Order: 0274 381 8180'}
+                    {language === 'vi' ? 'Gọi Đặt Hàng: 0934 699 798' : 'Call to Order: 0934 699 798'}
                   </a>
                 </div>
               ) : (
