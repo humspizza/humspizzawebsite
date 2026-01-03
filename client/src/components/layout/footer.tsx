@@ -33,17 +33,7 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className="lg:col-span-6 lg:flex lg:justify-end lg:space-x-12">
-              {/* Legal Links */}
-              <div className="lg:w-auto mb-6 lg:mb-0">
-                <h4 className="text-sm font-bold mb-3 text-white">{t('legal.legalText')}</h4>
-                <ul className="space-y-1">
-                  <li><Link href="/privacy-policy" className="text-zinc-400 hover:text-white transition-colors text-sm" data-testid="footer-link-privacy">{t('legal.privacyPolicy')}</Link></li>
-                  <li><Link href="/terms-of-service" className="text-zinc-400 hover:text-white transition-colors text-sm" data-testid="footer-link-terms">{t('legal.termsOfService')}</Link></li>
-                  <li><Link href="/accessibility" className="text-zinc-400 hover:text-white transition-colors text-sm" data-testid="footer-link-accessibility">{t('legal.accessibility')}</Link></li>
-                </ul>
-              </div>
-
+            <div className="lg:col-span-6 lg:flex lg:justify-end">
               {/* Contact Us */}
               <div className="lg:w-auto">
                 <h4 className="text-sm font-bold mb-3 text-white">{t('footer.contactUs')}</h4>

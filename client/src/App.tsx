@@ -8,9 +8,6 @@ import Login from "@/pages/login";
 import AdminAuthGuard from "@/components/auth/AdminAuthGuard";
 import StaffAuthGuard from "@/components/auth/StaffAuthGuard";
 import GlobalLogoutHandler from "@/components/auth/GlobalLogoutHandler";
-import PrivacyPolicy from "@/pages/privacy-policy";
-import TermsOfService from "@/pages/terms-of-service";
-import Accessibility from "@/pages/accessibility";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import BookingModal from "@/components/modals/booking-modal";
@@ -96,9 +93,6 @@ function App() {
               <StaffApp />
             </StaffAuthGuard>
           </Route>
-          <Route path="/privacy-policy" component={PrivacyPolicy} />
-          <Route path="/terms-of-service" component={TermsOfService} />
-          <Route path="/accessibility" component={Accessibility} />
           <Route component={NotFound} />
         </Switch>
       </Suspense>
