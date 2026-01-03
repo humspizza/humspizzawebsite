@@ -926,37 +926,37 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   {!isMultiSelectReservations ? (
                     <Button 
-                      variant="outline" 
                       size="sm"
                       onClick={() => setIsMultiSelectReservations(true)}
-                      className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                      className="bg-zinc-700 text-white hover:bg-zinc-600"
                     >
                       {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
                     </Button>
                   ) : (
                     <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg">
                       <Button 
-                        variant="outline" 
                         size="sm"
                         onClick={toggleAllReservations}
-                        className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                        className="bg-zinc-700 text-white hover:bg-zinc-600"
                       >
                         {selectedReservations.size === filteredReservations.length && filteredReservations.length > 0
                           ? (currentLanguage === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
                           : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
                         }
                       </Button>
-                      {selectedReservations.size > 0 && (
-                        <AlertDialog open={showBulkDeleteReservations} onOpenChange={setShowBulkDeleteReservations}>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="border-zinc-600 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
+                      <AlertDialog open={showBulkDeleteReservations} onOpenChange={setShowBulkDeleteReservations}>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            size="sm"
+                            disabled={selectedReservations.size === 0}
+                            className={selectedReservations.size > 0 
+                              ? "bg-red-600 text-white hover:bg-red-500" 
+                              : "bg-zinc-600 text-zinc-400 hover:bg-zinc-500 cursor-not-allowed"
+                            }
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
                           <AlertDialogContent className="bg-zinc-900 border-zinc-800">
                             <AlertDialogHeader>
                               <AlertDialogTitle className="text-white">
@@ -985,19 +985,20 @@ export default function AdminDashboard() {
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
-                        </AlertDialog>
-                      )}
+                      </AlertDialog>
                       <span className="text-sm text-zinc-400">
-                        {selectedReservations.size > 0 && (currentLanguage === 'vi' ? `Đã chọn ${selectedReservations.size}` : `${selectedReservations.size} selected`)}
+                        {selectedReservations.size > 0 
+                          ? (currentLanguage === 'vi' ? `Đã chọn ${selectedReservations.size}` : `${selectedReservations.size} selected`)
+                          : (currentLanguage === 'vi' ? 'Chưa chọn' : 'None selected')
+                        }
                       </span>
                       <Button 
-                        variant="outline" 
                         size="sm"
                         onClick={() => {
                           setIsMultiSelectReservations(false);
                           setSelectedReservations(new Set());
                         }}
-                        className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                        className="bg-zinc-700 text-white hover:bg-zinc-600"
                       >
                         {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
                       </Button>
@@ -1215,37 +1216,37 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   {!isMultiSelectOrders ? (
                     <Button 
-                      variant="outline" 
                       size="sm"
                       onClick={() => setIsMultiSelectOrders(true)}
-                      className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                      className="bg-zinc-700 text-white hover:bg-zinc-600"
                     >
                       {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
                     </Button>
                   ) : (
                     <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg">
                       <Button 
-                        variant="outline" 
                         size="sm"
                         onClick={toggleAllOrders}
-                        className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                        className="bg-zinc-700 text-white hover:bg-zinc-600"
                       >
                         {selectedOrders.size === filteredOrders.length && filteredOrders.length > 0
                           ? (currentLanguage === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
                           : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
                         }
                       </Button>
-                      {selectedOrders.size > 0 && (
-                        <AlertDialog open={showBulkDeleteOrders} onOpenChange={setShowBulkDeleteOrders}>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="border-zinc-600 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
+                      <AlertDialog open={showBulkDeleteOrders} onOpenChange={setShowBulkDeleteOrders}>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            size="sm"
+                            disabled={selectedOrders.size === 0}
+                            className={selectedOrders.size > 0 
+                              ? "bg-red-600 text-white hover:bg-red-500" 
+                              : "bg-zinc-600 text-zinc-400 hover:bg-zinc-500 cursor-not-allowed"
+                            }
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
                           <AlertDialogContent className="bg-zinc-900 border-zinc-800">
                             <AlertDialogHeader>
                               <AlertDialogTitle className="text-white">
@@ -1274,19 +1275,20 @@ export default function AdminDashboard() {
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
-                        </AlertDialog>
-                      )}
+                      </AlertDialog>
                       <span className="text-sm text-zinc-400">
-                        {selectedOrders.size > 0 && (currentLanguage === 'vi' ? `Đã chọn ${selectedOrders.size}` : `${selectedOrders.size} selected`)}
+                        {selectedOrders.size > 0 
+                          ? (currentLanguage === 'vi' ? `Đã chọn ${selectedOrders.size}` : `${selectedOrders.size} selected`)
+                          : (currentLanguage === 'vi' ? 'Chưa chọn' : 'None selected')
+                        }
                       </span>
                       <Button 
-                        variant="outline" 
                         size="sm"
                         onClick={() => {
                           setIsMultiSelectOrders(false);
                           setSelectedOrders(new Set());
                         }}
-                        className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                        className="bg-zinc-700 text-white hover:bg-zinc-600"
                       >
                         {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
                       </Button>
