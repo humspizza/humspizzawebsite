@@ -119,13 +119,6 @@ export function PaginationHum({
           {labels.last}
         </button>
       </div>
-
-      <p className="text-sm text-gray-400" data-testid="pagination-info">
-        {language === 'vi' 
-          ? `Hiển thị ${startItem}-${endItem} trong tổng số ${totalItems} bài viết`
-          : `Showing ${startItem}-${endItem} of ${totalItems} articles`
-        }
-      </p>
     </div>
   );
 }
