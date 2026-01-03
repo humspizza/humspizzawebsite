@@ -48,6 +48,7 @@ interface MenuItem {
   name: string;
   nameVi?: string;
   price: number;
+  vatRate?: string;
   categoryId: string;
   customizationSchemaId?: string;
 }
@@ -258,6 +259,7 @@ export default function CustomizationModal({
       id: menuItem.id,
       name: getDisplayName(menuItem),
       price: calculateTotalPrice(),
+      vatRate: parseFloat(menuItem.vatRate || "8"),
       customization
     });
 

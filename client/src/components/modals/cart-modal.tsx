@@ -267,13 +267,13 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
                   <span>{formatPrice(totalPrice)}</span>
                 </div>
                 <div className="flex justify-between text-white opacity-70 text-[14px] font-medium">
-                  <span>{language === 'vi' ? '8% VAT:' : '8% VAT:'}</span>
-                  <span>{formatPrice(Math.round(totalPrice * 0.08))}</span>
+                  <span>{language === 'vi' ? 'VAT:' : 'VAT:'}</span>
+                  <span>{formatPrice(Math.round(items.reduce((sum, item) => sum + (item.price * item.quantity * (item.vatRate || 8) / 100), 0)))}</span>
                 </div>
                 <div className="border-t border-noir-600 pt-2">
                   <div className="flex justify-between text-lg font-bold text-white">
                     <span>{language === 'vi' ? 'Tổng cộng:' : 'Total Amount:'}</span>
-                    <span>{formatPrice(totalPrice + Math.round(totalPrice * 0.08))}</span>
+                    <span>{formatPrice(totalPrice + Math.round(items.reduce((sum, item) => sum + (item.price * item.quantity * (item.vatRate || 8) / 100), 0)))}</span>
                   </div>
                 </div>
               </div>
@@ -382,13 +382,13 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
                   <span>{formatPrice(totalPrice)}</span>
                 </div>
                 <div className="flex justify-between text-white text-sm opacity-70">
-                  <span>{language === 'vi' ? 'VAT (8%):' : 'VAT (8%):'}</span>
-                  <span>{formatPrice(Math.round(totalPrice * 0.08))}</span>
+                  <span>{language === 'vi' ? 'VAT:' : 'VAT:'}</span>
+                  <span>{formatPrice(Math.round(items.reduce((sum, item) => sum + (item.price * item.quantity * (item.vatRate || 8) / 100), 0)))}</span>
                 </div>
                 <div className="border-t border-noir-600 pt-2">
                   <div className="flex justify-between text-lg font-bold text-white">
                     <span>{language === 'vi' ? 'Tổng cộng:' : 'Total:'}</span>
-                    <span>{formatPrice(totalPrice + Math.round(totalPrice * 0.08))}</span>
+                    <span>{formatPrice(totalPrice + Math.round(items.reduce((sum, item) => sum + (item.price * item.quantity * (item.vatRate || 8) / 100), 0)))}</span>
                   </div>
                 </div>
               </div>
