@@ -929,17 +929,17 @@ export default function AdminDashboard() {
                       variant="outline" 
                       size="sm"
                       onClick={() => setIsMultiSelectReservations(true)}
-                      className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500"
+                      className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
                     >
                       {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
                     </Button>
                   ) : (
-                    <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded-lg">
+                    <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg">
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm"
                         onClick={toggleAllReservations}
-                        className="text-zinc-300 hover:bg-zinc-700"
+                        className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
                       >
                         {selectedReservations.size === filteredReservations.length && filteredReservations.length > 0
                           ? (currentLanguage === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
@@ -950,12 +950,11 @@ export default function AdminDashboard() {
                         <AlertDialog open={showBulkDeleteReservations} onOpenChange={setShowBulkDeleteReservations}>
                           <AlertDialogTrigger asChild>
                             <Button 
-                              variant="destructive" 
+                              variant="outline" 
                               size="sm"
-                              className="bg-red-600 hover:bg-red-700"
+                              className="border-zinc-600 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/50"
                             >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              {currentLanguage === 'vi' ? `Xóa ${selectedReservations.size}` : `Delete ${selectedReservations.size}`}
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="bg-zinc-900 border-zinc-800">
@@ -992,15 +991,15 @@ export default function AdminDashboard() {
                         {selectedReservations.size > 0 && (currentLanguage === 'vi' ? `Đã chọn ${selectedReservations.size}` : `${selectedReservations.size} selected`)}
                       </span>
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm"
                         onClick={() => {
                           setIsMultiSelectReservations(false);
                           setSelectedReservations(new Set());
                         }}
-                        className="text-zinc-400 hover:bg-zinc-700"
+                        className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
                       >
-                        <XCircle className="w-4 h-4" />
+                        {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
                       </Button>
                     </div>
                   )}
@@ -1219,17 +1218,17 @@ export default function AdminDashboard() {
                       variant="outline" 
                       size="sm"
                       onClick={() => setIsMultiSelectOrders(true)}
-                      className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500"
+                      className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
                     >
                       {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
                     </Button>
                   ) : (
-                    <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded-lg">
+                    <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg">
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm"
                         onClick={toggleAllOrders}
-                        className="text-zinc-300 hover:bg-zinc-700"
+                        className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
                       >
                         {selectedOrders.size === filteredOrders.length && filteredOrders.length > 0
                           ? (currentLanguage === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
@@ -1240,12 +1239,11 @@ export default function AdminDashboard() {
                         <AlertDialog open={showBulkDeleteOrders} onOpenChange={setShowBulkDeleteOrders}>
                           <AlertDialogTrigger asChild>
                             <Button 
-                              variant="destructive" 
+                              variant="outline" 
                               size="sm"
-                              className="bg-red-600 hover:bg-red-700"
+                              className="border-zinc-600 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/50"
                             >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              {currentLanguage === 'vi' ? `Xóa ${selectedOrders.size}` : `Delete ${selectedOrders.size}`}
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="bg-zinc-900 border-zinc-800">
@@ -1282,15 +1280,15 @@ export default function AdminDashboard() {
                         {selectedOrders.size > 0 && (currentLanguage === 'vi' ? `Đã chọn ${selectedOrders.size}` : `${selectedOrders.size} selected`)}
                       </span>
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm"
                         onClick={() => {
                           setIsMultiSelectOrders(false);
                           setSelectedOrders(new Set());
                         }}
-                        className="text-zinc-400 hover:bg-zinc-700"
+                        className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:text-white"
                       >
-                        <XCircle className="w-4 h-4" />
+                        {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
                       </Button>
                     </div>
                   )}
