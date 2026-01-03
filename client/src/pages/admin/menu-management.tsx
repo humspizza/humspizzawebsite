@@ -37,6 +37,7 @@ interface MenuItem {
   description: string;
   descriptionVi?: string;
   price: string;
+  vatRate?: string;
   imageUrl?: string;
   categoryId?: string;
   customizationSchemaId?: string;
@@ -52,6 +53,7 @@ const menuItemSchema = z.object({
   description: z.string().min(1, "Mô tả là bắt buộc"),
   descriptionVi: z.string().optional(),
   price: z.string().min(1, "Giá là bắt buộc"),
+  vatRate: z.string().default("8"),
   imageUrl: z.string().optional(),
   categoryId: z.string().min(1, "Danh mục là bắt buộc"),
   customizationSchemaId: z.string().optional(),
@@ -119,6 +121,7 @@ export default function MenuManagement() {
     description: item.menu_items?.description || item.description,
     descriptionVi: item.menu_items?.descriptionVi || item.descriptionVi,
     price: item.menu_items?.price || item.price,
+    vatRate: item.menu_items?.vatRate || item.vatRate || "8",
     imageUrl: item.menu_items?.imageUrl || item.imageUrl,
     categoryId: item.menu_items?.categoryId || item.categoryId,
     customizationSchemaId: item.menu_items?.customizationSchemaId || item.customizationSchemaId,
@@ -153,6 +156,7 @@ export default function MenuManagement() {
       description: "",
       descriptionVi: "",
       price: "",
+      vatRate: "8",
       imageUrl: "",
       categoryId: "",
       customizationSchemaId: "none",
@@ -469,6 +473,7 @@ export default function MenuManagement() {
       description: item.description,
       descriptionVi: item.descriptionVi || "",
       price: item.price,
+      vatRate: item.vatRate || "8",
       imageUrl: item.imageUrl || "",
       categoryId: item.categoryId || "",
       customizationSchemaId: item.customizationSchemaId || "none",
@@ -487,6 +492,7 @@ export default function MenuManagement() {
       description: "",
       descriptionVi: "",
       price: "",
+      vatRate: "8",
       imageUrl: "",
       categoryId: "",
       customizationSchemaId: "none",
@@ -631,7 +637,7 @@ export default function MenuManagement() {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
                     name="price"
@@ -641,6 +647,29 @@ export default function MenuManagement() {
                         <FormControl>
                           <Input {...field} type="text" placeholder="Ví dụ: 288000" className="bg-zinc-800 border-zinc-700 text-white" data-testid="input-price" />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="vatRate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">VAT (%)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white" data-testid="select-vat-rate">
+                              <SelectValue placeholder="Chọn VAT" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-zinc-800 border-zinc-700">
+                            <SelectItem value="0" className="text-white">0%</SelectItem>
+                            <SelectItem value="5" className="text-white">5%</SelectItem>
+                            <SelectItem value="8" className="text-white">8%</SelectItem>
+                            <SelectItem value="10" className="text-white">10%</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
