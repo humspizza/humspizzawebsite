@@ -111,7 +111,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
             <div>
               <label className="block text-sm font-medium mb-2">{t('booking.time')}</label>
               {availableTimeSlots.length === 0 ? (
-                <div className="p-3 bg-zinc-800 border border-zinc-700 rounded-lg">
+                <div className="h-10 p-2 bg-zinc-800 border border-zinc-700 rounded-md overflow-y-auto">
                   <div className="text-zinc-400 text-sm">
                     {language === 'vi' 
                       ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.') 
