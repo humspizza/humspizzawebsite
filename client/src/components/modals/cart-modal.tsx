@@ -377,20 +377,13 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
               
               {/* Price breakdown */}
               <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-white font-medium text-[14px]">
-                  <span>{language === 'vi' ? 'Tạm tính:' : 'Subtotal:'}</span>
+                <div className="flex justify-between text-lg font-bold text-white">
+                  <span>{language === 'vi' ? 'Tổng cộng:' : 'Total:'}</span>
                   <span>{formatPrice(totalPrice)}</span>
                 </div>
-                <div className="flex justify-between text-white text-sm opacity-70">
-                  <span>{language === 'vi' ? 'VAT (8%):' : 'VAT (8%):'}</span>
-                  <span>{formatPrice(Math.round(totalPrice * 0.08))}</span>
-                </div>
-                <div className="border-t border-noir-600 pt-2">
-                  <div className="flex justify-between text-lg font-bold text-white">
-                    <span>{language === 'vi' ? 'Tổng cộng:' : 'Total:'}</span>
-                    <span>{formatPrice(totalPrice + Math.round(totalPrice * 0.08))}</span>
-                  </div>
-                </div>
+                <p className="text-xs text-gray-400">
+                  {language === 'vi' ? 'Giá chưa bao gồm VAT' : 'Price does not include VAT'}
+                </p>
               </div>
               
               {orderingLocked ? (
