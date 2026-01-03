@@ -4,10 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Lock, Unlock, Clock, ShoppingCart, AlertTriangle, Phone } from "lucide-react";
+import { Lock, Unlock, Clock, ShoppingCart, AlertTriangle, MessageSquare, Save } from "lucide-react";
 
 interface TimeSlotLock {
   [time: string]: boolean;
@@ -19,6 +21,10 @@ export default function FeatureLocksSettings() {
   
   const [orderingLocked, setOrderingLocked] = useState(false);
   const [lockedTimeSlots, setLockedTimeSlots] = useState<TimeSlotLock>({});
+  const [orderingLockedMessageVi, setOrderingLockedMessageVi] = useState("");
+  const [orderingLockedMessageEn, setOrderingLockedMessageEn] = useState("");
+  const [timeslotLockedMessageVi, setTimeslotLockedMessageVi] = useState("");
+  const [timeslotLockedMessageEn, setTimeslotLockedMessageEn] = useState("");
 
   const { data: settings, isLoading } = useQuery<Record<string, any>>({
     queryKey: ["/api/system-settings"],
@@ -28,6 +34,10 @@ export default function FeatureLocksSettings() {
     if (settings) {
       setOrderingLocked(settings.ordering_locked || false);
       setLockedTimeSlots(settings.locked_time_slots || {});
+      setOrderingLockedMessageVi(settings.ordering_locked_message_vi || "");
+      setOrderingLockedMessageEn(settings.ordering_locked_message_en || "");
+      setTimeslotLockedMessageVi(settings.timeslot_locked_message_vi || "");
+      setTimeslotLockedMessageEn(settings.timeslot_locked_message_en || "");
     }
   }, [settings]);
 
@@ -91,6 +101,16 @@ export default function FeatureLocksSettings() {
     updateSettingMutation.mutate({ key: 'locked_time_slots', value: {} });
   };
 
+  const saveOrderingMessage = () => {
+    updateSettingMutation.mutate({ key: 'ordering_locked_message_vi', value: orderingLockedMessageVi });
+    updateSettingMutation.mutate({ key: 'ordering_locked_message_en', value: orderingLockedMessageEn });
+  };
+
+  const saveTimeslotMessage = () => {
+    updateSettingMutation.mutate({ key: 'timeslot_locked_message_vi', value: timeslotLockedMessageVi });
+    updateSettingMutation.mutate({ key: 'timeslot_locked_message_en', value: timeslotLockedMessageEn });
+  };
+
   const lockedCount = Object.keys(lockedTimeSlots).filter(k => lockedTimeSlots[k]).length;
 
   if (isLoading) {
@@ -116,7 +136,7 @@ export default function FeatureLocksSettings() {
             }
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-zinc-800 rounded-lg">
             <div>
               <p className="font-medium text-white">
@@ -149,13 +169,58 @@ export default function FeatureLocksSettings() {
                 </p>
                 <p className="text-amber-300/80 text-sm">
                   {language === 'vi' 
-                    ? 'Khách hàng sẽ thấy thông báo: "Tính năng đặt hàng online tạm thời không khả dụng. Vui lòng liên hệ trực tiếp với nhà hàng qua số điện thoại để đặt hàng."'
-                    : 'Customers will see: "Online ordering is temporarily unavailable. Please contact the restaurant directly by phone to place an order."'
+                    ? 'Khách hàng sẽ thấy thông báo tùy chỉnh bên dưới khi cố gắng đặt hàng.'
+                    : 'Customers will see the custom message below when trying to place an order.'
                   }
                 </p>
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <MessageSquare className="w-5 h-5" />
+            {language === 'vi' ? 'Nội Dung Thông Báo Khóa Đặt Hàng' : 'Ordering Locked Message'}
+          </CardTitle>
+          <CardDescription className="text-zinc-400">
+            {language === 'vi' 
+              ? 'Tùy chỉnh nội dung thông báo hiển thị cho khách khi tính năng đặt hàng bị khóa'
+              : 'Customize the message shown to customers when ordering is locked'
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-white mb-2 block">Tiếng Việt</Label>
+            <Textarea
+              value={orderingLockedMessageVi}
+              onChange={(e) => setOrderingLockedMessageVi(e.target.value)}
+              placeholder="Đặt hàng online tạm thời không khả dụng. Vui lòng liên hệ trực tiếp với nhà hàng qua số điện thoại để đặt hàng."
+              className="bg-zinc-800 border-zinc-700 text-white resize-none"
+              rows={3}
+            />
+          </div>
+          <div>
+            <Label className="text-white mb-2 block">English</Label>
+            <Textarea
+              value={orderingLockedMessageEn}
+              onChange={(e) => setOrderingLockedMessageEn(e.target.value)}
+              placeholder="Online ordering is temporarily unavailable. Please contact the restaurant directly by phone to place an order."
+              className="bg-zinc-800 border-zinc-700 text-white resize-none"
+              rows={3}
+            />
+          </div>
+          <Button 
+            onClick={saveOrderingMessage}
+            disabled={updateSettingMutation.isPending}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {language === 'vi' ? 'Lưu Thông Báo' : 'Save Message'}
+          </Button>
         </CardContent>
       </Card>
 
@@ -241,25 +306,45 @@ export default function FeatureLocksSettings() {
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
-            <Phone className="w-5 h-5" />
-            {language === 'vi' ? 'Thông tin liên hệ nhà hàng' : 'Restaurant Contact Info'}
+            <MessageSquare className="w-5 h-5" />
+            {language === 'vi' ? 'Nội Dung Thông Báo Khóa Khung Giờ' : 'Time Slot Locked Message'}
           </CardTitle>
           <CardDescription className="text-zinc-400">
             {language === 'vi' 
-              ? 'Số điện thoại hiển thị khi khóa tính năng đặt hàng'
-              : 'Phone number shown when ordering is locked'
+              ? 'Tùy chỉnh nội dung thông báo hiển thị cho khách khi tất cả khung giờ bị khóa'
+              : 'Customize the message shown to customers when all time slots are locked'
             }
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="p-4 bg-zinc-800 rounded-lg">
-            <p className="text-zinc-300">
-              {language === 'vi' 
-                ? 'Khách hàng sẽ được hướng dẫn liên hệ qua số điện thoại nhà hàng được cấu hình trong trang Thông Tin Liên Hệ.'
-                : 'Customers will be directed to contact via the restaurant phone number configured in Contact Information page.'
-              }
-            </p>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-white mb-2 block">Tiếng Việt</Label>
+            <Textarea
+              value={timeslotLockedMessageVi}
+              onChange={(e) => setTimeslotLockedMessageVi(e.target.value)}
+              placeholder="Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng."
+              className="bg-zinc-800 border-zinc-700 text-white resize-none"
+              rows={3}
+            />
           </div>
+          <div>
+            <Label className="text-white mb-2 block">English</Label>
+            <Textarea
+              value={timeslotLockedMessageEn}
+              onChange={(e) => setTimeslotLockedMessageEn(e.target.value)}
+              placeholder="All time slots are fully booked. Please contact the restaurant directly."
+              className="bg-zinc-800 border-zinc-700 text-white resize-none"
+              rows={3}
+            />
+          </div>
+          <Button 
+            onClick={saveTimeslotMessage}
+            disabled={updateSettingMutation.isPending}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {language === 'vi' ? 'Lưu Thông Báo' : 'Save Message'}
+          </Button>
         </CardContent>
       </Card>
     </div>

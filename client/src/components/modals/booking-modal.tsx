@@ -117,8 +117,8 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
                     <AlertTriangle className="w-4 h-4" />
                     <span>
                       {language === 'vi' 
-                        ? 'Tất cả khung giờ đã hết bàn' 
-                        : 'All time slots are fully booked'
+                        ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.') 
+                        : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
                       }
                     </span>
                   </div>

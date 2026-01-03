@@ -367,16 +367,10 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-amber-200 font-medium">
+                        <p className="text-amber-200 text-sm">
                           {language === 'vi' 
-                            ? 'Đặt hàng online tạm thời không khả dụng' 
-                            : 'Online ordering temporarily unavailable'
-                          }
-                        </p>
-                        <p className="text-amber-300/80 text-sm mt-1">
-                          {language === 'vi' 
-                            ? 'Vui lòng liên hệ trực tiếp với nhà hàng qua số điện thoại để đặt hàng.' 
-                            : 'Please contact the restaurant directly by phone to place an order.'
+                            ? (settings?.ordering_locked_message_vi || 'Đặt hàng online tạm thời không khả dụng. Vui lòng liên hệ trực tiếp với nhà hàng qua số điện thoại để đặt hàng.')
+                            : (settings?.ordering_locked_message_en || 'Online ordering is temporarily unavailable. Please contact the restaurant directly by phone to place an order.')
                           }
                         </p>
                       </div>
