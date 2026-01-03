@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { apiRequest } from "@/lib/queryClient";
+import { AlertTriangle, Phone } from "lucide-react";
 import type { ReservationForm } from "@/lib/types";
 import type { HomeContent } from "@shared/schema";
 
@@ -34,6 +35,13 @@ export default function ReservationSection() {
   const { data: homeContent } = useQuery<HomeContent>({
     queryKey: ["/api/home-content"],
   });
+
+  // Fetch system settings for locked time slots
+  const { data: settings } = useQuery<Record<string, any>>({
+    queryKey: ["/api/system-settings"],
+  });
+
+  const lockedTimeSlots: Record<string, boolean> = settings?.locked_time_slots || {};
 
   const createReservation = useMutation({
     mutationFn: async (data: ReservationForm) => {
@@ -71,13 +79,13 @@ export default function ReservationSection() {
   };
 
   // Generate time slots from 11:30 to 21:00 with 15-minute intervals (đồng bộ với trang đặt bàn)
-  const timeSlots = [];
+  const allTimeSlots: string[] = [];
   let currentHour = 11;
   let currentMinute = 30;
   
   while (currentHour < 21 || (currentHour === 21 && currentMinute <= 0)) {
     const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-    timeSlots.push(timeString);
+    allTimeSlots.push(timeString);
     
     // Add 15 minutes
     currentMinute += 15;
@@ -86,6 +94,9 @@ export default function ReservationSection() {
       currentHour += 1;
     }
   }
+
+  // Filter out locked time slots
+  const availableTimeSlots = allTimeSlots.filter(time => !lockedTimeSlots[time]);
 
   // Start playing video only when section is visible
   useEffect(() => {
@@ -162,18 +173,39 @@ export default function ReservationSection() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-3">{t('booking.time')}</label>
-                  <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
-                    <SelectTrigger className="bg-noir-800 border-noir-700">
-                      <SelectValue placeholder={language === 'vi' ? 'Chọn giờ' : 'Select time'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeSlots.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {availableTimeSlots.length === 0 ? (
+                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                      <div className="flex items-start gap-2 text-red-400 text-sm">
+                        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span>
+                          {language === 'vi' 
+                            ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.')
+                            : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
+                          }
+                        </span>
+                      </div>
+                      <a 
+                        href="tel:+842743818180"
+                        className="flex items-center justify-center gap-2 mt-3 bg-yellow-400 hover:bg-yellow-500 text-black py-2 rounded-md font-medium transition-colors text-sm"
+                      >
+                        <Phone className="w-4 h-4" />
+                        0274 381 8180
+                      </a>
+                    </div>
+                  ) : (
+                    <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
+                      <SelectTrigger className="bg-noir-800 border-noir-700">
+                        <SelectValue placeholder={language === 'vi' ? 'Chọn giờ' : 'Select time'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTimeSlots.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-3">{language === 'vi' ? 'Số khách' : 'Guests'}</label>
@@ -244,8 +276,8 @@ export default function ReservationSection() {
               <div className="text-center space-y-4">
                 <Button
                   type="submit"
-                  disabled={createReservation.isPending}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-4 text-lg font-semibold"
+                  disabled={createReservation.isPending || availableTimeSlots.length === 0}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {createReservation.isPending ? t('booking.confirming') : t('booking.confirm')}
                 </Button>
