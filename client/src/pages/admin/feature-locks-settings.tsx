@@ -159,23 +159,6 @@ export default function FeatureLocksSettings() {
               data-testid="switch-ordering-lock"
             />
           </div>
-          
-          {orderingLocked && (
-            <div className="mt-4 p-4 bg-amber-900/20 border border-amber-500/30 rounded-lg flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-amber-200 font-medium">
-                  {language === 'vi' ? 'Chú ý' : 'Note'}
-                </p>
-                <p className="text-amber-300/80 text-sm">
-                  {language === 'vi' 
-                    ? 'Khách hàng sẽ thấy thông báo tùy chỉnh bên dưới khi cố gắng đặt hàng.'
-                    : 'Customers will see the custom message below when trying to place an order.'
-                  }
-                </p>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
