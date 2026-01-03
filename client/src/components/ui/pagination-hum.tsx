@@ -50,25 +50,32 @@ export function PaginationHum({
 
   if (totalPages <= 1) return null;
 
+  const labels = {
+    first: language === 'vi' ? 'ĐẦU' : 'FIRST',
+    prev: language === 'vi' ? 'TRƯỚC' : 'PREV',
+    next: language === 'vi' ? 'SAU' : 'NEXT',
+    last: language === 'vi' ? 'CUỐI' : 'LAST',
+  };
+
   return (
     <div className="flex flex-col items-center gap-4 mt-12">
       <div className="flex items-center gap-2">
         <button
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-primary disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
           data-testid="pagination-first"
         >
-          FIRST
+          {labels.first}
         </button>
         
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-primary disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
           data-testid="pagination-prev"
         >
-          PREV
+          {labels.prev}
         </button>
 
         <div className="flex items-center gap-1">
@@ -79,8 +86,8 @@ export function PaginationHum({
                 onClick={() => onPageChange(page)}
                 className={`w-10 h-10 flex items-center justify-center text-sm font-medium transition-colors ${
                   currentPage === page
-                    ? 'border-2 border-white text-white'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'text-primary font-bold'
+                    : 'text-gray-400 hover:text-primary'
                 }`}
                 data-testid={`pagination-page-${page}`}
               >
@@ -97,19 +104,19 @@ export function PaginationHum({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-primary disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
           data-testid="pagination-next"
         >
-          NEXT
+          {labels.next}
         </button>
 
         <button
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-primary disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
           data-testid="pagination-last"
         >
-          LAST
+          {labels.last}
         </button>
       </div>
 
