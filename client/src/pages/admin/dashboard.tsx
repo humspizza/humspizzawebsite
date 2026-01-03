@@ -929,9 +929,8 @@ export default function AdminDashboard() {
                       variant="outline" 
                       size="sm"
                       onClick={() => setIsMultiSelectReservations(true)}
-                      className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+                      className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500"
                     >
-                      <CheckCircle className="w-4 h-4 mr-2" />
                       {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
                     </Button>
                   ) : (
@@ -1220,9 +1219,8 @@ export default function AdminDashboard() {
                       variant="outline" 
                       size="sm"
                       onClick={() => setIsMultiSelectOrders(true)}
-                      className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+                      className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500"
                     >
-                      <CheckCircle className="w-4 h-4 mr-2" />
                       {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
                     </Button>
                   ) : (
