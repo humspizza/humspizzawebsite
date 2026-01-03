@@ -229,12 +229,12 @@ export default function BookingPage() {
                     {language === 'vi' ? 'Giờ' : 'Time'}
                   </label>
                   {availableTimeSlots.length === 0 ? (
-                    <p className="text-white text-sm">
+                    <div className="flex h-10 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white cursor-default hover:border-zinc-600 transition-colors">
                       {language === 'vi' 
                         ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.')
                         : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
                       }
-                    </p>
+                    </div>
                   ) : (
                     <>
                       <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
