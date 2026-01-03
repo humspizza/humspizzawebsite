@@ -163,7 +163,7 @@ export default function Blog() {
                         }, featuredPost.excerpt)}
                       </p>
                       <span className="text-primary hover:text-primary/80 transition-colors font-medium">
-                        {t('blog.readFullArticle')} →
+                        {language === 'vi' ? 'Đọc thêm' : 'Read more'}
                       </span>
                     </div>
                   </article>
@@ -213,7 +213,7 @@ export default function Blog() {
                             }, post.excerpt)}
                           </p>
                           <span className="text-primary hover:text-primary/80 transition-colors text-xs">
-                            {t('blog.readMore')} →
+                            {language === 'vi' ? 'Đọc thêm' : 'Read more'}
                           </span>
                         </div>
                       </article>
