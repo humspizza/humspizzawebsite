@@ -1,16 +1,21 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Calendar, User } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useContentTranslation } from "@/hooks/useContentTranslation";
+import { PaginationHum } from "@/components/ui/pagination-hum";
 import type { BlogPost } from "@shared/schema";
 import SEOHead from "@/components/SEOHead";
 import { usePageSeo } from "@/hooks/usePageSeo";
 
+const ITEMS_PER_PAGE = 10;
+
 export default function Blog() {
   const { t, language } = useLanguage();
   const { getTranslatedContent } = useContentTranslation();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const seo = usePageSeo("news", {
     metaTitle: language === 'vi' 
@@ -30,7 +35,6 @@ export default function Blog() {
     ogType: "website",
   });
 
-  // Helper function to get correct slug based on current language
   const getBlogSlug = (post: BlogPost) => {
     if (language === "vi" && post.slugVi && post.slugVi !== 'undefined') {
       return post.slugVi;
@@ -38,44 +42,46 @@ export default function Blog() {
     if (language === "en" && post.slug && post.slug !== 'undefined') {
       return post.slug;
     }
-    // Fallback to available slug or ID, avoid undefined strings
     const fallbackSlug = post.slug && post.slug !== 'undefined' ? post.slug : 
                          post.slugVi && post.slugVi !== 'undefined' ? post.slugVi : 
                          post.id;
     return fallbackSlug;
   };
 
-  // Helper function to get both language URLs for a post
-  const getBlogUrls = (post: BlogPost) => {
-    return {
-      en: post.slug && post.slug !== 'undefined' ? post.slug : post.id,
-      vi: post.slugVi && post.slugVi !== 'undefined' ? post.slugVi : post.id
-    };
-  };
   const { data: blogPosts = [], isLoading } = useQuery<BlogPost[]>({
     queryKey: ["/api/blog-posts"],
     queryFn: () => fetch('/api/blog-posts?published=true').then(res => res.json()),
   });
 
-  // Sort posts: pinned first, then by creation date (newest first)
   const sortedPosts = [...blogPosts].sort((a, b) => {
     const aPinned = a.pinned || false;
     const bPinned = b.pinned || false;
     
-    // First priority: pinned vs non-pinned
     if (aPinned && !bPinned) return -1;
     if (!aPinned && bPinned) return 1;
     
-    // Second priority: if both are pinned, sort by pinOrder (0 = first, 1 = second, etc.)
     if (aPinned && bPinned) {
       const aOrder = a.pinOrder || 0;
       const bOrder = b.pinOrder || 0;
       if (aOrder !== bOrder) return aOrder - bOrder;
     }
     
-    // Third priority: sort by creation date
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
+
+  const totalItems = sortedPosts.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentPosts = sortedPosts.slice(startIndex, endIndex);
+
+  const featuredPost = currentPosts[0];
+  const otherPosts = currentPosts.slice(1);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -114,26 +120,19 @@ export default function Blog() {
           </div>
         ) : (
           <>
-            {/* Featured Post */}
-            {sortedPosts[0] && (
+            {featuredPost && (
               <div className="mb-12 max-w-7xl mx-auto">
-                <Link href={`/news/${getBlogSlug(sortedPosts[0])}`}>
+                <Link href={`/news/${getBlogSlug(featuredPost)}`}>
                   <article className="bg-noir-900 rounded-lg overflow-hidden group hover:bg-noir-800 transition-colors duration-300 cursor-pointer">
-                    {sortedPosts[0].imageUrl && (
+                    {featuredPost.imageUrl && (
                       <div className="aspect-[21/9] bg-zinc-800 overflow-hidden">
                         <img 
-                          src={sortedPosts[0].imageUrl}
+                          src={featuredPost.imageUrl}
                           alt={getTranslatedContent({
-                            en: sortedPosts[0].title,
-                            vi: sortedPosts[0].titleVi || undefined
-                          }, sortedPosts[0].title)}
+                            en: featuredPost.title,
+                            vi: featuredPost.titleVi || undefined
+                          }, featuredPost.title)}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            // Image failed to load silently
-                          }}
-                          onLoad={() => {
-                            // Image loaded successfully
-                          }}
                         />
                       </div>
                     )}
@@ -141,27 +140,27 @@ export default function Blog() {
                       <div className="flex items-center space-x-6 text-sm text-gray-400 mb-3">
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-4 h-4" />
-                          <span>{new Date(sortedPosts[0].createdAt).toLocaleDateString()}</span>
+                          <span>{new Date(featuredPost.createdAt).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <User className="w-4 h-4" />
                           <span>Hum's Pizza Team</span>
                         </div>
-                        {sortedPosts[0].pinned && (
+                        {featuredPost.pinned && (
                           <span className="text-yellow-500 text-xs font-medium bg-yellow-500/10 px-2 py-1 rounded">PINNED</span>
                         )}
                       </div>
                       <h2 className="text-2xl md:text-3xl font-bold mb-3 group-hover:text-primary transition-colors">
                         {getTranslatedContent({
-                          en: sortedPosts[0].title,
-                          vi: sortedPosts[0].titleVi || undefined
-                        }, sortedPosts[0].title)}
+                          en: featuredPost.title,
+                          vi: featuredPost.titleVi || undefined
+                        }, featuredPost.title)}
                       </h2>
                       <p className="text-gray-300 text-base md:text-lg mb-4 leading-relaxed">
                         {getTranslatedContent({
-                          en: sortedPosts[0].excerpt,
-                          vi: sortedPosts[0].excerptVi || undefined
-                        }, sortedPosts[0].excerpt)}
+                          en: featuredPost.excerpt,
+                          vi: featuredPost.excerptVi || undefined
+                        }, featuredPost.excerpt)}
                       </p>
                       <span className="text-primary hover:text-primary/80 transition-colors font-medium">
                         {t('blog.readFullArticle')} →
@@ -172,12 +171,11 @@ export default function Blog() {
               </div>
             )}
 
-            {/* Other Posts Grid */}
-            {sortedPosts.length > 1 && (
+            {otherPosts.length > 0 && (
               <div className="max-w-7xl mx-auto">
                 <h2 className="text-3xl font-bold mb-8">{t('blog.moreStories')}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {sortedPosts.slice(1).map((post) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {otherPosts.map((post) => (
                     <Link key={post.id} href={`/news/${getBlogSlug(post)}`}>
                       <article className="bg-noir-900 rounded-lg overflow-hidden group hover:bg-noir-800 transition-colors duration-300 flex flex-col cursor-pointer h-full">
                         {post.imageUrl && (
@@ -224,6 +222,14 @@ export default function Blog() {
                 </div>
               </div>
             )}
+
+            <PaginationHum
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={handlePageChange}
+            />
           </>
         )}
       </div>
