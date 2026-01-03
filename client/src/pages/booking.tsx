@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ReservationForm } from "@/lib/types";
-import { MapPin, Clock, Users } from "lucide-react";
+import { MapPin, Clock, Users, Phone } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { usePageSeo } from "@/hooks/usePageSeo";
 
@@ -308,6 +308,10 @@ export default function BookingPage() {
                   <Clock size={16} className="text-yellow-400" />
                   <span>{language === 'vi' ? 'Mở cửa: 11:00 - 22:00 hàng ngày' : 'Open: 11:00 - 22:00 daily'}</span>
                 </p>
+                <a href="tel:+84934699798" className="flex items-center gap-2 hover:text-yellow-400 transition-colors">
+                  <Phone size={16} className="text-yellow-400" />
+                  <span>Hotline: 093 469 97 98</span>
+                </a>
               </div>
             </div>
             
