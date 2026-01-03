@@ -10,8 +10,10 @@ import fs from "fs";
 import { 
   insertReservationSchema, insertOrderSchema, insertContactMessageSchema,
   insertCategorySchema, insertMenuItemSchema, insertBlogPostSchema, insertCustomizationSchemaSchema,
-  insertAboutContentSchema, insertNotificationSchema, insertPageSeoSchema, insertCustomerReviewSchema
+  insertAboutContentSchema, insertNotificationSchema, insertPageSeoSchema, insertCustomerReviewSchema,
+  systemSettings
 } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { uploadImage, uploadVideo, getUploadedFileUrl } from "./fileUpload";
 
@@ -2602,6 +2604,83 @@ Allow: /accessibility`;
 
     res.set('Content-Type', 'text/plain');
     res.send(robotsContent);
+  });
+
+  // ============ System Settings API (Feature Locks) ============
+  
+  // Get all system settings (public - for checking locks on frontend)
+  app.get("/api/system-settings", async (req, res) => {
+    try {
+      const settings = await db.select().from(systemSettings);
+      const settingsMap: Record<string, any> = {};
+      settings.forEach(s => {
+        settingsMap[s.settingKey] = s.settingValue;
+      });
+      res.json(settingsMap);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get specific setting by key (public)
+  app.get("/api/system-settings/:key", async (req, res) => {
+    try {
+      const { key } = req.params;
+      const setting = await db.select().from(systemSettings).where(eq(systemSettings.settingKey, key));
+      if (setting.length === 0) {
+        return res.json({ value: null });
+      }
+      res.json({ value: setting[0].settingValue });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Update or create system setting (admin only)
+  app.put("/api/admin/system-settings/:key", requireAuth, async (req, res) => {
+    try {
+      const { key } = req.params;
+      const { value, description, descriptionVi } = req.body;
+      
+      // Check if setting exists
+      const existing = await db.select().from(systemSettings).where(eq(systemSettings.settingKey, key));
+      
+      if (existing.length > 0) {
+        // Update existing
+        await db.update(systemSettings)
+          .set({ 
+            settingValue: value, 
+            description, 
+            descriptionVi,
+            updatedAt: new Date(),
+            updatedBy: req.session?.userId 
+          })
+          .where(eq(systemSettings.settingKey, key));
+      } else {
+        // Insert new
+        await db.insert(systemSettings).values({
+          settingKey: key,
+          settingValue: value,
+          description,
+          descriptionVi,
+          updatedBy: req.session?.userId
+        });
+      }
+      
+      res.json({ success: true, message: 'Setting updated' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get all settings with details (admin only)
+  app.get("/api/admin/system-settings", requireAuth, async (req, res) => {
+    try {
+      const settings = await db.select().from(systemSettings);
+      res.json(settings);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
   });
 
   const httpServer = createServer(app);
