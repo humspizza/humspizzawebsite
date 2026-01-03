@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Lock, Unlock, Clock, ShoppingCart, AlertTriangle, MessageSquare, Save } from "lucide-react";
+import { Lock, Unlock, Clock, ShoppingCart, MessageSquare } from "lucide-react";
 
 interface TimeSlotLock {
   [time: string]: boolean;
@@ -34,10 +34,10 @@ export default function FeatureLocksSettings() {
     if (settings) {
       setOrderingLocked(settings.ordering_locked || false);
       setLockedTimeSlots(settings.locked_time_slots || {});
-      setOrderingLockedMessageVi(settings.ordering_locked_message_vi || "");
-      setOrderingLockedMessageEn(settings.ordering_locked_message_en || "");
-      setTimeslotLockedMessageVi(settings.timeslot_locked_message_vi || "");
-      setTimeslotLockedMessageEn(settings.timeslot_locked_message_en || "");
+      setOrderingLockedMessageVi(settings.ordering_locked_message_vi || "Đặt hàng online tạm thời không khả dụng. Vui lòng liên hệ trực tiếp với nhà hàng qua số điện thoại để đặt hàng.");
+      setOrderingLockedMessageEn(settings.ordering_locked_message_en || "Online ordering is temporarily unavailable. Please contact the restaurant directly by phone to place an order.");
+      setTimeslotLockedMessageVi(settings.timeslot_locked_message_vi || "Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.");
+      setTimeslotLockedMessageEn(settings.timeslot_locked_message_en || "All time slots are fully booked. Please contact the restaurant directly.");
     }
   }, [settings]);
 
@@ -201,7 +201,6 @@ export default function FeatureLocksSettings() {
             disabled={updateSettingMutation.isPending}
             className="bg-primary hover:bg-primary/90"
           >
-            <Save className="w-4 h-4 mr-2" />
             {language === 'vi' ? 'Lưu Thông Báo' : 'Save Message'}
           </Button>
         </CardContent>
@@ -325,7 +324,6 @@ export default function FeatureLocksSettings() {
             disabled={updateSettingMutation.isPending}
             className="bg-primary hover:bg-primary/90"
           >
-            <Save className="w-4 h-4 mr-2" />
             {language === 'vi' ? 'Lưu Thông Báo' : 'Save Message'}
           </Button>
         </CardContent>
