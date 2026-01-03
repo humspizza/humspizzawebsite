@@ -387,7 +387,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                             </div>
                             
                             <div className="text-sm text-zinc-400">
-                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Ordered at:'} {new Date(order.createdAt).toLocaleString('vi-VN')}
+                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Ordered at:'} {new Date(order.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                             </div>
                             
                             {order.items && order.items.length > 0 && (
@@ -472,7 +472,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                             </div>
                             
                             <div className="text-sm text-zinc-400">
-                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Booked at:'} {new Date(reservation.createdAt).toLocaleString('vi-VN')}
+                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Booked at:'} {new Date(reservation.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                             </div>
                             
                             {reservation.specialRequests && (
@@ -582,7 +582,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                       </div>
                       <div className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
                         <Clock className="h-3 w-3" />
-                        {new Date(order.createdAt).toLocaleString('vi-VN')}
+                        {new Date(order.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                       </div>
                       <div className="text-sm font-medium text-white mt-1">
                         {currentLanguage === 'vi' ? 'Tổng:' : 'Total:'} {formatPrice(order.totalAmount)}
@@ -715,7 +715,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                       </div>
                       <div className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
                         <Clock className="h-3 w-3" />
-                        {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Created at:'} {new Date(reservation.createdAt).toLocaleString('vi-VN')}
+                        {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Created at:'} {new Date(reservation.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                       </div>
                       <div className="text-sm text-white mt-1 flex items-center gap-4">
                         <span className="flex items-center gap-1">

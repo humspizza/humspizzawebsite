@@ -119,7 +119,7 @@ export function VideoPreview({
         <>
           <div className="space-y-2 text-sm text-muted-foreground mb-3">
             <p><strong>Kích thước:</strong> {fileSize}</p>
-            <p><strong>Cập nhật:</strong> {lastModified ? new Date(lastModified).toLocaleString('vi-VN') : 'N/A'}</p>
+            <p><strong>Cập nhật:</strong> {lastModified ? new Date(lastModified).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : 'N/A'}</p>
           </div>
 
           {cacheBustedVideoUrl && (
