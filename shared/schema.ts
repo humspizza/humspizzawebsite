@@ -569,3 +569,22 @@ export const insertPageSeoSchema = createInsertSchema(pageSeo).omit({
 
 export type PageSeo = typeof pageSeo.$inferSelect;
 export type InsertPageSeo = z.infer<typeof insertPageSeoSchema>;
+
+// System settings for feature locks (reservation time slots, ordering)
+export const systemSettings = pgTable("system_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  settingKey: text("setting_key").notNull().unique(),
+  settingValue: json("setting_value").$type<any>().notNull(),
+  description: text("description"),
+  descriptionVi: text("description_vi"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedBy: varchar("updated_by").references(() => users.id),
+});
+
+export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
