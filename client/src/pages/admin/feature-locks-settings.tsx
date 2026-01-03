@@ -117,36 +117,25 @@ export default function FeatureLocksSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className={`flex items-center justify-between p-4 rounded-lg border ${
-            orderingLocked 
-              ? 'bg-red-900/20 border-red-500/30' 
-              : 'bg-green-900/20 border-green-500/30'
-          }`}>
-            <div className="flex items-center gap-3">
-              {orderingLocked ? (
-                <Lock className="w-6 h-6 text-red-500" />
-              ) : (
-                <Unlock className="w-6 h-6 text-green-500" />
-              )}
-              <div>
-                <p className={`font-medium ${orderingLocked ? 'text-red-200' : 'text-green-200'}`}>
-                  {orderingLocked 
-                    ? (language === 'vi' ? 'Đặt hàng đang bị KHÓA' : 'Ordering is LOCKED')
-                    : (language === 'vi' ? 'Đặt hàng đang MỞ' : 'Ordering is OPEN')
-                  }
-                </p>
-                <p className={`text-sm ${orderingLocked ? 'text-red-300/70' : 'text-green-300/70'}`}>
-                  {orderingLocked 
-                    ? (language === 'vi' ? 'Khách hàng sẽ thấy thông báo liên hệ' : 'Customers will see contact message')
-                    : (language === 'vi' ? 'Khách hàng có thể đặt hàng bình thường' : 'Customers can place orders normally')
-                  }
-                </p>
-              </div>
+          <div className="flex items-center justify-between p-4 bg-zinc-800 rounded-lg">
+            <div>
+              <p className="font-medium text-white">
+                {orderingLocked 
+                  ? (language === 'vi' ? 'Đặt hàng đang bị KHÓA' : 'Ordering is LOCKED')
+                  : (language === 'vi' ? 'Đặt hàng đang MỞ' : 'Ordering is OPEN')
+                }
+              </p>
+              <p className="text-sm text-zinc-400">
+                {orderingLocked 
+                  ? (language === 'vi' ? 'Khách hàng sẽ thấy thông báo liên hệ' : 'Customers will see contact message')
+                  : (language === 'vi' ? 'Khách hàng có thể đặt hàng bình thường' : 'Customers can place orders normally')
+                }
+              </p>
             </div>
             <Switch
               checked={orderingLocked}
               onCheckedChange={handleOrderingLockToggle}
-              className={orderingLocked ? 'data-[state=checked]:bg-red-500' : 'data-[state=unchecked]:bg-green-500'}
+              className="data-[state=checked]:bg-red-500 data-[state=unchecked]:bg-green-500"
               data-testid="switch-ordering-lock"
             />
           </div>
