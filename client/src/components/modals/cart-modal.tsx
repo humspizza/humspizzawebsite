@@ -1,11 +1,11 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, Phone, AlertTriangle } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -35,6 +35,12 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
   const queryClient = useQueryClient();
   
   const [showCheckout, setShowCheckout] = useState(false);
+
+  const { data: settings } = useQuery<Record<string, any>>({
+    queryKey: ["/api/system-settings"],
+  });
+
+  const orderingLocked = settings?.ordering_locked || false;
   const [orderForm, setOrderForm] = useState<OrderForm>({
     customerName: "",
     customerEmail: "",
@@ -355,12 +361,43 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
                 </div>
               </div>
               
-              <Button
-                onClick={() => setShowCheckout(true)}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                {language === 'vi' ? 'Tiến Hành Thanh Toán' : 'Proceed to Checkout'}
-              </Button>
+              {orderingLocked ? (
+                <div className="space-y-3">
+                  <div className="p-4 bg-amber-900/20 border border-amber-500/30 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-amber-200 font-medium">
+                          {language === 'vi' 
+                            ? 'Đặt hàng online tạm thời không khả dụng' 
+                            : 'Online ordering temporarily unavailable'
+                          }
+                        </p>
+                        <p className="text-amber-300/80 text-sm mt-1">
+                          {language === 'vi' 
+                            ? 'Vui lòng liên hệ trực tiếp với nhà hàng qua số điện thoại để đặt hàng.' 
+                            : 'Please contact the restaurant directly by phone to place an order.'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <a 
+                    href="tel:+842743818180"
+                    className="flex items-center justify-center gap-2 w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-md font-medium transition-colors"
+                  >
+                    <Phone className="w-4 h-4" />
+                    {language === 'vi' ? 'Gọi Đặt Hàng: 0274 381 8180' : 'Call to Order: 0274 381 8180'}
+                  </a>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setShowCheckout(true)}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {language === 'vi' ? 'Tiến Hành Thanh Toán' : 'Proceed to Checkout'}
+                </Button>
+              )}
             </div>
           </>
         )}

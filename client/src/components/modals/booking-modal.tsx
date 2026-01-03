@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Clock, AlertTriangle } from "lucide-react";
 import type { ReservationForm } from "@/lib/types";
 
 interface BookingModalProps {
@@ -29,6 +30,12 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: settings } = useQuery<Record<string, any>>({
+    queryKey: ["/api/system-settings"],
+  });
+
+  const lockedTimeSlots: Record<string, boolean> = settings?.locked_time_slots || {};
 
   const createReservation = useMutation({
     mutationFn: async (data: ReservationForm) => {
@@ -66,24 +73,21 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
     createReservation.mutate(form);
   };
 
-  // Generate time slots from 11:30 to 21:00 with 15-minute intervals
-  const timeSlots = [];
-  
-  // Start from 11:30
+  const allTimeSlots: string[] = [];
   let currentHour = 11;
   let currentMinute = 30;
-  
   while (currentHour < 21 || (currentHour === 21 && currentMinute <= 0)) {
     const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-    timeSlots.push(timeString);
-    
-    // Add 15 minutes
+    allTimeSlots.push(timeString);
     currentMinute += 15;
     if (currentMinute >= 60) {
       currentMinute = 0;
       currentHour += 1;
     }
   }
+
+  const availableTimeSlots = allTimeSlots.filter(time => !lockedTimeSlots[time]);
+  const lockedCount = Object.keys(lockedTimeSlots).filter(k => lockedTimeSlots[k]).length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -107,18 +111,43 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">{t('booking.time')}</label>
-              <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
-                <SelectTrigger className="bg-noir-800 border-noir-700">
-                  <SelectValue placeholder={t('booking.selectTime')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeSlots.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {availableTimeSlots.length === 0 ? (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-400 text-sm">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>
+                      {language === 'vi' 
+                        ? 'Tất cả khung giờ đã hết bàn' 
+                        : 'All time slots are fully booked'
+                      }
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
+                  <SelectTrigger className="bg-noir-800 border-noir-700">
+                    <SelectValue placeholder={t('booking.selectTime')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTimeSlots.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3 h-3" />
+                          {time}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {lockedCount > 0 && availableTimeSlots.length > 0 && (
+                <p className="text-xs text-amber-400 mt-1">
+                  {language === 'vi' 
+                    ? `${lockedCount} khung giờ đã hết bàn`
+                    : `${lockedCount} time slot(s) fully booked`
+                  }
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">{language === 'vi' ? 'Số khách' : 'Guests'}</label>
@@ -197,14 +226,13 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
             </Button>
             <Button
               type="submit"
-              disabled={createReservation.isPending}
+              disabled={createReservation.isPending || availableTimeSlots.length === 0}
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {createReservation.isPending ? t('booking.confirming') : t('booking.confirm')}
             </Button>
           </div>
 
-          {/* Confirmation Note */}
           <p className="text-xs text-gray-400 text-center mt-2">
             {language === 'vi' 
               ? 'Sau khi Quý khách hoàn tất đặt bàn, nhân viên của nhà hàng sẽ liên hệ để xác nhận thông tin.'
