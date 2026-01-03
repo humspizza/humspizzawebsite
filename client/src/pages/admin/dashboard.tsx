@@ -836,7 +836,7 @@ export default function AdminDashboard() {
                           </p>
                           <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
                             <Clock className="h-3 w-3" />
-                            Đặt lúc: {new Date(reservation.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+                            Đặt lúc: {new Date(reservation.createdAt).toLocaleString('vi-VN')}
                           </p>
                           {reservation.specialRequests && (
                             <p className="text-sm text-zinc-400 mt-1">
@@ -1038,7 +1038,7 @@ export default function AdminDashboard() {
                           </p>
                           <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
                             <Clock className="h-3 w-3" />
-                            Đặt lúc: {new Date(order.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+                            Đặt lúc: {new Date(order.createdAt).toLocaleString('vi-VN')}
                           </p>
                           <div className="text-sm text-zinc-400 mt-1">
                             Món: {order.items.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
@@ -1642,7 +1642,7 @@ export default function AdminDashboard() {
                   )}
                   <div>
                     <label className="text-sm font-medium text-zinc-300">Thời gian tạo</label>
-                    <p className="text-white">{new Date(selectedItem.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
+                    <p className="text-white">{new Date(selectedItem.createdAt).toLocaleString('vi-VN')}</p>
                   </div>
                 </div>
               )}
@@ -1697,7 +1697,7 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-zinc-300">Thời gian tạo</label>
-                    <p className="text-white">{new Date(selectedItem.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
+                    <p className="text-white">{new Date(selectedItem.createdAt).toLocaleString('vi-VN')}</p>
                   </div>
                 </div>
               )}
@@ -1721,7 +1721,7 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-zinc-300">Thời gian gửi</label>
-                    <p className="text-white">{new Date(selectedItem.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
+                    <p className="text-white">{new Date(selectedItem.createdAt).toLocaleString('vi-VN')}</p>
                   </div>
                 </div>
               )}
