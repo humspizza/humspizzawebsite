@@ -910,8 +910,7 @@ export default function AdminDashboard() {
                   <div className="text-sm text-zinc-400">
                     {t('admin.showing')} {filteredReservations.length} / {reservations.length} {t('admin.reservations')}
                   </div>
-                  <div className="text-sm text-amber-400 bg-amber-900/20 px-3 py-1 rounded border border-amber-500/30 flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
+                  <div className="text-sm text-zinc-400 bg-zinc-800/50 px-3 py-1 rounded border border-zinc-700">
                     {currentLanguage === 'vi' 
                       ? 'Đặt bàn sẽ tự động bị xóa sau 3 tháng' 
                       : 'Reservations will be automatically deleted after 3 months'
@@ -1201,8 +1200,7 @@ export default function AdminDashboard() {
                   <div className="text-sm text-zinc-400">
                     {t('admin.showing')} {filteredOrders.length} / {orders.length} {t('admin.orders')}
                   </div>
-                  <div className="text-sm text-amber-400 bg-amber-900/20 px-3 py-1 rounded border border-amber-500/30 flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
+                  <div className="text-sm text-zinc-400 bg-zinc-800/50 px-3 py-1 rounded border border-zinc-700">
                     {currentLanguage === 'vi' 
                       ? 'Đơn hàng sẽ tự động bị xóa sau 3 tháng' 
                       : 'Orders will be automatically deleted after 3 months'
