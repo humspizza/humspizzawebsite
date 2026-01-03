@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import MenuManagement from "./menu-management";
@@ -124,6 +125,12 @@ export default function AdminDashboard() {
   // Delete confirmation states
   const [deleteReservationId, setDeleteReservationId] = useState<string | null>(null);
   const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
+  
+  // Multi-select states for bulk delete
+  const [selectedReservations, setSelectedReservations] = useState<Set<string>>(new Set());
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [showBulkDeleteReservations, setShowBulkDeleteReservations] = useState(false);
+  const [showBulkDeleteOrders, setShowBulkDeleteOrders] = useState(false);
   
   // Form states for editing
   const [editOrderData, setEditOrderData] = useState({
@@ -399,6 +406,98 @@ export default function AdminDashboard() {
       });
     },
   });
+
+  // Bulk delete mutations
+  const bulkDeleteReservationsMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const results = await Promise.all(
+        ids.map(id => apiRequest("DELETE", `/api/reservations/${id}`))
+      );
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reservations"] });
+      setSelectedReservations(new Set());
+      setShowBulkDeleteReservations(false);
+      toast({
+        title: "Đã xóa",
+        description: `Đã xóa ${selectedReservations.size} đặt bàn thành công`
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Không thể xóa đặt bàn",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const bulkDeleteOrdersMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const results = await Promise.all(
+        ids.map(id => apiRequest("DELETE", `/api/orders/${id}`))
+      );
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      setSelectedOrders(new Set());
+      setShowBulkDeleteOrders(false);
+      toast({
+        title: "Đã xóa",
+        description: `Đã xóa ${selectedOrders.size} đơn hàng thành công`
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Không thể xóa đơn hàng",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Toggle selection functions
+  const toggleReservationSelection = (id: string) => {
+    setSelectedReservations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleOrderSelection = (id: string) => {
+    setSelectedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllReservations = () => {
+    if (selectedReservations.size === filteredReservations.length) {
+      setSelectedReservations(new Set());
+    } else {
+      setSelectedReservations(new Set(filteredReservations.map(r => r.id)));
+    }
+  };
+
+  const toggleAllOrders = () => {
+    if (selectedOrders.size === filteredOrders.length) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(filteredOrders.map(o => o.id)));
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -821,29 +920,95 @@ export default function AdminDashboard() {
               
               
               <CardContent>
+                {/* Bulk Actions Bar */}
+                <div className="flex items-center justify-between mb-4 p-3 bg-zinc-800 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      checked={filteredReservations.length > 0 && selectedReservations.size === filteredReservations.length}
+                      onCheckedChange={toggleAllReservations}
+                      className="border-zinc-600"
+                    />
+                    <span className="text-sm text-zinc-300">
+                      {selectedReservations.size > 0 
+                        ? (currentLanguage === 'vi' ? `Đã chọn ${selectedReservations.size}` : `${selectedReservations.size} selected`)
+                        : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
+                      }
+                    </span>
+                  </div>
+                  {selectedReservations.size > 0 && (
+                    <AlertDialog open={showBulkDeleteReservations} onOpenChange={setShowBulkDeleteReservations}>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          {currentLanguage === 'vi' ? `Xóa ${selectedReservations.size} mục` : `Delete ${selectedReservations.size} items`}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-white">
+                            {currentLanguage === 'vi' ? 'Xác nhận xóa hàng loạt' : 'Confirm Bulk Delete'}
+                          </AlertDialogTitle>
+                          <AlertDialogDescription className="text-zinc-400">
+                            {currentLanguage === 'vi' 
+                              ? `Bạn có chắc chắn muốn xóa ${selectedReservations.size} đặt bàn đã chọn? Hành động này không thể hoàn tác.`
+                              : `Are you sure you want to delete ${selectedReservations.size} selected reservations? This action cannot be undone.`
+                            }
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
+                            {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => bulkDeleteReservationsMutation.mutate(Array.from(selectedReservations))}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                            disabled={bulkDeleteReservationsMutation.isPending}
+                          >
+                            {bulkDeleteReservationsMutation.isPending 
+                              ? (currentLanguage === 'vi' ? 'Đang xóa...' : 'Deleting...') 
+                              : (currentLanguage === 'vi' ? 'Xóa' : 'Delete')
+                            }
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
+                
                 <div className="space-y-4">
                   {filteredReservations.map((reservation) => (
                     <div
                       key={reservation.id}
-                      className="p-4 border border-zinc-800 rounded-lg space-y-2"
+                      className={`p-4 border rounded-lg space-y-2 ${selectedReservations.has(reservation.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-800'}`}
                       data-testid={`reservation-${reservation.id}`}
                     >
                       <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-white">{reservation.name}</h3>
-                          <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
-                          <p className="text-sm text-zinc-300">
-                            {reservation.date} {t('admin.at')} {reservation.time} - {reservation.guests} {t('admin.people')}
-                          </p>
-                          <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
-                            <Clock className="h-3 w-3" />
-                            Đặt lúc: {formatDbTimestamp(reservation.createdAt)}
-                          </p>
-                          {reservation.specialRequests && (
-                            <p className="text-sm text-zinc-400 mt-1">
-                              {t('admin.requests')}: {reservation.specialRequests}
+                        <div className="flex items-start gap-3 flex-1">
+                          <Checkbox 
+                            checked={selectedReservations.has(reservation.id)}
+                            onCheckedChange={() => toggleReservationSelection(reservation.id)}
+                            className="border-zinc-600 mt-1"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-white">{reservation.name}</h3>
+                            <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
+                            <p className="text-sm text-zinc-300">
+                              {reservation.date} {t('admin.at')} {reservation.time} - {reservation.guests} {t('admin.people')}
                             </p>
-                          )}
+                            <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
+                              <Clock className="h-3 w-3" />
+                              Đặt lúc: {formatDbTimestamp(reservation.createdAt)}
+                            </p>
+                            {reservation.specialRequests && (
+                              <p className="text-sm text-zinc-400 mt-1">
+                                {t('admin.requests')}: {reservation.specialRequests}
+                              </p>
+                            )}
+                          </div>
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <div className="flex items-center gap-2">
@@ -1018,31 +1183,97 @@ export default function AdminDashboard() {
               </CardHeader>
               
               <CardContent>
+                {/* Bulk Actions Bar */}
+                <div className="flex items-center justify-between mb-4 p-3 bg-zinc-800 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      checked={filteredOrders.length > 0 && selectedOrders.size === filteredOrders.length}
+                      onCheckedChange={toggleAllOrders}
+                      className="border-zinc-600"
+                    />
+                    <span className="text-sm text-zinc-300">
+                      {selectedOrders.size > 0 
+                        ? (currentLanguage === 'vi' ? `Đã chọn ${selectedOrders.size}` : `${selectedOrders.size} selected`)
+                        : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
+                      }
+                    </span>
+                  </div>
+                  {selectedOrders.size > 0 && (
+                    <AlertDialog open={showBulkDeleteOrders} onOpenChange={setShowBulkDeleteOrders}>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          {currentLanguage === 'vi' ? `Xóa ${selectedOrders.size} mục` : `Delete ${selectedOrders.size} items`}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-white">
+                            {currentLanguage === 'vi' ? 'Xác nhận xóa hàng loạt' : 'Confirm Bulk Delete'}
+                          </AlertDialogTitle>
+                          <AlertDialogDescription className="text-zinc-400">
+                            {currentLanguage === 'vi' 
+                              ? `Bạn có chắc chắn muốn xóa ${selectedOrders.size} đơn hàng đã chọn? Hành động này không thể hoàn tác.`
+                              : `Are you sure you want to delete ${selectedOrders.size} selected orders? This action cannot be undone.`
+                            }
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
+                            {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => bulkDeleteOrdersMutation.mutate(Array.from(selectedOrders))}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                            disabled={bulkDeleteOrdersMutation.isPending}
+                          >
+                            {bulkDeleteOrdersMutation.isPending 
+                              ? (currentLanguage === 'vi' ? 'Đang xóa...' : 'Deleting...') 
+                              : (currentLanguage === 'vi' ? 'Xóa' : 'Delete')
+                            }
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
+                
                 <div className="space-y-4">
                   {filteredOrders.map((order) => (
                     <div
                       key={order.id}
-                      className="p-4 border border-zinc-800 rounded-lg space-y-2"
+                      className={`p-4 border rounded-lg space-y-2 ${selectedOrders.has(order.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-800'}`}
                       data-testid={`order-${order.id}`}
                     >
                       <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-white">{order.customerName}</h3>
-                          <p className="text-sm text-zinc-400">{order.customerEmail} | {order.customerPhone}</p>
-                          {order.customerAddress && (
-                            <p className="text-sm text-zinc-400">
-                              Địa chỉ: {order.customerAddress}
+                        <div className="flex items-start gap-3 flex-1">
+                          <Checkbox 
+                            checked={selectedOrders.has(order.id)}
+                            onCheckedChange={() => toggleOrderSelection(order.id)}
+                            className="border-zinc-600 mt-1"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-white">{order.customerName}</h3>
+                            <p className="text-sm text-zinc-400">{order.customerEmail} | {order.customerPhone}</p>
+                            {order.customerAddress && (
+                              <p className="text-sm text-zinc-400">
+                                Địa chỉ: {order.customerAddress}
+                              </p>
+                            )}
+                            <p className="text-sm text-zinc-300">
+                              Loại: {getOrderTypeText(order.orderType)} | Tổng: {formatPrice(order.totalAmount)}
                             </p>
-                          )}
-                          <p className="text-sm text-zinc-300">
-                            Loại: {getOrderTypeText(order.orderType)} | Tổng: {formatPrice(order.totalAmount)}
-                          </p>
-                          <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
-                            <Clock className="h-3 w-3" />
-                            Đặt lúc: {formatDbTimestamp(order.createdAt)}
-                          </p>
-                          <div className="text-sm text-zinc-400 mt-1">
-                            Món: {order.items.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
+                            <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
+                              <Clock className="h-3 w-3" />
+                              Đặt lúc: {formatDbTimestamp(order.createdAt)}
+                            </p>
+                            <div className="text-sm text-zinc-400 mt-1">
+                              Món: {order.items.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
+                            </div>
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-2">
