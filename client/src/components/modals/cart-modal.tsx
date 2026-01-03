@@ -363,14 +363,12 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
               
               {orderingLocked ? (
                 <div className="space-y-3">
-                  <div className="p-4 bg-amber-900/20 border border-amber-500/30 rounded-lg">
-                    <p className="text-amber-200 text-sm">
-                      {language === 'vi' 
-                        ? (settings?.ordering_locked_message_vi || 'Đặt hàng online tạm thời không khả dụng. Vui lòng liên hệ trực tiếp với nhà hàng qua số điện thoại để đặt hàng.')
-                        : (settings?.ordering_locked_message_en || 'Online ordering is temporarily unavailable. Please contact the restaurant directly by phone to place an order.')
-                      }
-                    </p>
-                  </div>
+                  <p className="text-xs text-gray-400">
+                    {language === 'vi' 
+                      ? (settings?.ordering_locked_message_vi || 'Đặt hàng online tạm thời không khả dụng. Vui lòng liên hệ trực tiếp với nhà hàng qua số điện thoại để đặt hàng.')
+                      : (settings?.ordering_locked_message_en || 'Online ordering is temporarily unavailable. Please contact the restaurant directly by phone to place an order.')
+                    }
+                  </p>
                   <a 
                     href="tel:+842743818180"
                     className="flex items-center justify-center gap-2 w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-md font-medium transition-colors"
