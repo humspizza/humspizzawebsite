@@ -172,21 +172,14 @@ export default function Login() {
               
               <Button 
                 type="submit" 
-                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold transition-colors"
+                className="w-full bg-yellow-400 hover:bg-yellow-500 text-[#18181b] font-bold py-3 text-lg transition-colors"
                 disabled={isLoading}
                 data-testid="button-login"
               >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                    {language === 'vi' ? 'Đang đăng nhập...' : 'Signing in...'}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <LogIn className="h-4 w-4" />
-                    {language === 'vi' ? 'Đăng nhập' : 'Sign In'}
-                  </div>
-                )}
+                {isLoading 
+                  ? (language === 'vi' ? 'Đang đăng nhập...' : 'Signing in...') 
+                  : (language === 'vi' ? 'Đăng nhập' : 'Sign In')
+                }
               </Button>
             </form>
           </Form>
