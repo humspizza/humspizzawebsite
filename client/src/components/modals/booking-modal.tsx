@@ -87,7 +87,6 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
   }
 
   const availableTimeSlots = allTimeSlots.filter(time => !lockedTimeSlots[time]);
-  const lockedCount = Object.keys(lockedTimeSlots).filter(k => lockedTimeSlots[k]).length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -139,14 +138,6 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-              {lockedCount > 0 && availableTimeSlots.length > 0 && (
-                <p className="text-xs text-amber-400 mt-1">
-                  {language === 'vi' 
-                    ? `${lockedCount} khung giờ đã hết bàn`
-                    : `${lockedCount} time slot(s) fully booked`
-                  }
-                </p>
               )}
             </div>
             <div>
