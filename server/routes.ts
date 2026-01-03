@@ -875,6 +875,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/contact/bulk-delete", requireAuth, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "No message IDs provided" });
+      }
+      for (const id of ids) {
+        await storage.deleteContactMessage(id);
+      }
+      res.json({ success: true, deletedCount: ids.length });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.delete("/api/orders/:id", requireAuth, async (req, res) => {
     try {
       await storage.deleteOrder(req.params.id);

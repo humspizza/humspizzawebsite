@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -23,6 +24,9 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [timeFilter, setTimeFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedMessages, setSelectedMessages] = useState<Set<string>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const { toast } = useToast();
   const { language } = useLanguage();
   const queryClient = useQueryClient();
@@ -76,6 +80,48 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
       });
     },
   });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const response = await apiRequest("POST", "/api/contact/bulk-delete", { ids });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contact"] });
+      setSelectedMessages(new Set());
+      setIsMultiSelectMode(false);
+      setShowBulkDeleteDialog(false);
+      toast({
+        title: language === 'vi' ? 'Đã xóa' : 'Deleted',
+        description: language === 'vi' ? 'Các tin nhắn đã được xóa' : 'Messages deleted successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'vi' ? 'Lỗi' : 'Error',
+        description: error.message || 'Failed to delete messages',
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleMessageSelection = (id: string) => {
+    const newSelected = new Set(selectedMessages);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedMessages(newSelected);
+  };
+
+  const toggleAllMessages = () => {
+    if (selectedMessages.size === filteredMessages.length) {
+      setSelectedMessages(new Set());
+    } else {
+      setSelectedMessages(new Set(filteredMessages.map(m => m.id)));
+    }
+  };
 
   const filteredMessages = contactMessages.filter(message => {
     // Filter by status
@@ -280,6 +326,90 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
         </div>
       )}
 
+      {/* Bulk Actions Bar */}
+      <div className="flex items-center justify-between">
+        {!isMultiSelectMode ? (
+          <Button 
+            size="sm"
+            onClick={() => setIsMultiSelectMode(true)}
+            className="bg-zinc-700 text-white hover:bg-zinc-600"
+          >
+            {language === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg">
+            <Button 
+              size="sm"
+              onClick={toggleAllMessages}
+              className="bg-zinc-700 text-white hover:bg-zinc-600"
+            >
+              {selectedMessages.size === filteredMessages.length && filteredMessages.length > 0
+                ? (language === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
+                : (language === 'vi' ? 'Chọn tất cả' : 'Select all')
+              }
+            </Button>
+            <AlertDialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  size="sm"
+                  disabled={selectedMessages.size === 0}
+                  className={selectedMessages.size > 0 
+                    ? "bg-red-600 text-white hover:bg-red-500" 
+                    : "bg-zinc-600 text-zinc-400 hover:bg-zinc-500 cursor-not-allowed"
+                  }
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-white">
+                    {language === 'vi' ? 'Xác nhận xóa hàng loạt' : 'Confirm Bulk Delete'}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-zinc-400">
+                    {language === 'vi' 
+                      ? `Bạn có chắc chắn muốn xóa ${selectedMessages.size} tin nhắn đã chọn? Hành động này không thể hoàn tác.`
+                      : `Are you sure you want to delete ${selectedMessages.size} selected messages? This action cannot be undone.`
+                    }
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
+                    {language === 'vi' ? 'Hủy' : 'Cancel'}
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => bulkDeleteMutation.mutate(Array.from(selectedMessages))}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    disabled={bulkDeleteMutation.isPending}
+                  >
+                    {bulkDeleteMutation.isPending 
+                      ? (language === 'vi' ? 'Đang xóa...' : 'Deleting...') 
+                      : (language === 'vi' ? 'Xóa' : 'Delete')
+                    }
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <span className="text-sm text-zinc-400">
+              {selectedMessages.size > 0 
+                ? (language === 'vi' ? `Đã chọn ${selectedMessages.size}` : `${selectedMessages.size} selected`)
+                : (language === 'vi' ? 'Chưa chọn' : 'None selected')
+              }
+            </span>
+            <Button 
+              size="sm"
+              onClick={() => {
+                setIsMultiSelectMode(false);
+                setSelectedMessages(new Set());
+              }}
+              className="bg-zinc-700 text-white hover:bg-zinc-600"
+            >
+              {language === 'vi' ? 'Hủy' : 'Cancel'}
+            </Button>
+          </div>
+        )}
+      </div>
+
       {/* Messages List */}
       <div className="space-y-4">
         {filteredMessages.length === 0 ? (
@@ -296,10 +426,17 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
           </Card>
         ) : (
           filteredMessages.map((message) => (
-            <Card key={message.id} className={`bg-zinc-900 border-zinc-800 ${message.status === 'new' ? 'border-blue-500' : ''}`}>
+            <Card key={message.id} className={`bg-zinc-900 ${selectedMessages.has(message.id) ? 'border-yellow-500 bg-yellow-500/5' : message.status === 'new' ? 'border-blue-500' : 'border-zinc-800'}`}>
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
+                    {isMultiSelectMode && (
+                      <Checkbox 
+                        checked={selectedMessages.has(message.id)}
+                        onCheckedChange={() => toggleMessageSelection(message.id)}
+                        className="border-zinc-600"
+                      />
+                    )}
                     <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
                       <User className="w-5 h-5 text-zinc-400" />
                     </div>
