@@ -18,6 +18,7 @@ import PagesManagement from "./pages-management";
 import NotificationPanel from "@/components/NotificationPanel";
 
 import AccountSettings from "./account-settings";
+import FeatureLocksSettings from "./feature-locks-settings";
 import { 
   Users, 
   ShoppingBag, 
@@ -762,6 +763,9 @@ export default function AdminDashboard() {
               <Settings className="w-4 h-4 mr-2" />
               {t('account.title')}
             </TabsTrigger>
+            <TabsTrigger value="feature-settings" className="data-[state=active]:bg-zinc-800">
+              {currentLanguage === 'vi' ? 'Khóa Tính Năng' : 'Feature Locks'}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="reservations" className="space-y-4">
@@ -1185,6 +1189,10 @@ export default function AdminDashboard() {
           
           <TabsContent value="account" className="space-y-4">
             <AccountSettings />
+          </TabsContent>
+
+          <TabsContent value="feature-settings" className="space-y-4">
+            <FeatureLocksSettings />
           </TabsContent>
         </Tabs>
       </div>
