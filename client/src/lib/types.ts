@@ -3,7 +3,6 @@ export interface CartItem {
   name: string;
   nameVi?: string;
   price: number;
-  vatRate?: number;
   quantity: number;
   image?: string;
   customization?: {

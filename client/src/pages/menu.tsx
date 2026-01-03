@@ -185,7 +185,6 @@ export default function Menu() {
       name: item.name,
       nameVi: item.nameVi || undefined,
       price: parseFloat(item.price),
-      vatRate: parseFloat(item.vatRate || "8"),
       image: item.imageUrl || undefined,
     });
     toast({

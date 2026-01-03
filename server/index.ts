@@ -257,31 +257,8 @@ app.use(async (req, res, next) => {
   await seedAboutContent();
   await seedHomeContent();
   
-  // Run schema migrations (for columns that can't be pushed via drizzle-kit)
-  await runSchemaMigrations();
-  
   // Initialize auto archive system
   await initAutoArchiveSystem();
-
-async function runSchemaMigrations() {
-  try {
-    const { pool } = await import('./db');
-    
-    // Add vat_rate column to menu_items if it doesn't exist
-    await pool.query(`
-      ALTER TABLE menu_items 
-      ADD COLUMN IF NOT EXISTS vat_rate DECIMAL(5,2) DEFAULT '8'
-    `);
-    console.log('✓ Schema migrations completed');
-  } catch (error: any) {
-    if (error.code === '42701') {
-      // Column already exists - this is fine
-      console.log('✓ Schema migrations: vat_rate column already exists');
-    } else {
-      console.error('Warning: Schema migration failed:', error.message);
-    }
-  }
-}
 
 async function seedHomeContent() {
   try {
