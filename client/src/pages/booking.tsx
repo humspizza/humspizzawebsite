@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ReservationForm } from "@/lib/types";
-import { MapPin, Clock, Users } from "lucide-react";
+import { MapPin, Clock, Users, AlertTriangle, Phone } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { usePageSeo } from "@/hooks/usePageSeo";
 
@@ -44,6 +44,12 @@ export default function BookingPage() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: settings } = useQuery<Record<string, any>>({
+    queryKey: ["/api/system-settings"],
+  });
+
+  const lockedTimeSlots: Record<string, boolean> = settings?.locked_time_slots || {};
 
   const createReservation = useMutation({
     mutationFn: async (data: ReservationForm) => {
@@ -83,13 +89,13 @@ export default function BookingPage() {
   };
 
   // Generate time slots from 11:30 to 21:00 with 15-minute intervals
-  const timeSlots = [];
+  const allTimeSlots: string[] = [];
   let currentHour = 11;
   let currentMinute = 30;
   
   while (currentHour < 21 || (currentHour === 21 && currentMinute <= 0)) {
     const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-    timeSlots.push(timeString);
+    allTimeSlots.push(timeString);
     
     // Add 15 minutes
     currentMinute += 15;
@@ -98,6 +104,10 @@ export default function BookingPage() {
       currentHour += 1;
     }
   }
+
+  // Filter out locked time slots
+  const availableTimeSlots = allTimeSlots.filter(time => !lockedTimeSlots[time]);
+  const lockedCount = Object.keys(lockedTimeSlots).filter(k => lockedTimeSlots[k]).length;
 
   return (
     <div className="min-h-screen bg-black pt-20">
@@ -219,18 +229,49 @@ export default function BookingPage() {
                   <label className="block text-sm font-medium mb-2">
                     {language === 'vi' ? 'Giờ' : 'Time'}
                   </label>
-                  <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
-                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                      <SelectValue placeholder={language === 'vi' ? 'Chọn giờ' : 'Select time'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeSlots.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {availableTimeSlots.length === 0 ? (
+                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                      <div className="flex items-start gap-2 text-red-400 text-sm">
+                        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span>
+                          {language === 'vi' 
+                            ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.')
+                            : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
+                          }
+                        </span>
+                      </div>
+                      <a 
+                        href="tel:+842743818180"
+                        className="flex items-center justify-center gap-2 mt-3 bg-yellow-400 hover:bg-yellow-500 text-black py-2 rounded-md font-medium transition-colors text-sm"
+                      >
+                        <Phone className="w-4 h-4" />
+                        0274 381 8180
+                      </a>
+                    </div>
+                  ) : (
+                    <>
+                      <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
+                        <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                          <SelectValue placeholder={language === 'vi' ? 'Chọn giờ' : 'Select time'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableTimeSlots.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {lockedCount > 0 && (
+                        <p className="text-xs text-amber-400 mt-1">
+                          {language === 'vi' 
+                            ? `${lockedCount} khung giờ đã hết bàn`
+                            : `${lockedCount} time slot(s) fully booked`
+                          }
+                        </p>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -254,8 +295,8 @@ export default function BookingPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={createReservation.isPending}
-                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 text-lg"
+                disabled={createReservation.isPending || availableTimeSlots.length === 0}
+                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {createReservation.isPending 
                   ? (language === 'vi' ? 'Đang xử lý...' : 'Processing...') 
