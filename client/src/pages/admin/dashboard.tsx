@@ -759,12 +759,12 @@ export default function AdminDashboard() {
             <TabsTrigger value="pages" className="data-[state=active]:bg-zinc-800">
               {currentLanguage === 'vi' ? 'Trang' : 'Pages'}
             </TabsTrigger>
+            <TabsTrigger value="feature-settings" className="data-[state=active]:bg-zinc-800">
+              {currentLanguage === 'vi' ? 'Khóa Tính Năng' : 'Feature Locks'}
+            </TabsTrigger>
             <TabsTrigger value="account" className="data-[state=active]:bg-zinc-800">
               <Settings className="w-4 h-4 mr-2" />
               {t('account.title')}
-            </TabsTrigger>
-            <TabsTrigger value="feature-settings" className="data-[state=active]:bg-zinc-800">
-              {currentLanguage === 'vi' ? 'Khóa Tính Năng' : 'Feature Locks'}
             </TabsTrigger>
           </TabsList>
 
