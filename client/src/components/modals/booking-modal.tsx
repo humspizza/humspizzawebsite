@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Clock, AlertTriangle } from "lucide-react";
+import { Clock } from "lucide-react";
 import type { ReservationForm } from "@/lib/types";
 
 interface BookingModalProps {
@@ -90,7 +90,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-noir-900 border-noir-700 max-w-2xl">
+      <DialogContent className="bg-zinc-900 border-zinc-700 max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">{t('booking.title')}</DialogTitle>
         </DialogHeader>
@@ -103,7 +103,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
                 type="date"
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="bg-noir-800 border-noir-700 focus:border-primary"
+                className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
                 min={new Date().toISOString().split('T')[0]}
                 required
               />
@@ -111,20 +111,17 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
             <div>
               <label className="block text-sm font-medium mb-2">{t('booking.time')}</label>
               {availableTimeSlots.length === 0 ? (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                  <div className="flex items-center gap-2 text-red-400 text-sm">
-                    <AlertTriangle className="w-4 h-4" />
-                    <span>
-                      {language === 'vi' 
-                        ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.') 
-                        : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
-                      }
-                    </span>
+                <div className="p-3 bg-zinc-800 border border-zinc-700 rounded-lg">
+                  <div className="text-zinc-400 text-sm">
+                    {language === 'vi' 
+                      ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.') 
+                      : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
+                    }
                   </div>
                 </div>
               ) : (
                 <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
-                  <SelectTrigger className="bg-noir-800 border-noir-700">
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700">
                     <SelectValue placeholder={t('booking.selectTime')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -143,7 +140,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
             <div>
               <label className="block text-sm font-medium mb-2">{language === 'vi' ? 'Số khách' : 'Guests'}</label>
               <Select value={form.guests > 0 ? form.guests.toString() : ""} onValueChange={(value) => setForm({ ...form, guests: parseInt(value) })}>
-                <SelectTrigger className="bg-noir-800 border-noir-700">
+                <SelectTrigger className="bg-zinc-800 border-zinc-700">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto">
@@ -163,7 +160,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
               <Input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="bg-noir-800 border-noir-700 focus:border-primary"
+                className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
                 placeholder={language === 'vi' ? 'Nhập họ tên' : 'Enter your name'}
                 required
               />
@@ -174,7 +171,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="bg-noir-800 border-noir-700 focus:border-primary"
+                className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
                 placeholder="email@example.com"
               />
             </div>
@@ -186,7 +183,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
               type="tel"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="bg-noir-800 border-noir-700 focus:border-primary"
+              className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
               placeholder={language === 'vi' ? 'Nhập số điện thoại' : 'Enter phone number'}
               required
             />
@@ -201,7 +198,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
                 ? 'Trang trí dịp đặc biệt (sinh nhật, kỷ niệm...), sở thích về chỗ ngồi (yên tĩnh, gần cửa sổ...) hoặc yêu cầu khác'
                 : 'Special occasion decorations (birthday, anniversary...), seating preferences (quiet, near window...) or other requests'
               }
-              className="bg-noir-800 border-noir-700 focus:border-primary resize-none"
+              className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white resize-none"
               rows={3}
             />
           </div>
@@ -218,7 +215,7 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
             <Button
               type="submit"
               disabled={createReservation.isPending || availableTimeSlots.length === 0}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold disabled:bg-zinc-700 disabled:text-zinc-400"
             >
               {createReservation.isPending ? t('booking.confirming') : t('booking.confirm')}
             </Button>
