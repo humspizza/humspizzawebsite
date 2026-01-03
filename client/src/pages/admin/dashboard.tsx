@@ -131,6 +131,8 @@ export default function AdminDashboard() {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [showBulkDeleteReservations, setShowBulkDeleteReservations] = useState(false);
   const [showBulkDeleteOrders, setShowBulkDeleteOrders] = useState(false);
+  const [isMultiSelectReservations, setIsMultiSelectReservations] = useState(false);
+  const [isMultiSelectOrders, setIsMultiSelectOrders] = useState(false);
   
   // Form states for editing
   const [editOrderData, setEditOrderData] = useState({
@@ -921,61 +923,87 @@ export default function AdminDashboard() {
               
               <CardContent>
                 {/* Bulk Actions Bar */}
-                <div className="flex items-center justify-between mb-4 p-3 bg-zinc-800 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Checkbox 
-                      checked={filteredReservations.length > 0 && selectedReservations.size === filteredReservations.length}
-                      onCheckedChange={toggleAllReservations}
-                      className="border-zinc-600"
-                    />
-                    <span className="text-sm text-zinc-300">
-                      {selectedReservations.size > 0 
-                        ? (currentLanguage === 'vi' ? `Đã chọn ${selectedReservations.size}` : `${selectedReservations.size} selected`)
-                        : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
-                      }
-                    </span>
-                  </div>
-                  {selectedReservations.size > 0 && (
-                    <AlertDialog open={showBulkDeleteReservations} onOpenChange={setShowBulkDeleteReservations}>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {currentLanguage === 'vi' ? `Xóa ${selectedReservations.size} mục` : `Delete ${selectedReservations.size} items`}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-zinc-900 border-zinc-800">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-white">
-                            {currentLanguage === 'vi' ? 'Xác nhận xóa hàng loạt' : 'Confirm Bulk Delete'}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription className="text-zinc-400">
-                            {currentLanguage === 'vi' 
-                              ? `Bạn có chắc chắn muốn xóa ${selectedReservations.size} đặt bàn đã chọn? Hành động này không thể hoàn tác.`
-                              : `Are you sure you want to delete ${selectedReservations.size} selected reservations? This action cannot be undone.`
-                            }
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
-                            {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => bulkDeleteReservationsMutation.mutate(Array.from(selectedReservations))}
-                            className="bg-red-600 hover:bg-red-700 text-white"
-                            disabled={bulkDeleteReservationsMutation.isPending}
-                          >
-                            {bulkDeleteReservationsMutation.isPending 
-                              ? (currentLanguage === 'vi' ? 'Đang xóa...' : 'Deleting...') 
-                              : (currentLanguage === 'vi' ? 'Xóa' : 'Delete')
-                            }
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                <div className="flex items-center justify-between mb-4">
+                  {!isMultiSelectReservations ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsMultiSelectReservations(true)}
+                      className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded-lg">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={toggleAllReservations}
+                        className="text-zinc-300 hover:bg-zinc-700"
+                      >
+                        {selectedReservations.size === filteredReservations.length && filteredReservations.length > 0
+                          ? (currentLanguage === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
+                          : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
+                        }
+                      </Button>
+                      {selectedReservations.size > 0 && (
+                        <AlertDialog open={showBulkDeleteReservations} onOpenChange={setShowBulkDeleteReservations}>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              {currentLanguage === 'vi' ? `Xóa ${selectedReservations.size}` : `Delete ${selectedReservations.size}`}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-white">
+                                {currentLanguage === 'vi' ? 'Xác nhận xóa hàng loạt' : 'Confirm Bulk Delete'}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-zinc-400">
+                                {currentLanguage === 'vi' 
+                                  ? `Bạn có chắc chắn muốn xóa ${selectedReservations.size} đặt bàn đã chọn? Hành động này không thể hoàn tác.`
+                                  : `Are you sure you want to delete ${selectedReservations.size} selected reservations? This action cannot be undone.`
+                                }
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
+                                {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => bulkDeleteReservationsMutation.mutate(Array.from(selectedReservations))}
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                                disabled={bulkDeleteReservationsMutation.isPending}
+                              >
+                                {bulkDeleteReservationsMutation.isPending 
+                                  ? (currentLanguage === 'vi' ? 'Đang xóa...' : 'Deleting...') 
+                                  : (currentLanguage === 'vi' ? 'Xóa' : 'Delete')
+                                }
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                      <span className="text-sm text-zinc-400">
+                        {selectedReservations.size > 0 && (currentLanguage === 'vi' ? `Đã chọn ${selectedReservations.size}` : `${selectedReservations.size} selected`)}
+                      </span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setIsMultiSelectReservations(false);
+                          setSelectedReservations(new Set());
+                        }}
+                        className="text-zinc-400 hover:bg-zinc-700"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
                 
@@ -988,11 +1016,13 @@ export default function AdminDashboard() {
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex items-start gap-3 flex-1">
-                          <Checkbox 
-                            checked={selectedReservations.has(reservation.id)}
-                            onCheckedChange={() => toggleReservationSelection(reservation.id)}
-                            className="border-zinc-600 mt-1"
-                          />
+                          {isMultiSelectReservations && (
+                            <Checkbox 
+                              checked={selectedReservations.has(reservation.id)}
+                              onCheckedChange={() => toggleReservationSelection(reservation.id)}
+                              className="border-zinc-600 mt-1"
+                            />
+                          )}
                           <div className="flex-1">
                             <h3 className="font-semibold text-white">{reservation.name}</h3>
                             <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
@@ -1184,61 +1214,87 @@ export default function AdminDashboard() {
               
               <CardContent>
                 {/* Bulk Actions Bar */}
-                <div className="flex items-center justify-between mb-4 p-3 bg-zinc-800 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Checkbox 
-                      checked={filteredOrders.length > 0 && selectedOrders.size === filteredOrders.length}
-                      onCheckedChange={toggleAllOrders}
-                      className="border-zinc-600"
-                    />
-                    <span className="text-sm text-zinc-300">
-                      {selectedOrders.size > 0 
-                        ? (currentLanguage === 'vi' ? `Đã chọn ${selectedOrders.size}` : `${selectedOrders.size} selected`)
-                        : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
-                      }
-                    </span>
-                  </div>
-                  {selectedOrders.size > 0 && (
-                    <AlertDialog open={showBulkDeleteOrders} onOpenChange={setShowBulkDeleteOrders}>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {currentLanguage === 'vi' ? `Xóa ${selectedOrders.size} mục` : `Delete ${selectedOrders.size} items`}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-zinc-900 border-zinc-800">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-white">
-                            {currentLanguage === 'vi' ? 'Xác nhận xóa hàng loạt' : 'Confirm Bulk Delete'}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription className="text-zinc-400">
-                            {currentLanguage === 'vi' 
-                              ? `Bạn có chắc chắn muốn xóa ${selectedOrders.size} đơn hàng đã chọn? Hành động này không thể hoàn tác.`
-                              : `Are you sure you want to delete ${selectedOrders.size} selected orders? This action cannot be undone.`
-                            }
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
-                            {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => bulkDeleteOrdersMutation.mutate(Array.from(selectedOrders))}
-                            className="bg-red-600 hover:bg-red-700 text-white"
-                            disabled={bulkDeleteOrdersMutation.isPending}
-                          >
-                            {bulkDeleteOrdersMutation.isPending 
-                              ? (currentLanguage === 'vi' ? 'Đang xóa...' : 'Deleting...') 
-                              : (currentLanguage === 'vi' ? 'Xóa' : 'Delete')
-                            }
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                <div className="flex items-center justify-between mb-4">
+                  {!isMultiSelectOrders ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsMultiSelectOrders(true)}
+                      className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded-lg">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={toggleAllOrders}
+                        className="text-zinc-300 hover:bg-zinc-700"
+                      >
+                        {selectedOrders.size === filteredOrders.length && filteredOrders.length > 0
+                          ? (currentLanguage === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
+                          : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
+                        }
+                      </Button>
+                      {selectedOrders.size > 0 && (
+                        <AlertDialog open={showBulkDeleteOrders} onOpenChange={setShowBulkDeleteOrders}>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              {currentLanguage === 'vi' ? `Xóa ${selectedOrders.size}` : `Delete ${selectedOrders.size}`}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-white">
+                                {currentLanguage === 'vi' ? 'Xác nhận xóa hàng loạt' : 'Confirm Bulk Delete'}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-zinc-400">
+                                {currentLanguage === 'vi' 
+                                  ? `Bạn có chắc chắn muốn xóa ${selectedOrders.size} đơn hàng đã chọn? Hành động này không thể hoàn tác.`
+                                  : `Are you sure you want to delete ${selectedOrders.size} selected orders? This action cannot be undone.`
+                                }
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
+                                {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => bulkDeleteOrdersMutation.mutate(Array.from(selectedOrders))}
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                                disabled={bulkDeleteOrdersMutation.isPending}
+                              >
+                                {bulkDeleteOrdersMutation.isPending 
+                                  ? (currentLanguage === 'vi' ? 'Đang xóa...' : 'Deleting...') 
+                                  : (currentLanguage === 'vi' ? 'Xóa' : 'Delete')
+                                }
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                      <span className="text-sm text-zinc-400">
+                        {selectedOrders.size > 0 && (currentLanguage === 'vi' ? `Đã chọn ${selectedOrders.size}` : `${selectedOrders.size} selected`)}
+                      </span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setIsMultiSelectOrders(false);
+                          setSelectedOrders(new Set());
+                        }}
+                        className="text-zinc-400 hover:bg-zinc-700"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
                 
@@ -1251,11 +1307,13 @@ export default function AdminDashboard() {
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex items-start gap-3 flex-1">
-                          <Checkbox 
-                            checked={selectedOrders.has(order.id)}
-                            onCheckedChange={() => toggleOrderSelection(order.id)}
-                            className="border-zinc-600 mt-1"
-                          />
+                          {isMultiSelectOrders && (
+                            <Checkbox 
+                              checked={selectedOrders.has(order.id)}
+                              onCheckedChange={() => toggleOrderSelection(order.id)}
+                              className="border-zinc-600 mt-1"
+                            />
+                          )}
                           <div className="flex-1">
                             <h3 className="font-semibold text-white">{order.customerName}</h3>
                             <p className="text-sm text-zinc-400">{order.customerEmail} | {order.customerPhone}</p>
