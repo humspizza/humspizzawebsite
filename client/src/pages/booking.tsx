@@ -275,7 +275,7 @@ export default function BookingPage() {
               <Button
                 type="submit"
                 disabled={createReservation.isPending || availableTimeSlots.length === 0}
-                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
               >
                 {createReservation.isPending 
                   ? (language === 'vi' ? 'Đang xử lý...' : 'Processing...') 
