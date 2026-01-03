@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { ReservationForm } from "@/lib/types";
-import { MapPin, Clock, Users, AlertTriangle, Phone } from "lucide-react";
+import { MapPin, Clock, Users } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { usePageSeo } from "@/hooks/usePageSeo";
 
@@ -229,24 +229,12 @@ export default function BookingPage() {
                     {language === 'vi' ? 'Giờ' : 'Time'}
                   </label>
                   {availableTimeSlots.length === 0 ? (
-                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                      <div className="flex items-start gap-2 text-red-400 text-sm">
-                        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span>
-                          {language === 'vi' 
-                            ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.')
-                            : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
-                          }
-                        </span>
-                      </div>
-                      <a 
-                        href="tel:+842743818180"
-                        className="flex items-center justify-center gap-2 mt-3 bg-yellow-400 hover:bg-yellow-500 text-black py-2 rounded-md font-medium transition-colors text-sm"
-                      >
-                        <Phone className="w-4 h-4" />
-                        0274 381 8180
-                      </a>
-                    </div>
+                    <p className="text-white text-sm">
+                      {language === 'vi' 
+                        ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.')
+                        : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
+                      }
+                    </p>
                   ) : (
                     <>
                       <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
