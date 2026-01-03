@@ -203,23 +203,16 @@ export default function BookingModal({ open, onOpenChange }: BookingModalProps) 
             />
           </div>
 
-          <div className="flex gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-            >
-              {t('booking.cancel')}
-            </Button>
-            <Button
-              type="submit"
-              disabled={createReservation.isPending || availableTimeSlots.length === 0}
-              className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold disabled:bg-zinc-700 disabled:text-zinc-400"
-            >
-              {createReservation.isPending ? t('booking.confirming') : t('booking.confirm')}
-            </Button>
-          </div>
+          <Button
+            type="submit"
+            disabled={createReservation.isPending || availableTimeSlots.length === 0}
+            className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+          >
+            {createReservation.isPending 
+              ? (language === 'vi' ? 'Đang xử lý...' : 'Processing...') 
+              : (language === 'vi' ? 'Xác nhận đặt bàn' : 'Confirm Booking')
+            }
+          </Button>
 
           <p className="text-xs text-gray-400 text-center mt-2">
             {language === 'vi' 
