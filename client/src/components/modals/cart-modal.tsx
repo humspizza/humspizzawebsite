@@ -374,7 +374,7 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
                     className="flex items-center justify-center gap-2 w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 rounded-md font-medium transition-colors"
                   >
                     <Phone className="w-4 h-4" />
-                    {language === 'vi' ? 'Gọi Đặt Hàng: 0934 699 798' : 'Call to Order: 0934 699 798'}
+                    {language === 'vi' ? 'Gọi Đặt Hàng' : 'Call to Order'}
                   </a>
                 </div>
               ) : (
