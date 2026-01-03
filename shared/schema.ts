@@ -32,6 +32,7 @@ export const menuItems = pgTable("menu_items", {
   description: text("description").notNull(),
   descriptionVi: text("description_vi"),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  vatRate: decimal("vat_rate", { precision: 5, scale: 2 }).default("8"), // VAT percentage (e.g., 8, 10, 5)
   imageUrl: text("image_url"),
   categoryId: varchar("category_id").references(() => categories.id),
   isAvailable: boolean("is_available").default(true),
