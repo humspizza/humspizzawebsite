@@ -188,8 +188,10 @@ export default function Menu() {
       image: item.imageUrl || undefined,
     });
     toast({
-      title: t('menu.addToCart'),
-      description: `${displayName} has been added to your cart.`,
+      title: language === 'vi' ? "Đã thêm vào giỏ hàng" : "Added to cart",
+      description: language === 'vi' 
+        ? `${displayName} đã được thêm vào giỏ hàng`
+        : `${displayName} has been added to your cart.`,
     });
   };
 
