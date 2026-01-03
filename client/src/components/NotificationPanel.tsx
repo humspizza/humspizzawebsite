@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Bell, X, Clock, User, Phone, MessageSquare, AlertCircle, Check } from 'lucide-react';
+import { Bell, X, Clock, User, Phone, MessageSquare, AlertCircle, Check, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -33,6 +35,9 @@ export default function NotificationPanel() {
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
@@ -115,6 +120,42 @@ export default function NotificationPanel() {
       });
     },
   });
+
+  const bulkDeleteNotificationsMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const response = await apiRequest('POST', '/api/notifications/bulk-delete', { ids });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+      setSelectedNotifications(new Set());
+      setIsMultiSelectMode(false);
+      setShowBulkDeleteDialog(false);
+      toast({
+        title: language === 'vi' ? 'Thành công' : 'Success',
+        description: language === 'vi' ? 'Đã xóa các thông báo đã chọn' : 'Selected notifications deleted',
+      });
+    },
+  });
+
+  const toggleNotificationSelection = (id: string) => {
+    const newSelected = new Set(selectedNotifications);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedNotifications(newSelected);
+  };
+
+  const toggleAllNotifications = () => {
+    if (selectedNotifications.size === notifications.length) {
+      setSelectedNotifications(new Set());
+    } else {
+      setSelectedNotifications(new Set(notifications.map(n => n.id)));
+    }
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -298,6 +339,92 @@ export default function NotificationPanel() {
             </DialogTitle>
           </DialogHeader>
           
+          {/* Bulk Actions Bar */}
+          {notifications.length > 0 && (
+            <div className="flex items-center justify-between py-2 border-b">
+              {!isMultiSelectMode ? (
+                <Button 
+                  size="sm"
+                  onClick={() => setIsMultiSelectMode(true)}
+                  className="bg-zinc-700 text-white hover:bg-zinc-600"
+                >
+                  {language === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg">
+                  <Button 
+                    size="sm"
+                    onClick={toggleAllNotifications}
+                    className="bg-zinc-700 text-white hover:bg-zinc-600"
+                  >
+                    {selectedNotifications.size === notifications.length && notifications.length > 0
+                      ? (language === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
+                      : (language === 'vi' ? 'Chọn tất cả' : 'Select all')
+                    }
+                  </Button>
+                  <AlertDialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        size="sm"
+                        disabled={selectedNotifications.size === 0}
+                        className={selectedNotifications.size > 0 
+                          ? "bg-red-600 text-white hover:bg-red-500" 
+                          : "bg-zinc-600 text-zinc-400 hover:bg-zinc-500 cursor-not-allowed"
+                        }
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-white">
+                          {language === 'vi' ? 'Xác nhận xóa hàng loạt' : 'Confirm Bulk Delete'}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-zinc-400">
+                          {language === 'vi' 
+                            ? `Bạn có chắc chắn muốn xóa ${selectedNotifications.size} thông báo đã chọn?`
+                            : `Are you sure you want to delete ${selectedNotifications.size} selected notifications?`
+                          }
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
+                          {language === 'vi' ? 'Hủy' : 'Cancel'}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => bulkDeleteNotificationsMutation.mutate(Array.from(selectedNotifications))}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                          disabled={bulkDeleteNotificationsMutation.isPending}
+                        >
+                          {bulkDeleteNotificationsMutation.isPending 
+                            ? (language === 'vi' ? 'Đang xóa...' : 'Deleting...') 
+                            : (language === 'vi' ? 'Xóa' : 'Delete')
+                          }
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <span className="text-sm text-zinc-400">
+                    {selectedNotifications.size > 0 
+                      ? (language === 'vi' ? `Đã chọn ${selectedNotifications.size}` : `${selectedNotifications.size} selected`)
+                      : (language === 'vi' ? 'Chưa chọn' : 'None selected')
+                    }
+                  </span>
+                  <Button 
+                    size="sm"
+                    onClick={() => {
+                      setIsMultiSelectMode(false);
+                      setSelectedNotifications(new Set());
+                    }}
+                    className="bg-zinc-700 text-white hover:bg-zinc-600"
+                  >
+                    {language === 'vi' ? 'Hủy' : 'Cancel'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+          
           <ScrollArea className="max-h-[60vh] scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-100">
             {notifications.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
@@ -309,14 +436,23 @@ export default function NotificationPanel() {
                   <Card 
                     key={notification.id} 
                     className={`cursor-pointer transition-colors hover:bg-muted/50 ${
+                      selectedNotifications.has(notification.id) ? 'border-yellow-500 bg-yellow-500/5' : 
                       !notification.isRead ? 'border-primary/50 bg-primary/5' : ''
                     }`}
-                    onClick={() => setSelectedNotification(notification)}
+                    onClick={() => !isMultiSelectMode && setSelectedNotification(notification)}
                     data-testid={`notification-detail-${notification.id}`}
                   >
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
+                          {isMultiSelectMode && (
+                            <Checkbox 
+                              checked={selectedNotifications.has(notification.id)}
+                              onCheckedChange={() => toggleNotificationSelection(notification.id)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="border-zinc-600"
+                            />
+                          )}
                           {getNotificationIcon(notification.type)}
                           <CardTitle className="text-sm font-medium">
                             {getNotificationTitle(notification)}
@@ -359,18 +495,20 @@ export default function NotificationPanel() {
                         <span>
                           {new Date(notification.createdAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteNotificationMutation.mutate(notification.id);
-                          }}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 flex-shrink-0 h-6 w-6 p-0"
-                          data-testid={`delete-notification-${notification.id}`}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
+                        {!isMultiSelectMode && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteNotificationMutation.mutate(notification.id);
+                            }}
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 flex-shrink-0 h-6 w-6 p-0"
+                            data-testid={`delete-notification-${notification.id}`}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
