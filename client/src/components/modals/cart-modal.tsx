@@ -84,7 +84,7 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
     },
   });
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate address for delivery orders
@@ -97,18 +97,50 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
       return;
     }
     
-    const orderData = {
-      ...orderForm,
-      items: items.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      })),
-      totalAmount: totalPrice.toFixed(2),
-    };
-    
-    createOrder.mutate(orderData);
+    // Fetch current menu prices to ensure accuracy
+    try {
+      const menuItems = await queryClient.fetchQuery({
+        queryKey: ['/api/menu-items'],
+        staleTime: 0, // Force fresh data
+      });
+      
+      // Update items with current prices from menu
+      const updatedItems = items.map(cartItem => {
+        const menuItem = (menuItems as any[]).find((m: any) => m.id === cartItem.id);
+        const currentPrice = menuItem ? parseFloat(menuItem.price) : cartItem.price;
+        return {
+          id: cartItem.id,
+          name: cartItem.name,
+          price: currentPrice,
+          quantity: cartItem.quantity,
+        };
+      });
+      
+      // Calculate total with current prices
+      const updatedTotal = updatedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      
+      const orderData = {
+        ...orderForm,
+        items: updatedItems,
+        totalAmount: updatedTotal.toFixed(2),
+      };
+      
+      createOrder.mutate(orderData);
+    } catch (error) {
+      // Fallback to cart prices if fetch fails
+      const orderData = {
+        ...orderForm,
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        totalAmount: totalPrice.toFixed(2),
+      };
+      
+      createOrder.mutate(orderData);
+    }
   };
 
   if (showCheckout) {
