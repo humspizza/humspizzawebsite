@@ -267,7 +267,7 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
                   <span>{formatPrice(totalPrice)}</span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  {language === 'vi' ? 'Giá chưa bao gồm VAT' : 'Price does not include VAT'}
+                  {language === 'vi' ? 'Giá trên chưa bao gồm phí VAT' : 'Prices above do not include VAT'}
                 </p>
               </div>
             </div>
@@ -375,7 +375,7 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
                   <span>{formatPrice(totalPrice)}</span>
                 </div>
                 <p className="text-xs text-gray-400">
-                  {language === 'vi' ? 'Giá chưa bao gồm VAT' : 'Price does not include VAT'}
+                  {language === 'vi' ? 'Giá trên chưa bao gồm phí VAT' : 'Prices above do not include VAT'}
                 </p>
               </div>
               
