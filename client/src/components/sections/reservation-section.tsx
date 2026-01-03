@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { apiRequest } from "@/lib/queryClient";
-import { AlertTriangle, Phone } from "lucide-react";
 import type { ReservationForm } from "@/lib/types";
 import type { HomeContent } from "@shared/schema";
 
@@ -157,7 +156,7 @@ export default function ReservationSection() {
             </p>
           </div>
 
-          <div className="bg-noir-900 rounded-lg p-8">
+          <div className="bg-zinc-900 rounded-2xl p-8 shadow-2xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
@@ -166,7 +165,7 @@ export default function ReservationSection() {
                     type="date"
                     value={form.date}
                     onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    className="bg-noir-800 border-noir-700 focus:border-primary"
+                    className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
                     min={new Date().toISOString().split('T')[0]}
                     required
                   />
@@ -174,27 +173,17 @@ export default function ReservationSection() {
                 <div>
                   <label className="block text-sm font-medium mb-3">{t('booking.time')}</label>
                   {availableTimeSlots.length === 0 ? (
-                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                      <div className="flex items-start gap-2 text-red-400 text-sm">
-                        <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span>
-                          {language === 'vi' 
-                            ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.')
-                            : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
-                          }
-                        </span>
+                    <div className="h-10 p-2 bg-zinc-800 border border-zinc-700 rounded-md overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                      <div className="text-zinc-400 text-sm">
+                        {language === 'vi' 
+                          ? (settings?.timeslot_locked_message_vi || 'Tất cả khung giờ đã hết bàn. Vui lòng liên hệ trực tiếp với nhà hàng.')
+                          : (settings?.timeslot_locked_message_en || 'All time slots are fully booked. Please contact the restaurant directly.')
+                        }
                       </div>
-                      <a 
-                        href="tel:+842743818180"
-                        className="flex items-center justify-center gap-2 mt-3 bg-yellow-400 hover:bg-yellow-500 text-black py-2 rounded-md font-medium transition-colors text-sm"
-                      >
-                        <Phone className="w-4 h-4" />
-                        0274 381 8180
-                      </a>
                     </div>
                   ) : (
                     <Select value={form.time} onValueChange={(value) => setForm({ ...form, time: value })}>
-                      <SelectTrigger className="bg-noir-800 border-noir-700">
+                      <SelectTrigger className="bg-zinc-800 border-zinc-700">
                         <SelectValue placeholder={language === 'vi' ? 'Chọn giờ' : 'Select time'} />
                       </SelectTrigger>
                       <SelectContent>
@@ -210,7 +199,7 @@ export default function ReservationSection() {
                 <div>
                   <label className="block text-sm font-medium mb-3">{language === 'vi' ? 'Số khách' : 'Guests'}</label>
                   <Select value={form.guests > 0 ? form.guests.toString() : ""} onValueChange={(value) => setForm({ ...form, guests: parseInt(value) })}>
-                    <SelectTrigger className="bg-noir-800 border-noir-700">
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700">
                       <SelectValue placeholder={language === 'vi' ? 'Chọn số khách' : 'Select guests'} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px] overflow-y-auto">
@@ -230,7 +219,7 @@ export default function ReservationSection() {
                   <Input
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="bg-noir-800 border-noir-700 focus:border-primary"
+                    className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
                     placeholder={language === 'vi' ? 'Nhập họ tên' : 'Enter your name'}
                     required
                   />
@@ -241,7 +230,7 @@ export default function ReservationSection() {
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="bg-noir-800 border-noir-700 focus:border-primary"
+                    className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
                     placeholder="email@example.com"
                   />
                 </div>
@@ -253,7 +242,7 @@ export default function ReservationSection() {
                   type="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="bg-noir-800 border-noir-700 focus:border-primary"
+                  className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
                   placeholder={language === 'vi' ? 'Nhập số điện thoại' : 'Enter phone number'}
                   required
                 />
@@ -268,7 +257,7 @@ export default function ReservationSection() {
                     ? 'Trang trí dịp đặc biệt (sinh nhật, kỷ niệm...), sở thích về chỗ ngồi (yên tĩnh, gần cửa sổ...) hoặc yêu cầu khác'
                     : 'Special occasion decorations (birthday, anniversary...), seating preferences (quiet, near window...) or other requests'
                   }
-                  className="bg-noir-800 border-noir-700 focus:border-primary resize-none"
+                  className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white resize-none"
                   rows={4}
                 />
               </div>
@@ -277,9 +266,12 @@ export default function ReservationSection() {
                 <Button
                   type="submit"
                   disabled={createReservation.isPending || availableTimeSlots.length === 0}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
                 >
-                  {createReservation.isPending ? t('booking.confirming') : t('booking.confirm')}
+                  {createReservation.isPending 
+                    ? (language === 'vi' ? 'Đang xử lý...' : 'Processing...') 
+                    : (language === 'vi' ? 'Xác nhận đặt bàn' : 'Confirm Booking')
+                  }
                 </Button>
                 
                 {/* Confirmation Note */}
