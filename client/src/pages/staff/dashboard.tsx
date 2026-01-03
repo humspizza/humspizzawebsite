@@ -17,6 +17,7 @@ import StaffMenuManagement from './menu-management';
 import ContactManagement from '../admin/contact-management';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import NotificationPanel from '@/components/NotificationPanel';
+import { formatDbTimestamp } from '@/lib/utils';
 
 interface StaffDashboardProps {
   user: any;
@@ -387,7 +388,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                             </div>
                             
                             <div className="text-sm text-zinc-400">
-                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Ordered at:'} {new Date(order.createdAt).toLocaleString('vi-VN')}
+                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Ordered at:'} {formatDbTimestamp(order.createdAt)}
                             </div>
                             
                             {order.items && order.items.length > 0 && (
@@ -472,7 +473,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                             </div>
                             
                             <div className="text-sm text-zinc-400">
-                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Booked at:'} {new Date(reservation.createdAt).toLocaleString('vi-VN')}
+                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Booked at:'} {formatDbTimestamp(reservation.createdAt)}
                             </div>
                             
                             {reservation.specialRequests && (
@@ -582,7 +583,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                       </div>
                       <div className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
                         <Clock className="h-3 w-3" />
-                        {new Date(order.createdAt).toLocaleString('vi-VN')}
+                        {formatDbTimestamp(order.createdAt)}
                       </div>
                       <div className="text-sm font-medium text-white mt-1">
                         {currentLanguage === 'vi' ? 'Tổng:' : 'Total:'} {formatPrice(order.totalAmount)}
@@ -715,7 +716,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                       </div>
                       <div className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
                         <Clock className="h-3 w-3" />
-                        {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Created at:'} {new Date(reservation.createdAt).toLocaleString('vi-VN')}
+                        {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Created at:'} {formatDbTimestamp(reservation.createdAt)}
                       </div>
                       <div className="text-sm text-white mt-1 flex items-center gap-4">
                         <span className="flex items-center gap-1">
