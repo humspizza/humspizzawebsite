@@ -104,8 +104,10 @@ export default function AdminDashboard() {
   // Search and filter states
   const [reservationSearch, setReservationSearch] = useState("");
   const [orderSearch, setOrderSearch] = useState("");
-  const [reservationTimeFilter, setReservationTimeFilter] = useState("all");
-  const [orderTimeFilter, setOrderTimeFilter] = useState("all");
+  const [reservationDateFrom, setReservationDateFrom] = useState("");
+  const [reservationDateTo, setReservationDateTo] = useState("");
+  const [orderDateFrom, setOrderDateFrom] = useState("");
+  const [orderDateTo, setOrderDateTo] = useState("");
   const [showReservationArchive, setShowReservationArchive] = useState(false);
   const [reservationArchiveMonth, setReservationArchiveMonth] = useState(() => {
     const now = new Date();
@@ -307,19 +309,27 @@ export default function AdminDashboard() {
   };
 
   // Filtered data
-  const filteredReservations = getTimeFilteredData(reservations, reservationTimeFilter)
-    .filter(r => 
-      (r.name?.toLowerCase() || '').includes(reservationSearch.toLowerCase()) ||
-      r.phone?.includes(reservationSearch) ||
-      (r.email?.toLowerCase() || '').includes(reservationSearch.toLowerCase())
-    );
+  const filteredReservations = reservations
+    .filter(r => {
+      if (reservationDateFrom || reservationDateTo) {
+        const rDate = r.date; // "YYYY-MM-DD" format
+        if (reservationDateFrom && rDate < reservationDateFrom) return false;
+        if (reservationDateTo && rDate > reservationDateTo) return false;
+      }
+      const q = reservationSearch.toLowerCase();
+      return !q || (r.name?.toLowerCase() || '').includes(q) || r.phone?.includes(q) || (r.email?.toLowerCase() || '').includes(q);
+    });
 
-  const filteredOrders = getTimeFilteredData(orders, orderTimeFilter)
-    .filter(o => 
-      (o.customerName?.toLowerCase() || '').includes(orderSearch.toLowerCase()) ||
-      (o.customerEmail?.toLowerCase() || '').includes(orderSearch.toLowerCase()) ||
-      (o.id?.toLowerCase() || '').includes(orderSearch.toLowerCase())
-    );
+  const filteredOrders = orders
+    .filter(o => {
+      if (orderDateFrom || orderDateTo) {
+        const oDate = o.createdAt ? o.createdAt.toString().slice(0, 10) : '';
+        if (orderDateFrom && oDate < orderDateFrom) return false;
+        if (orderDateTo && oDate > orderDateTo) return false;
+      }
+      const q = orderSearch.toLowerCase();
+      return !q || (o.customerName?.toLowerCase() || '').includes(q) || (o.customerEmail?.toLowerCase() || '').includes(q) || (o.id?.toLowerCase() || '').includes(q);
+    });
 
   const updateReservationMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -1056,20 +1066,31 @@ export default function AdminDashboard() {
                     />
                   </div>
                   {!showReservationArchive && (
-                    <Select value={reservationTimeFilter} onValueChange={setReservationTimeFilter}>
-                      <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
-                        <Filter className="w-4 h-4 mr-2" />
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-800 border-zinc-700">
-                        <SelectItem value="all" className="text-white">{t('admin.allTime')}</SelectItem>
-                        <SelectItem value="today" className="text-white">{t('admin.today')}</SelectItem>
-                        <SelectItem value="7days" className="text-white">{t('admin.last7Days')}</SelectItem>
-                        <SelectItem value="30days" className="text-white">{t('admin.last30Days')}</SelectItem>
-                        <SelectItem value="90days" className="text-white">{t('admin.last90Days')}</SelectItem>
-                        <SelectItem value="180days" className="text-white">{t('admin.last180Days')}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <Filter className="w-4 h-4 text-zinc-400 shrink-0" />
+                        <input
+                          type="date"
+                          value={reservationDateFrom}
+                          onChange={e => setReservationDateFrom(e.target.value)}
+                          className="h-9 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
+                          title={currentLanguage === 'vi' ? 'Từ ngày' : 'From date'}
+                        />
+                      </div>
+                      <span className="text-zinc-500 text-sm">—</span>
+                      <input
+                        type="date"
+                        value={reservationDateTo}
+                        onChange={e => setReservationDateTo(e.target.value)}
+                        className="h-9 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
+                        title={currentLanguage === 'vi' ? 'Đến ngày' : 'To date'}
+                      />
+                      {(reservationDateFrom || reservationDateTo) && (
+                        <button onClick={() => { setReservationDateFrom(""); setReservationDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   )}
                   {showReservationArchive && (
                     <Select value={reservationArchiveMonth} onValueChange={setReservationArchiveMonth}>
@@ -1524,20 +1545,31 @@ export default function AdminDashboard() {
                     />
                   </div>
                   {!showOrderArchive && (
-                    <Select value={orderTimeFilter} onValueChange={setOrderTimeFilter}>
-                      <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
-                        <Filter className="w-4 h-4 mr-2" />
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-800 border-zinc-700">
-                        <SelectItem value="all" className="text-white">{t('admin.allTime')}</SelectItem>
-                        <SelectItem value="today" className="text-white">{t('admin.today')}</SelectItem>
-                        <SelectItem value="7days" className="text-white">{t('admin.last7Days')}</SelectItem>
-                        <SelectItem value="30days" className="text-white">{t('admin.last30Days')}</SelectItem>
-                        <SelectItem value="90days" className="text-white">{t('admin.last90Days')}</SelectItem>
-                        <SelectItem value="180days" className="text-white">{t('admin.last180Days')}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <Filter className="w-4 h-4 text-zinc-400 shrink-0" />
+                        <input
+                          type="date"
+                          value={orderDateFrom}
+                          onChange={e => setOrderDateFrom(e.target.value)}
+                          className="h-9 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
+                          title={currentLanguage === 'vi' ? 'Từ ngày' : 'From date'}
+                        />
+                      </div>
+                      <span className="text-zinc-500 text-sm">—</span>
+                      <input
+                        type="date"
+                        value={orderDateTo}
+                        onChange={e => setOrderDateTo(e.target.value)}
+                        className="h-9 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
+                        title={currentLanguage === 'vi' ? 'Đến ngày' : 'To date'}
+                      />
+                      {(orderDateFrom || orderDateTo) && (
+                        <button onClick={() => { setOrderDateFrom(""); setOrderDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   )}
                   {showOrderArchive && (
                     <Select value={orderArchiveMonth} onValueChange={setOrderArchiveMonth}>
