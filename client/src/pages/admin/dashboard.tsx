@@ -1349,7 +1349,37 @@ export default function AdminDashboard() {
                               <Clock className="h-3 w-3 shrink-0" />
                               Đặt lúc: {formatDbTimestamp(reservation.createdAt)}
                             </p>
-                            <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+                            <div className="flex flex-col items-end gap-1.5 mt-3">
+                              <div className="flex items-center gap-1">
+                                <Button size="sm" variant="ghost" asChild className="text-green-400 hover:text-green-300 h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                                  <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-blue-400 hover:text-blue-300 h-8 w-8 p-0" data-testid={`button-copy-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}>
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setEditReservationData({ name: reservation.name, email: reservation.email, phone: reservation.phone, guests: reservation.guests.toString(), date: reservation.date, time: reservation.time, status: reservation.status, specialRequests: reservation.specialRequests || '' }); setIsEditReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-edit-reservation-${reservation.id}`} title={t('admin.edit')}>
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <AlertDialog open={deleteReservationId === reservation.id} onOpenChange={(open) => !open && setDeleteReservationId(null)}>
+                                  <AlertDialogTrigger asChild>
+                                    <Button size="sm" variant="ghost" onClick={() => setDeleteReservationId(reservation.id)} className="text-red-400 hover:text-red-300 h-8 w-8 p-0" data-testid={`button-delete-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Xóa đặt bàn' : 'Delete reservation'}>
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận xóa' : 'Confirm Delete'}</AlertDialogTitle>
+                                      <AlertDialogDescription className="text-zinc-400">
+                                        {currentLanguage === 'vi' ? `Bạn có chắc chắn muốn xóa đặt bàn của ${reservation.name}? Hành động này không thể hoàn tác.` : `Are you sure you want to delete the reservation for ${reservation.name}? This action cannot be undone.`}
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => deleteReservationMutation.mutate(reservation.id)} className="bg-red-600 hover:bg-red-700 text-white">{currentLanguage === 'vi' ? 'Xóa' : 'Delete'}</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                               <Select 
                                 value={reservation.status} 
                                 onValueChange={(newStatus) => updateReservationMutation.mutate({ id: reservation.id, status: newStatus })}
@@ -1363,34 +1393,6 @@ export default function AdminDashboard() {
                                   <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
                                 </SelectContent>
                               </Select>
-                              <Button size="sm" variant="ghost" asChild className="text-green-400 hover:text-green-300" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
-                                <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-blue-400 hover:text-blue-300" data-testid={`button-copy-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}>
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setEditReservationData({ name: reservation.name, email: reservation.email, phone: reservation.phone, guests: reservation.guests.toString(), date: reservation.date, time: reservation.time, status: reservation.status, specialRequests: reservation.specialRequests || '' }); setIsEditReservationModalOpen(true); }} className="text-zinc-400 hover:text-white" data-testid={`button-edit-reservation-${reservation.id}`} title={t('admin.edit')}>
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <AlertDialog open={deleteReservationId === reservation.id} onOpenChange={(open) => !open && setDeleteReservationId(null)}>
-                                <AlertDialogTrigger asChild>
-                                  <Button size="sm" variant="ghost" onClick={() => setDeleteReservationId(reservation.id)} className="text-red-400 hover:text-red-300" data-testid={`button-delete-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Xóa đặt bàn' : 'Delete reservation'}>
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-zinc-900 border-zinc-800">
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận xóa' : 'Confirm Delete'}</AlertDialogTitle>
-                                    <AlertDialogDescription className="text-zinc-400">
-                                      {currentLanguage === 'vi' ? `Bạn có chắc chắn muốn xóa đặt bàn của ${reservation.name}? Hành động này không thể hoàn tác.` : `Are you sure you want to delete the reservation for ${reservation.name}? This action cannot be undone.`}
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteReservationMutation.mutate(reservation.id)} className="bg-red-600 hover:bg-red-700 text-white">{currentLanguage === 'vi' ? 'Xóa' : 'Delete'}</AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
                             </div>
                           </div>
                         </div>
