@@ -334,28 +334,35 @@ export default function AdminDashboard() {
     if (currentFrom === from && currentTo === to) { setFrom(''); setTo(''); }
     else { setFrom(from); setTo(to); }
   };
-  const applyMonthRange = (year: number, month: number, setFrom: (v: string) => void, setTo: (v: string) => void, currentFrom: string, currentTo: string) => {
-    const from = fmtDate(new Date(year, month - 1, 1));
-    const to = fmtDate(new Date(year, month, 0));
+  const getActiveMonthShortcut = (from: string, to: string): string => {
+    if (!from || !to) return '';
+    const now = new Date();
+    const thisFrom = fmtDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    const thisTo = fmtDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    if (from === thisFrom && to === thisTo) return 'this_month';
+    const lastFrom = fmtDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+    const lastTo = fmtDate(new Date(now.getFullYear(), now.getMonth(), 0));
+    if (from === lastFrom && to === lastTo) return 'last_month';
+    const threeFrom = fmtDate(new Date(now.getFullYear(), now.getMonth() - 2, 1));
+    if (from === threeFrom && to === thisTo) return '3_months';
+    return '';
+  };
+  const applyArchiveShortcut = (key: 'this_month' | 'last_month' | '3_months', setFrom: (v: string) => void, setTo: (v: string) => void, currentFrom: string, currentTo: string) => {
+    const now = new Date();
+    let from = '', to = '';
+    if (key === 'this_month') {
+      from = fmtDate(new Date(now.getFullYear(), now.getMonth(), 1));
+      to = fmtDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    } else if (key === 'last_month') {
+      from = fmtDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+      to = fmtDate(new Date(now.getFullYear(), now.getMonth(), 0));
+    } else {
+      from = fmtDate(new Date(now.getFullYear(), now.getMonth() - 2, 1));
+      to = fmtDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    }
     if (currentFrom === from && currentTo === to) { setFrom(''); setTo(''); }
     else { setFrom(from); setTo(to); }
   };
-  const getActiveMonthShortcut = (from: string, to: string): string => {
-    if (!from || !to) return '';
-    for (let i = 0; i < 12; i++) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      const mFrom = fmtDate(new Date(d.getFullYear(), d.getMonth(), 1));
-      const mTo = fmtDate(new Date(d.getFullYear(), d.getMonth() + 1, 0));
-      if (from === mFrom && to === mTo) return `${d.getFullYear()}-${d.getMonth() + 1}`;
-    }
-    return '';
-  };
-  const monthShortcuts = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - i);
-    return { year: d.getFullYear(), month: d.getMonth() + 1, key: `${d.getFullYear()}-${d.getMonth() + 1}` };
-  });
   const getActiveShortcut = (from: string, to: string): string => {
     const now = new Date();
     const todayStr = fmtDate(now);
@@ -1166,17 +1173,22 @@ export default function AdminDashboard() {
                     const setFrom = isArchive ? setReservationArchiveDateFrom : setReservationDateFrom;
                     const setTo = isArchive ? setReservationArchiveDateTo : setReservationDateTo;
                     const activeMonth = isArchive ? getActiveMonthShortcut(dateFrom, dateTo) : '';
+                    const archiveShortcutLabels: Record<string, [string, string]> = {
+                      last_month: ['Tháng Trước', 'Last Month'],
+                      this_month: ['Tháng Này', 'This Month'],
+                      '3_months': ['3 Tháng gần Đây', 'Last 3 Months'],
+                    };
                     return (
                       <div className="flex items-center gap-2 flex-wrap">
                         <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
                         {isArchive ? (
-                          monthShortcuts.map(({ year, month, key }) => {
+                          (['last_month', 'this_month', '3_months'] as const).map(key => {
                             const active = activeMonth === key;
-                            const label = currentLanguage === 'vi' ? `T${month}/${String(year).slice(2)}` : `${new Date(year, month - 1).toLocaleString('en', { month: 'short' })} ${String(year).slice(2)}`;
+                            const [vi, en] = archiveShortcutLabels[key];
                             return (
-                              <button key={key} onClick={() => applyMonthRange(year, month, setFrom, setTo, dateFrom, dateTo)}
+                              <button key={key} onClick={() => applyArchiveShortcut(key, setFrom, setTo, dateFrom, dateTo)}
                                 className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                                {label}
+                                {currentLanguage === 'vi' ? vi : en}
                               </button>
                             );
                           })
@@ -1649,17 +1661,22 @@ export default function AdminDashboard() {
                     const setFrom = isArchive ? setOrderArchiveDateFrom : setOrderDateFrom;
                     const setTo = isArchive ? setOrderArchiveDateTo : setOrderDateTo;
                     const activeMonth = isArchive ? getActiveMonthShortcut(dateFrom, dateTo) : '';
+                    const archiveShortcutLabels: Record<string, [string, string]> = {
+                      last_month: ['Tháng Trước', 'Last Month'],
+                      this_month: ['Tháng Này', 'This Month'],
+                      '3_months': ['3 Tháng gần Đây', 'Last 3 Months'],
+                    };
                     return (
                       <div className="flex items-center gap-2 flex-wrap">
                         <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
                         {isArchive ? (
-                          monthShortcuts.map(({ year, month, key }) => {
+                          (['last_month', 'this_month', '3_months'] as const).map(key => {
                             const active = activeMonth === key;
-                            const label = currentLanguage === 'vi' ? `T${month}/${String(year).slice(2)}` : `${new Date(year, month - 1).toLocaleString('en', { month: 'short' })} ${String(year).slice(2)}`;
+                            const [vi, en] = archiveShortcutLabels[key];
                             return (
-                              <button key={key} onClick={() => applyMonthRange(year, month, setFrom, setTo, dateFrom, dateTo)}
+                              <button key={key} onClick={() => applyArchiveShortcut(key, setFrom, setTo, dateFrom, dateTo)}
                                 className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                                {label}
+                                {currentLanguage === 'vi' ? vi : en}
                               </button>
                             );
                           })
