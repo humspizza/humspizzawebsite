@@ -367,7 +367,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 <Card className="bg-zinc-900 border-zinc-800">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-white">
-                      <Clock className="h-5 w-5 text-yellow-500" />
+                      <Clock className="h-5 w-5 text-zinc-400" />
                       {currentLanguage === 'vi'
                         ? `Đặt Bàn Sắp Tới Trong Ngày${upcomingToday.length > 0 ? ` (${upcomingToday.length})` : ''}`
                         : `Upcoming Reservations Today${upcomingToday.length > 0 ? ` (${upcomingToday.length})` : ''}`}
@@ -381,7 +381,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                     ) : (
                       <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
                         {upcomingToday.map((reservation: any) => (
-                          <div key={`upcoming-${reservation.id}`} className="p-4 border rounded-lg border-yellow-500/40 bg-yellow-500/5">
+                          <div key={`upcoming-${reservation.id}`} className="p-4 border rounded-lg border-zinc-800">
                             <div className="flex flex-col gap-3">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between gap-2 mb-0.5">
@@ -395,7 +395,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                                   </div>
                                 </div>
                                 <p className="text-sm text-zinc-300 break-all">{reservation.phone} / {reservation.email}</p>
-                                <p className="text-sm font-medium text-yellow-400">{reservation.date} {currentLanguage === 'vi' ? 'lúc' : 'at'} {reservation.time} — {reservation.guests} {currentLanguage === 'vi' ? 'khách' : 'guests'}</p>
+                                <p className="text-sm text-zinc-300">{reservation.date} {currentLanguage === 'vi' ? 'lúc' : 'at'} {reservation.time} — {reservation.guests} {currentLanguage === 'vi' ? 'khách' : 'guests'}</p>
                                 {reservation.specialRequests && (
                                   <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Yêu cầu:' : 'Requests:'} {reservation.specialRequests}</p>
                                 )}
@@ -434,7 +434,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 <Card className="bg-zinc-900 border-zinc-800">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-white">
-                      <Package className="h-5 w-5 text-yellow-500" />
+                      <Package className="h-5 w-5 text-zinc-400" />
                       {currentLanguage === 'vi'
                         ? `Đơn Đặt Trong Ngày${ordersToday.length > 0 ? ` (${ordersToday.length})` : ''}`
                         : `Today's Orders${ordersToday.length > 0 ? ` (${ordersToday.length})` : ''}`}
