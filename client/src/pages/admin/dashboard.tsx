@@ -1451,13 +1451,13 @@ export default function AdminDashboard() {
                               <span className="text-sm font-semibold whitespace-nowrap" style={{ color: '#fb923c' }}>
                                 {currentLanguage === 'vi' ? `Sắp Đến (${nowTime} – ${plusTwoTime})` : `Upcoming (${nowTime} – ${plusTwoTime})`} — {upcomingItems.length}
                               </span>
-                              <div className="flex-1 h-px bg-orange-800/50" />
+                              <div className="flex-1 h-px bg-zinc-700" />
                             </div>
                             <div className="space-y-3">
                               {upcomingItems.map((reservation: any) => (
                                 <div
                                   key={`upcoming-${reservation.id}`}
-                                  className={`p-4 border rounded-lg ring-1 ring-orange-700/40 bg-orange-950/20 ${selectedReservations.has(reservation.id) ? 'border-yellow-500' : 'border-orange-800/60'}`}
+                                  className={`p-4 border rounded-lg ${selectedReservations.has(reservation.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-800'}`}
                                 >
                                   <div className="flex flex-col gap-3">
                                     <div className="flex items-start gap-2">
@@ -1483,7 +1483,7 @@ export default function AdminDashboard() {
                                         </p>
                                       </div>
                                     </div>
-                                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-orange-800/40">
+                                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
                                       <Select
                                         value={reservation.status}
                                         onValueChange={(newStatus) => updateReservationMutation.mutate({ id: reservation.id, status: newStatus })}
