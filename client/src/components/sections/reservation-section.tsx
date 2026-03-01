@@ -94,8 +94,18 @@ export default function ReservationSection() {
     }
   }
 
-  // Filter out locked time slots
-  const availableTimeSlots = allTimeSlots.filter(time => !lockedTimeSlots[time]);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+
+  // Filter out locked time slots and past times for today
+  const availableTimeSlots = allTimeSlots.filter(time => {
+    if (lockedTimeSlots[time]) return false;
+    if (form.date === todayStr) {
+      const [h, m] = time.split(':').map(Number);
+      return h * 60 + m > nowMinutes;
+    }
+    return true;
+  });
 
   // Start playing video only when section is visible
   useEffect(() => {
@@ -164,7 +174,7 @@ export default function ReservationSection() {
                   <Input
                     type="date"
                     value={form.date}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    onChange={(e) => setForm({ ...form, date: e.target.value, time: '' })}
                     className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
                     min={new Date().toISOString().split('T')[0]}
                     required
