@@ -400,26 +400,16 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                                   <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Yêu cầu:' : 'Requests:'} {reservation.specialRequests}</p>
                                 )}
                               </div>
-                              <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
-                                <Select value={reservation.status} onValueChange={(newStatus) => updateReservationStatus.mutate({ id: reservation.id, status: newStatus })}>
-                                  <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm"><SelectValue /></SelectTrigger>
-                                  <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                                    <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                                    <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
-                                    <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <div className="flex items-center gap-0.5">
-                                  <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
-                                    <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
-                                  </Button>
-                                  <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Sao chép' : 'Copy'}>
-                                    <Copy className="w-4 h-4" />
-                                  </Button>
-                                  <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setIsReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
-                                    <Eye className="w-4 h-4" />
-                                  </Button>
-                                </div>
+                              <div className="flex items-center justify-end gap-0.5 pt-2 border-t border-zinc-800">
+                                <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                                  <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Sao chép' : 'Copy'}>
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setIsReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
+                                  <Eye className="w-4 h-4" />
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -472,29 +462,18 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                                   {formatDbTimestamp(order.createdAt)}
                                 </p>
                               </div>
-                              <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
-                                <Select value={order.status} onValueChange={(newStatus) => updateOrderStatus.mutate({ id: order.id, status: newStatus })}>
-                                  <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm"><SelectValue /></SelectTrigger>
-                                  <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                                    <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                                    <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
-                                    <SelectItem value="completed" className="text-white">{t('admin.completed')}</SelectItem>
-                                    <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <div className="flex items-center gap-0.5">
-                                  {order.customerPhone && (
-                                    <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
-                                      <a href={`tel:${order.customerPhone}`}><Phone className="w-4 h-4" /></a>
-                                    </Button>
-                                  )}
-                                  <Button size="sm" variant="ghost" onClick={() => copyAllInfo('order', order)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Sao chép' : 'Copy'}>
-                                    <Copy className="w-4 h-4" />
+                              <div className="flex items-center justify-end gap-0.5 pt-2 border-t border-zinc-800">
+                                {order.customerPhone && (
+                                  <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                                    <a href={`tel:${order.customerPhone}`}><Phone className="w-4 h-4" /></a>
                                   </Button>
-                                  <Button size="sm" variant="ghost" onClick={() => { setSelectedOrder(order); setIsOrderModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
-                                    <Eye className="w-4 h-4" />
-                                  </Button>
-                                </div>
+                                )}
+                                <Button size="sm" variant="ghost" onClick={() => copyAllInfo('order', order)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Sao chép' : 'Copy'}>
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setSelectedOrder(order); setIsOrderModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
+                                  <Eye className="w-4 h-4" />
+                                </Button>
                               </div>
                             </div>
                           </div>
