@@ -109,15 +109,11 @@ export default function AdminDashboard() {
   const [orderDateFrom, setOrderDateFrom] = useState("");
   const [orderDateTo, setOrderDateTo] = useState("");
   const [showReservationArchive, setShowReservationArchive] = useState(false);
-  const [reservationArchiveMonth, setReservationArchiveMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  });
+  const [reservationArchiveDateFrom, setReservationArchiveDateFrom] = useState("");
+  const [reservationArchiveDateTo, setReservationArchiveDateTo] = useState("");
   const [showOrderArchive, setShowOrderArchive] = useState(false);
-  const [orderArchiveMonth, setOrderArchiveMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  });
+  const [orderArchiveDateFrom, setOrderArchiveDateFrom] = useState("");
+  const [orderArchiveDateTo, setOrderArchiveDateTo] = useState("");
   
   // Global dashboard filters
   const [dashboardSearch, setDashboardSearch] = useState("");
@@ -198,15 +194,15 @@ export default function AdminDashboard() {
     queryKey: ["/api/orders"],
   });
 
-  const { data: archivedReservations = [] } = useQuery<any[]>({
-    queryKey: ["/api/reservations/archive", reservationArchiveMonth],
-    queryFn: () => fetch(`/api/reservations/archive?month=${reservationArchiveMonth}`, { credentials: 'include' }).then(r => r.json()),
+  const { data: archivedReservationsRaw = [] } = useQuery<any[]>({
+    queryKey: ["/api/reservations/archive"],
+    queryFn: () => fetch(`/api/reservations/archive`, { credentials: 'include' }).then(r => r.json()),
     enabled: showReservationArchive,
   });
 
-  const { data: archivedOrders = [] } = useQuery<any[]>({
-    queryKey: ["/api/orders/archive", orderArchiveMonth],
-    queryFn: () => fetch(`/api/orders/archive?month=${orderArchiveMonth}`, { credentials: 'include' }).then(r => r.json()),
+  const { data: archivedOrdersRaw = [] } = useQuery<any[]>({
+    queryKey: ["/api/orders/archive"],
+    queryFn: () => fetch(`/api/orders/archive`, { credentials: 'include' }).then(r => r.json()),
     enabled: showOrderArchive,
   });
 
@@ -376,6 +372,22 @@ export default function AdminDashboard() {
       const q = orderSearch.toLowerCase();
       return !q || (o.customerName?.toLowerCase() || '').includes(q) || (o.customerEmail?.toLowerCase() || '').includes(q) || (o.id?.toLowerCase() || '').includes(q);
     });
+
+  const archivedReservations = archivedReservationsRaw.filter(r => {
+    if (!reservationArchiveDateFrom && !reservationArchiveDateTo) return true;
+    const rDate = r.date || '';
+    if (reservationArchiveDateFrom && rDate < reservationArchiveDateFrom) return false;
+    if (reservationArchiveDateTo && rDate > reservationArchiveDateTo) return false;
+    return true;
+  });
+
+  const archivedOrders = archivedOrdersRaw.filter(o => {
+    if (!orderArchiveDateFrom && !orderArchiveDateTo) return true;
+    const oDate = o.originalCreatedAt ? o.originalCreatedAt.toString().slice(0, 10) : (o.archivedAt ? o.archivedAt.toString().slice(0, 10) : '');
+    if (orderArchiveDateFrom && oDate < orderArchiveDateFrom) return false;
+    if (orderArchiveDateTo && oDate > orderArchiveDateTo) return false;
+    return true;
+  });
 
   const updateReservationMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -1113,24 +1125,6 @@ export default function AdminDashboard() {
                         className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400 h-9"
                       />
                     </div>
-                    {showReservationArchive && (
-                      <Select value={reservationArchiveMonth} onValueChange={setReservationArchiveMonth}>
-                        <SelectTrigger className="w-[150px] bg-zinc-800 border-zinc-700 text-white h-9">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
-                          {Array.from({ length: 12 }, (_, i) => {
-                            const d = new Date();
-                            d.setMonth(d.getMonth() - i);
-                            const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                            const label = currentLanguage === 'vi'
-                              ? `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
-                              : `${d.toLocaleString('en', { month: 'long' })} ${d.getFullYear()}`;
-                            return <SelectItem key={val} value={val} className="text-white">{label}</SelectItem>;
-                          })}
-                        </SelectContent>
-                      </Select>
-                    )}
                     <Button
                       size="sm"
                       onClick={() => setShowReservationArchive(!showReservationArchive)}
@@ -1142,41 +1136,38 @@ export default function AdminDashboard() {
                       }
                     </Button>
                   </div>
-                  {/* Row 2: Date shortcuts + date range (active list only) */}
-                  {!showReservationArchive && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
-                      {(['today', 'week', 'month'] as const).map(s => {
-                        const active = getActiveShortcut(reservationDateFrom, reservationDateTo) === s;
-                        const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
-                        return (
-                          <button key={s} onClick={() => applyDateShortcut(s, setReservationDateFrom, setReservationDateTo, reservationDateFrom, reservationDateTo)}
-                            className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                            {label}
-                          </button>
-                        );
-                      })}
-                      <span className="text-zinc-600 text-xs">|</span>
-                      <input
-                        type="date"
-                        value={reservationDateFrom}
-                        onChange={e => setReservationDateFrom(e.target.value)}
-                        className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]"
-                      />
-                      <span className="text-zinc-500 text-sm">—</span>
-                      <input
-                        type="date"
-                        value={reservationDateTo}
-                        onChange={e => setReservationDateTo(e.target.value)}
-                        className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]"
-                      />
-                      {(reservationDateFrom || reservationDateTo) && (
-                        <button onClick={() => { setReservationDateFrom(""); setReservationDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
-                          ✕
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  {/* Row 2: Date filter (both active and archive) */}
+                  {(() => {
+                    const isArchive = showReservationArchive;
+                    const dateFrom = isArchive ? reservationArchiveDateFrom : reservationDateFrom;
+                    const dateTo = isArchive ? reservationArchiveDateTo : reservationDateTo;
+                    const setFrom = isArchive ? setReservationArchiveDateFrom : setReservationDateFrom;
+                    const setTo = isArchive ? setReservationArchiveDateTo : setReservationDateTo;
+                    return (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
+                        {(['today', 'week', 'month'] as const).map(s => {
+                          const active = getActiveShortcut(dateFrom, dateTo) === s;
+                          const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                          return (
+                            <button key={s} onClick={() => applyDateShortcut(s, setFrom, setTo, dateFrom, dateTo)}
+                              className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                              {label}
+                            </button>
+                          );
+                        })}
+                        <span className="text-zinc-600 text-xs">|</span>
+                        <input type="date" value={dateFrom} onChange={e => setFrom(e.target.value)}
+                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
+                        <span className="text-zinc-500 text-sm">—</span>
+                        <input type="date" value={dateTo} onChange={e => setTo(e.target.value)}
+                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
+                        {(dateFrom || dateTo) && (
+                          <button onClick={() => { setFrom(""); setTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">✕</button>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 
                 {/* Results Count and Warning */}
@@ -1184,8 +1175,8 @@ export default function AdminDashboard() {
                   <div className="text-sm text-zinc-400">
                     {showReservationArchive
                       ? (currentLanguage === 'vi'
-                          ? `Kho lưu trữ: ${archivedReservations.length} đặt bàn`
-                          : `Archive: ${archivedReservations.length} reservations`)
+                          ? `Kho lưu trữ: ${archivedReservations.length} / ${archivedReservationsRaw.length} đặt bàn`
+                          : `Archive: ${archivedReservations.length} / ${archivedReservationsRaw.length} reservations`)
                       : `${t('admin.showing')} ${filteredReservations.length} / ${reservations.length} ${t('admin.reservations')}`
                     }
                   </div>
@@ -1603,24 +1594,6 @@ export default function AdminDashboard() {
                         className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400 h-9"
                       />
                     </div>
-                    {showOrderArchive && (
-                      <Select value={orderArchiveMonth} onValueChange={setOrderArchiveMonth}>
-                        <SelectTrigger className="w-[150px] bg-zinc-800 border-zinc-700 text-white h-9">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
-                          {Array.from({ length: 12 }, (_, i) => {
-                            const d = new Date();
-                            d.setMonth(d.getMonth() - i);
-                            const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                            const label = currentLanguage === 'vi'
-                              ? `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
-                              : `${d.toLocaleString('en', { month: 'long' })} ${d.getFullYear()}`;
-                            return <SelectItem key={val} value={val} className="text-white">{label}</SelectItem>;
-                          })}
-                        </SelectContent>
-                      </Select>
-                    )}
                     <Button
                       size="sm"
                       onClick={() => setShowOrderArchive(!showOrderArchive)}
@@ -1632,41 +1605,38 @@ export default function AdminDashboard() {
                       }
                     </Button>
                   </div>
-                  {/* Row 2: Date shortcuts + date range (active list only) */}
-                  {!showOrderArchive && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
-                      {(['today', 'week', 'month'] as const).map(s => {
-                        const active = getActiveShortcut(orderDateFrom, orderDateTo) === s;
-                        const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
-                        return (
-                          <button key={s} onClick={() => applyDateShortcut(s, setOrderDateFrom, setOrderDateTo, orderDateFrom, orderDateTo)}
-                            className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                            {label}
-                          </button>
-                        );
-                      })}
-                      <span className="text-zinc-600 text-xs">|</span>
-                      <input
-                        type="date"
-                        value={orderDateFrom}
-                        onChange={e => setOrderDateFrom(e.target.value)}
-                        className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]"
-                      />
-                      <span className="text-zinc-500 text-sm">—</span>
-                      <input
-                        type="date"
-                        value={orderDateTo}
-                        onChange={e => setOrderDateTo(e.target.value)}
-                        className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]"
-                      />
-                      {(orderDateFrom || orderDateTo) && (
-                        <button onClick={() => { setOrderDateFrom(""); setOrderDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
-                          ✕
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  {/* Row 2: Date filter (both active and archive) */}
+                  {(() => {
+                    const isArchive = showOrderArchive;
+                    const dateFrom = isArchive ? orderArchiveDateFrom : orderDateFrom;
+                    const dateTo = isArchive ? orderArchiveDateTo : orderDateTo;
+                    const setFrom = isArchive ? setOrderArchiveDateFrom : setOrderDateFrom;
+                    const setTo = isArchive ? setOrderArchiveDateTo : setOrderDateTo;
+                    return (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
+                        {(['today', 'week', 'month'] as const).map(s => {
+                          const active = getActiveShortcut(dateFrom, dateTo) === s;
+                          const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                          return (
+                            <button key={s} onClick={() => applyDateShortcut(s, setFrom, setTo, dateFrom, dateTo)}
+                              className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                              {label}
+                            </button>
+                          );
+                        })}
+                        <span className="text-zinc-600 text-xs">|</span>
+                        <input type="date" value={dateFrom} onChange={e => setFrom(e.target.value)}
+                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
+                        <span className="text-zinc-500 text-sm">—</span>
+                        <input type="date" value={dateTo} onChange={e => setTo(e.target.value)}
+                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
+                        {(dateFrom || dateTo) && (
+                          <button onClick={() => { setFrom(""); setTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">✕</button>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 
                 {/* Results Count and Warning */}
@@ -1674,8 +1644,8 @@ export default function AdminDashboard() {
                   <div className="text-sm text-zinc-400">
                     {showOrderArchive
                       ? (currentLanguage === 'vi'
-                          ? `Kho lưu trữ: ${archivedOrders.length} đơn hàng`
-                          : `Archive: ${archivedOrders.length} orders`)
+                          ? `Kho lưu trữ: ${archivedOrders.length} / ${archivedOrdersRaw.length} đơn hàng`
+                          : `Archive: ${archivedOrders.length} / ${archivedOrdersRaw.length} orders`)
                       : `${t('admin.showing')} ${filteredOrders.length} / ${orders.length} ${t('admin.orders')}`
                     }
                   </div>
