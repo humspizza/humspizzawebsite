@@ -1318,147 +1318,76 @@ export default function AdminDashboard() {
                     const renderReservationCard = (reservation: any) => (
                       <div
                         key={reservation.id}
-                        className={`p-4 border rounded-lg space-y-2 ${selectedReservations.has(reservation.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-800'}`}
+                        className={`p-4 border rounded-lg ${selectedReservations.has(reservation.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-800'}`}
                         data-testid={`reservation-${reservation.id}`}
                       >
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-start gap-3 flex-1">
-                            {isMultiSelectReservations && (
-                              <Checkbox 
-                                checked={selectedReservations.has(reservation.id)}
-                                onCheckedChange={() => toggleReservationSelection(reservation.id)}
-                                className="border-zinc-600 mt-1"
-                              />
-                            )}
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-white">{reservation.name}</h3>
-                              <p className="text-sm text-zinc-300">
-                                {reservation.phone} / {reservation.email}
-                              </p>
-                              <p className="text-sm text-zinc-300">
-                                {reservation.date} {t('admin.at')} {reservation.time} - {reservation.guests} {t('admin.people')}
-                              </p>
-                              {reservation.specialRequests && (
-                                <p className="text-sm text-zinc-400">
-                                  {t('admin.requests')}: {reservation.specialRequests}
-                                </p>
-                              )}
-                              <p className="text-sm text-zinc-400 flex items-center gap-2">
-                                <Clock className="h-3 w-3" />
-                                Đặt lúc: {formatDbTimestamp(reservation.createdAt)}
-                              </p>
+                        <div className="flex items-start gap-3">
+                          {isMultiSelectReservations && (
+                            <Checkbox 
+                              checked={selectedReservations.has(reservation.id)}
+                              onCheckedChange={() => toggleReservationSelection(reservation.id)}
+                              className="border-zinc-600 mt-1 shrink-0"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <h3 className="font-semibold text-white leading-snug">{reservation.name}</h3>
+                              <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                                {(phoneCountMap.get(reservation.phone) ?? 0) > 1
+                                  ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                                  : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                                }
+                                {getStatusBadge(reservation.status, "reservation")}
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <div className="flex items-center gap-2 flex-wrap justify-end">
-                              {(phoneCountMap.get(reservation.phone) ?? 0) > 1
-                                ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
-                                : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
-                              }
-                              {getStatusBadge(reservation.status, "reservation")}
+                            <p className="text-sm text-zinc-300 break-all">{reservation.phone} / {reservation.email}</p>
+                            <p className="text-sm text-zinc-300">{reservation.date} {t('admin.at')} {reservation.time} - {reservation.guests} {t('admin.people')}</p>
+                            {reservation.specialRequests && (
+                              <p className="text-sm text-zinc-400">{t('admin.requests')}: {reservation.specialRequests}</p>
+                            )}
+                            <p className="text-sm text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                              <Clock className="h-3 w-3 shrink-0" />
+                              Đặt lúc: {formatDbTimestamp(reservation.createdAt)}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-3 flex-wrap">
                               <Select 
                                 value={reservation.status} 
-                                onValueChange={(newStatus) => updateReservationMutation.mutate({ 
-                                  id: reservation.id, 
-                                  status: newStatus 
-                                })}
+                                onValueChange={(newStatus) => updateReservationMutation.mutate({ id: reservation.id, status: newStatus })}
                               >
-                                <SelectTrigger className="w-36 h-8 bg-zinc-800 border-zinc-700 text-white text-sm">
+                                <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-zinc-800 border-zinc-700">
-                                  <SelectItem value="pending" className="text-white">
-                                    {t('admin.pending')}
-                                  </SelectItem>
-                                  <SelectItem value="confirmed" className="text-white">
-                                    {t('admin.confirmed')}
-                                  </SelectItem>
-                                  <SelectItem value="cancelled" className="text-white">
-                                    {t('admin.cancelled')}
-                                  </SelectItem>
+                                  <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
+                                  <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                                  <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
                                 </SelectContent>
                               </Select>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className="text-green-400 hover:text-green-300"
-                                title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}
-                              >
-                                <a href={`tel:${reservation.phone}`}>
-                                  <Phone className="w-4 h-4" />
-                                </a>
+                              <Button size="sm" variant="ghost" asChild className="text-green-400 hover:text-green-300" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                                <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => copyAllInfo('reservation', reservation)}
-                                className="text-blue-400 hover:text-blue-300"
-                                data-testid={`button-copy-reservation-${reservation.id}`}
-                                title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}
-                              >
+                              <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-blue-400 hover:text-blue-300" data-testid={`button-copy-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}>
                                 <Copy className="w-4 h-4" />
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  setSelectedReservation(reservation);
-                                  setEditReservationData({
-                                    name: reservation.name,
-                                    email: reservation.email,
-                                    phone: reservation.phone,
-                                    guests: reservation.guests.toString(),
-                                    date: reservation.date,
-                                    time: reservation.time,
-                                    status: reservation.status,
-                                    specialRequests: reservation.specialRequests || ''
-                                  });
-                                  setIsEditReservationModalOpen(true);
-                                }}
-                                className="text-zinc-400 hover:text-white"
-                                data-testid={`button-edit-reservation-${reservation.id}`}
-                                title={t('admin.edit')}
-                              >
+                              <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setEditReservationData({ name: reservation.name, email: reservation.email, phone: reservation.phone, guests: reservation.guests.toString(), date: reservation.date, time: reservation.time, status: reservation.status, specialRequests: reservation.specialRequests || '' }); setIsEditReservationModalOpen(true); }} className="text-zinc-400 hover:text-white" data-testid={`button-edit-reservation-${reservation.id}`} title={t('admin.edit')}>
                                 <Edit className="w-4 h-4" />
                               </Button>
                               <AlertDialog open={deleteReservationId === reservation.id} onOpenChange={(open) => !open && setDeleteReservationId(null)}>
                                 <AlertDialogTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setDeleteReservationId(reservation.id)}
-                                    className="text-red-400 hover:text-red-300"
-                                    data-testid={`button-delete-reservation-${reservation.id}`}
-                                    title={currentLanguage === 'vi' ? 'Xóa đặt bàn' : 'Delete reservation'}
-                                  >
+                                  <Button size="sm" variant="ghost" onClick={() => setDeleteReservationId(reservation.id)} className="text-red-400 hover:text-red-300" data-testid={`button-delete-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Xóa đặt bàn' : 'Delete reservation'}>
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent className="bg-zinc-900 border-zinc-800">
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle className="text-white">
-                                      {currentLanguage === 'vi' ? 'Xác nhận xóa' : 'Confirm Delete'}
-                                    </AlertDialogTitle>
+                                    <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận xóa' : 'Confirm Delete'}</AlertDialogTitle>
                                     <AlertDialogDescription className="text-zinc-400">
-                                      {currentLanguage === 'vi' 
-                                        ? `Bạn có chắc chắn muốn xóa đặt bàn của ${reservation.name}? Hành động này không thể hoàn tác.`
-                                        : `Are you sure you want to delete the reservation for ${reservation.name}? This action cannot be undone.`
-                                      }
+                                      {currentLanguage === 'vi' ? `Bạn có chắc chắn muốn xóa đặt bàn của ${reservation.name}? Hành động này không thể hoàn tác.` : `Are you sure you want to delete the reservation for ${reservation.name}? This action cannot be undone.`}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
-                                      {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => deleteReservationMutation.mutate(reservation.id)}
-                                      className="bg-red-600 hover:bg-red-700 text-white"
-                                    >
-                                      {currentLanguage === 'vi' ? 'Xóa' : 'Delete'}
-                                    </AlertDialogAction>
+                                    <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteReservationMutation.mutate(reservation.id)} className="bg-red-600 hover:bg-red-700 text-white">{currentLanguage === 'vi' ? 'Xóa' : 'Delete'}</AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
