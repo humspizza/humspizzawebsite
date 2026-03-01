@@ -549,51 +549,33 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                       .filter((order: any) => order.status === 'pending' || order.status === 'confirmed')
                       .slice(0, 10)
                       .map((order: any) => (
-                        <div key={order.id} className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
-                          <div className="flex-1 space-y-1">
-                            <div className="font-medium text-white">
-                              {order.customerName}
-                            </div>
-                            <div className="text-sm text-zinc-400">
-                              {order.customerEmail} | {order.customerPhone}
-                            </div>
-                            
-                            {order.customerAddress && (
-                              <div className="text-sm text-zinc-400">
-                                {currentLanguage === 'vi' ? 'Địa chỉ:' : 'Address:'} {order.customerAddress}
+                        <div key={order.id} className="p-4 border rounded-lg border-zinc-800">
+                          <div className="flex flex-col gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-0.5">
+                                <h3 className="font-semibold text-white leading-snug">{order.customerName}</h3>
+                                <div className="shrink-0">{getStatusBadge(order.status)}</div>
                               </div>
-                            )}
-                            
-                            <div className="text-sm text-zinc-400">
-                              {currentLanguage === 'vi' ? 'Loại:' : 'Type:'} {getOrderTypeText(order.orderType)} | {currentLanguage === 'vi' ? 'Tổng:' : 'Total:'} {formatPrice(order.totalAmount)}
+                              <p className="text-sm text-zinc-300 break-all">{order.customerPhone} / {order.customerEmail}</p>
+                              {order.customerAddress && (
+                                <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Địa chỉ:' : 'Address:'} {order.customerAddress}</p>
+                              )}
+                              <p className="text-sm text-zinc-300">{currentLanguage === 'vi' ? 'Loại:' : 'Type:'} {getOrderTypeText(order.orderType)} | {currentLanguage === 'vi' ? 'Tổng:' : 'Total:'} {formatPrice(order.totalAmount)}</p>
+                              {order.items && order.items.length > 0 && (
+                                <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Món:' : 'Items:'} {order.items.map((item: any) => `${item.name} (x${item.quantity})`).join(', ')}</p>
+                              )}
+                              <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Đặt lúc:' : 'Ordered at:'} {formatDbTimestamp(order.createdAt)}</p>
                             </div>
-                            
-                            <div className="text-sm text-zinc-400">
-                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Ordered at:'} {formatDbTimestamp(order.createdAt)}
+                            <div className="flex items-center justify-end gap-0.5 pt-2 border-t border-zinc-800">
+                              {order.customerPhone && (
+                                <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                                  <a href={`tel:${order.customerPhone}`}><Phone className="w-4 h-4" /></a>
+                                </Button>
+                              )}
+                              <Button size="sm" variant="ghost" onClick={() => copyAllInfo('order', order)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-copy-recent-order-${order.id}`} title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}>
+                                <Copy className="w-4 h-4" />
+                              </Button>
                             </div>
-                            
-                            {order.items && order.items.length > 0 && (
-                              <div className="text-sm text-zinc-400">
-                                {currentLanguage === 'vi' ? 'Món:' : 'Items:'} {order.items.map((item: any, index: number) => (
-                                  <span key={index}>
-                                    {item.name} (x{item.quantity}){index < order.items.length - 1 ? ', ' : ''}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => copyAllInfo('order', order)}
-                              className="text-blue-400 hover:text-blue-300"
-                              data-testid={`button-copy-recent-order-${order.id}`}
-                              title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            {getStatusBadge(order.status)}
                           </div>
                         </div>
                       ))}
@@ -640,41 +622,35 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                       .filter((reservation: any) => reservation.status === 'pending' || reservation.status === 'confirmed')
                       .slice(0, 10)
                       .map((reservation: any) => (
-                        <div key={reservation.id} className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
-                          <div className="flex-1 space-y-1">
-                            <div className="font-medium text-white">
-                              {reservation.name}
-                            </div>
-                            <div className="text-sm text-zinc-400">
-                              | {reservation.phone}
-                            </div>
-                            
-                            <div className="text-sm text-zinc-400">
-                              {new Date(reservation.date).toLocaleDateString('sv-SE')} {currentLanguage === 'vi' ? 'lúc' : 'at'} {reservation.time} - {reservation.guests} {currentLanguage === 'vi' ? 'người' : 'people'}
-                            </div>
-                            
-                            <div className="text-sm text-zinc-400">
-                              {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Booked at:'} {formatDbTimestamp(reservation.createdAt)}
-                            </div>
-                            
-                            {reservation.specialRequests && (
-                              <div className="text-sm text-zinc-400">
-                                {currentLanguage === 'vi' ? 'Yêu cầu:' : 'Requirements:'} {reservation.specialRequests}
+                        <div key={reservation.id} className="p-4 border rounded-lg border-zinc-800">
+                          <div className="flex flex-col gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-0.5">
+                                <h3 className="font-semibold text-white leading-snug">{reservation.name}</h3>
+                                <div className="shrink-0">{getStatusBadge(reservation.status)}</div>
                               </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => copyAllInfo('reservation', reservation)}
-                              className="text-blue-400 hover:text-blue-300"
-                              data-testid={`button-copy-recent-reservation-${reservation.id}`}
-                              title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            {getStatusBadge(reservation.status)}
+                              <p className="text-sm text-zinc-300 break-all">{reservation.phone}</p>
+                              <p className="text-sm text-zinc-300">{new Date(reservation.date).toLocaleDateString('sv-SE')} {currentLanguage === 'vi' ? 'lúc' : 'at'} {reservation.time} — {reservation.guests} {currentLanguage === 'vi' ? 'người' : 'people'}</p>
+                              {reservation.specialRequests && (
+                                <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Yêu cầu:' : 'Requests:'} {reservation.specialRequests}</p>
+                              )}
+                              <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Đặt lúc:' : 'Booked at:'} {formatDbTimestamp(reservation.createdAt)}</p>
+                            </div>
+                            <div className="flex items-center justify-end gap-0.5 pt-2 border-t border-zinc-800">
+                              <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                                <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => copyAllInfo('reservation', reservation)}
+                                className="text-zinc-400 hover:text-white h-8 w-8 p-0"
+                                data-testid={`button-copy-recent-reservation-${reservation.id}`}
+                                title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
