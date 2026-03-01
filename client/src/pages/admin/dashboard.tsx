@@ -1002,10 +1002,7 @@ export default function AdminDashboard() {
                   <Button
                     size="sm"
                     onClick={() => setShowReservationArchive(!showReservationArchive)}
-                    className={showReservationArchive
-                      ? "bg-blue-600 text-white hover:bg-blue-500"
-                      : "bg-zinc-700 text-white hover:bg-zinc-600"
-                    }
+                    className="bg-zinc-700 text-white hover:bg-zinc-600"
                   >
                     {showReservationArchive
                       ? (currentLanguage === 'vi' ? 'Xem hiện tại' : 'View Active')
@@ -1399,10 +1396,7 @@ export default function AdminDashboard() {
                   <Button
                     size="sm"
                     onClick={() => setShowOrderArchive(!showOrderArchive)}
-                    className={showOrderArchive
-                      ? "bg-blue-600 text-white hover:bg-blue-500"
-                      : "bg-zinc-700 text-white hover:bg-zinc-600"
-                    }
+                    className="bg-zinc-700 text-white hover:bg-zinc-600"
                   >
                     {showOrderArchive
                       ? (currentLanguage === 'vi' ? 'Xem hiện tại' : 'View Active')
