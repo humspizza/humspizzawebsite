@@ -845,7 +845,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-
       <div className="container mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
@@ -1479,7 +1478,7 @@ export default function AdminDashboard() {
                     return groups.map((group, idx) => group.items.length > 0 && (
                       <div key={group.status}>
                         <div className={`flex items-center gap-3 ${idx > 0 ? 'mt-6' : 'mt-2'} mb-3`}>
-                          <span className="text-sm font-semibold whitespace-nowrap" style={group.style}>
+                          <span className="text-sm font-semibold whitespace-nowrap text-[#ffffff]" style={group.style}>
                             {group.label} ({group.items.length})
                           </span>
                           <div className="flex-1 h-px bg-zinc-700" />
@@ -2025,7 +2024,6 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-      
       {/* Edit Order Modal */}
       <Dialog open={isEditOrderModalOpen} onOpenChange={setIsEditOrderModalOpen}>
         <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl">
@@ -2288,7 +2286,6 @@ export default function AdminDashboard() {
           )}
         </DialogContent>
       </Dialog>
-
       {/* Edit Reservation Modal */}
       <Dialog open={isEditReservationModalOpen} onOpenChange={setIsEditReservationModalOpen}>
         <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl">
@@ -2415,7 +2412,6 @@ export default function AdminDashboard() {
           )}
         </DialogContent>
       </Dialog>
-      
     </div>
   );
 }
