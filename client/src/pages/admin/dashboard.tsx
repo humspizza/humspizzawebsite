@@ -1572,7 +1572,35 @@ export default function AdminDashboard() {
                 <CardDescription className="text-zinc-400">
                   {t('admin.orderSubtitle')}
                 </CardDescription>
-                
+
+                {(() => {
+                  const total = orders.length;
+                  if (total === 0) return null;
+                  const cancelled = orders.filter((o: any) => o.status === 'cancelled').length;
+                  const newCustomers = orders.filter((o: any) => (orderPhoneCountMap.get(o.customerPhone) ?? 0) <= 1).length;
+                  const returning = orders.filter((o: any) => (orderPhoneCountMap.get(o.customerPhone) ?? 0) > 1).length;
+                  return (
+                    <div className="grid grid-cols-4 gap-2 mt-3">
+                      <div className="bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-3 text-center">
+                        <div className="text-2xl font-bold text-white">{total}</div>
+                        <div className="text-xs text-white mt-0.5">{currentLanguage === 'vi' ? 'Tổng đơn hàng' : 'Total'}</div>
+                      </div>
+                      <div className="bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-3 text-center">
+                        <div className="text-2xl font-bold text-white">{cancelled}</div>
+                        <div className="text-xs text-white mt-0.5">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</div>
+                      </div>
+                      <div className="bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-3 text-center">
+                        <div className="text-2xl font-bold text-white">{newCustomers}</div>
+                        <div className="text-xs text-white mt-0.5">{currentLanguage === 'vi' ? 'Khách mới' : 'New guests'}</div>
+                      </div>
+                      <div className="bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-3 text-center">
+                        <div className="text-2xl font-bold text-white">{returning}</div>
+                        <div className="text-xs text-white mt-0.5">{currentLanguage === 'vi' ? 'Khách cũ' : 'Returning'}</div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Search and Filter Controls */}
                 <div className="flex flex-col gap-2 mt-4">
                   {/* Row 1: Search + Archive toggle */}
