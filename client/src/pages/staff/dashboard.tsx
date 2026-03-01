@@ -50,8 +50,10 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
   // Search and filter states
   const [reservationSearch, setReservationSearch] = useState("");
   const [orderSearch, setOrderSearch] = useState("");
-  const [reservationTimeFilter, setReservationTimeFilter] = useState("all");
-  const [orderTimeFilter, setOrderTimeFilter] = useState("all");
+  const [reservationDateFrom, setReservationDateFrom] = useState("");
+  const [reservationDateTo, setReservationDateTo] = useState("");
+  const [orderDateFrom, setOrderDateFrom] = useState("");
+  const [orderDateTo, setOrderDateTo] = useState("");
 
   // Get all orders
   const { data: ordersData = [], isLoading: ordersLoading } = useQuery({
@@ -107,44 +109,74 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
     },
   ];
 
-  // Time filter function
-  const getTimeFilteredData = (data: any[], timeFilter: string) => {
-    if (timeFilter === "all") return data;
-    
+  // Date utilities
+  const fmtDate = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  };
+
+  const applyDateShortcut = (
+    shortcut: 'today' | 'week' | 'month',
+    setFrom: (v: string) => void,
+    setTo: (v: string) => void,
+    currentFrom: string,
+    currentTo: string
+  ) => {
     const now = new Date();
-    const startOfPeriod = new Date();
-    
-    switch (timeFilter) {
-      case "today":
-        startOfPeriod.setHours(0, 0, 0, 0);
-        break;
-      case "week":
-        startOfPeriod.setDate(now.getDate() - 7);
-        break;
-      case "month":
-        startOfPeriod.setMonth(now.getMonth() - 1);
-        break;
-      default:
-        return data;
+    let from = '', to = '';
+    if (shortcut === 'today') {
+      from = to = fmtDate(now);
+    } else if (shortcut === 'week') {
+      const day = now.getDay();
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      from = fmtDate(monday); to = fmtDate(sunday);
+    } else if (shortcut === 'month') {
+      from = fmtDate(new Date(now.getFullYear(), now.getMonth(), 1));
+      to = fmtDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
     }
-    
-    return data.filter(item => new Date(item.createdAt || item.date) >= startOfPeriod);
+    if (currentFrom === from && currentTo === to) { setFrom(''); setTo(''); }
+    else { setFrom(from); setTo(to); }
+  };
+
+  const getActiveShortcut = (from: string, to: string): string => {
+    const now = new Date();
+    const todayStr = fmtDate(now);
+    if (from === todayStr && to === todayStr) return 'today';
+    const day = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    if (from === fmtDate(monday) && to === fmtDate(sunday)) return 'week';
+    const monthFrom = fmtDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    const monthTo = fmtDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    if (from === monthFrom && to === monthTo) return 'month';
+    return '';
   };
 
   // Apply filters
-  const filteredReservations = getTimeFilteredData(reservations, reservationTimeFilter)
-    .filter(r => 
-      (r.name?.toLowerCase() || '').includes(reservationSearch.toLowerCase()) ||
-      (r.email?.toLowerCase() || '').includes(reservationSearch.toLowerCase()) ||
-      (r.phone?.toLowerCase() || '').includes(reservationSearch.toLowerCase())
-    );
+  const filteredReservations = reservations.filter((r: any) => {
+    if (reservationDateFrom || reservationDateTo) {
+      const rDate = r.date;
+      if (reservationDateFrom && rDate < reservationDateFrom) return false;
+      if (reservationDateTo && rDate > reservationDateTo) return false;
+    }
+    const q = reservationSearch.toLowerCase();
+    return !q || (r.name?.toLowerCase() || '').includes(q) || r.phone?.includes(q) || (r.email?.toLowerCase() || '').includes(q);
+  });
 
-  const filteredOrders = getTimeFilteredData(orders, orderTimeFilter)
-    .filter(o => 
-      (o.customerName?.toLowerCase() || '').includes(orderSearch.toLowerCase()) ||
-      (o.customerEmail?.toLowerCase() || '').includes(orderSearch.toLowerCase()) ||
-      (o.id?.toLowerCase() || '').includes(orderSearch.toLowerCase())
-    );
+  const filteredOrders = orders.filter((o: any) => {
+    if (orderDateFrom || orderDateTo) {
+      const oDate = o.createdAt ? o.createdAt.slice(0, 10) : '';
+      if (orderDateFrom && oDate < orderDateFrom) return false;
+      if (orderDateTo && oDate > orderDateTo) return false;
+    }
+    const q = orderSearch.toLowerCase();
+    return !q || (o.customerName?.toLowerCase() || '').includes(q) || (o.customerEmail?.toLowerCase() || '').includes(q) || (o.customerPhone?.toLowerCase() || '').includes(q);
+  });
 
 
 
@@ -658,30 +690,38 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
             </CardHeader>
             <CardContent>
               {/* Search and Filter Controls */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="relative flex-1">
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
                   <Input
                     placeholder={currentLanguage === 'vi' ? 'Tìm kiếm đơn hàng...' : 'Search orders...'}
                     value={orderSearch}
                     onChange={(e) => setOrderSearch(e.target.value)}
-                    className="pl-10 bg-zinc-800 border-zinc-700 text-white"
+                    className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400 h-9"
                     data-testid="input-search-orders"
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-zinc-400" />
-                  <Select value={orderTimeFilter} onValueChange={setOrderTimeFilter}>
-                    <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
-                      <SelectValue placeholder={currentLanguage === 'vi' ? 'Lọc thời gian' : 'Time filter'} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      <SelectItem value="all">{currentLanguage === 'vi' ? 'Tất cả' : 'All time'}</SelectItem>
-                      <SelectItem value="today">{currentLanguage === 'vi' ? 'Hôm nay' : 'Today'}</SelectItem>
-                      <SelectItem value="week">{currentLanguage === 'vi' ? '7 ngày qua' : 'Last 7 days'}</SelectItem>
-                      <SelectItem value="month">{currentLanguage === 'vi' ? '30 ngày qua' : 'Last 30 days'}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
+                  {(['today', 'week', 'month'] as const).map(s => {
+                    const active = getActiveShortcut(orderDateFrom, orderDateTo) === s;
+                    const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                    return (
+                      <button key={s} onClick={() => applyDateShortcut(s, setOrderDateFrom, setOrderDateTo, orderDateFrom, orderDateTo)}
+                        className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                        {label}
+                      </button>
+                    );
+                  })}
+                  <span className="text-zinc-600 text-xs">|</span>
+                  <input type="date" value={orderDateFrom} onChange={e => setOrderDateFrom(e.target.value)}
+                    className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
+                  <span className="text-zinc-500 text-sm">—</span>
+                  <input type="date" value={orderDateTo} onChange={e => setOrderDateTo(e.target.value)}
+                    className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
+                  {(orderDateFrom || orderDateTo) && (
+                    <button onClick={() => { setOrderDateFrom(""); setOrderDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">✕</button>
+                  )}
                 </div>
               </div>
 
@@ -778,30 +818,38 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
             </CardHeader>
             <CardContent>
               {/* Search and Filter Controls */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="relative flex-1">
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
                   <Input
                     placeholder={currentLanguage === 'vi' ? 'Tìm kiếm đặt bàn...' : 'Search reservations...'}
                     value={reservationSearch}
                     onChange={(e) => setReservationSearch(e.target.value)}
-                    className="pl-10 bg-zinc-800 border-zinc-700 text-white"
+                    className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400 h-9"
                     data-testid="input-search-reservations"
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-zinc-400" />
-                  <Select value={reservationTimeFilter} onValueChange={setReservationTimeFilter}>
-                    <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
-                      <SelectValue placeholder={currentLanguage === 'vi' ? 'Lọc thời gian' : 'Time filter'} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      <SelectItem value="all">{currentLanguage === 'vi' ? 'Tất cả' : 'All time'}</SelectItem>
-                      <SelectItem value="today">{currentLanguage === 'vi' ? 'Hôm nay' : 'Today'}</SelectItem>
-                      <SelectItem value="week">{currentLanguage === 'vi' ? '7 ngày qua' : 'Last 7 days'}</SelectItem>
-                      <SelectItem value="month">{currentLanguage === 'vi' ? '30 ngày qua' : 'Last 30 days'}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
+                  {(['today', 'week', 'month'] as const).map(s => {
+                    const active = getActiveShortcut(reservationDateFrom, reservationDateTo) === s;
+                    const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                    return (
+                      <button key={s} onClick={() => applyDateShortcut(s, setReservationDateFrom, setReservationDateTo, reservationDateFrom, reservationDateTo)}
+                        className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                        {label}
+                      </button>
+                    );
+                  })}
+                  <span className="text-zinc-600 text-xs">|</span>
+                  <input type="date" value={reservationDateFrom} onChange={e => setReservationDateFrom(e.target.value)}
+                    className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
+                  <span className="text-zinc-500 text-sm">—</span>
+                  <input type="date" value={reservationDateTo} onChange={e => setReservationDateTo(e.target.value)}
+                    className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
+                  {(reservationDateFrom || reservationDateTo) && (
+                    <button onClick={() => { setReservationDateFrom(""); setReservationDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">✕</button>
+                  )}
                 </div>
               </div>
 
