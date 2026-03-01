@@ -86,8 +86,8 @@ export interface IStorage {
 
   // Data Management
   archiveOldData(period: string): Promise<{ orders: number; reservations: number }>;
-  bulkArchiveReservations(ids: number[]): Promise<number>;
-  bulkArchiveOrders(ids: number[]): Promise<number>;
+  bulkArchiveReservations(ids: string[]): Promise<number>;
+  bulkArchiveOrders(ids: string[]): Promise<number>;
   getArchivedReservations(month?: string): Promise<any[]>;
   getArchivedOrders(month?: string): Promise<any[]>;
   getDataStatistics(): Promise<{
@@ -766,7 +766,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async bulkArchiveReservations(ids: number[]): Promise<number> {
+  async bulkArchiveReservations(ids: string[]): Promise<number> {
     let count = 0;
     for (const id of ids) {
       const [reservation] = await db.select().from(reservations).where(eq(reservations.id, id));
@@ -790,7 +790,7 @@ export class DatabaseStorage implements IStorage {
     return count;
   }
 
-  async bulkArchiveOrders(ids: number[]): Promise<number> {
+  async bulkArchiveOrders(ids: string[]): Promise<number> {
     let count = 0;
     for (const id of ids) {
       const [order] = await db.select().from(orders).where(eq(orders.id, id));

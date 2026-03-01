@@ -485,7 +485,7 @@ export default function AdminDashboard() {
   });
 
   const bulkArchiveReservationsMutation = useMutation({
-    mutationFn: async (ids: number[]) => {
+    mutationFn: async (ids: string[]) => {
       return apiRequest("POST", "/api/reservations/bulk-archive", { ids });
     },
     onSuccess: () => {
@@ -493,11 +493,12 @@ export default function AdminDashboard() {
       setSelectedReservations(new Set());
       setShowBulkArchiveReservations(false);
       setIsMultiSelectReservations(false);
+      setShowReservationArchive(true);
       toast({
         title: currentLanguage === 'vi' ? "Đã lưu trữ" : "Archived",
         description: currentLanguage === 'vi'
-          ? `Đã lưu trữ ${selectedReservations.size} đặt bàn thành công`
-          : `Successfully archived ${selectedReservations.size} reservations`
+          ? `Đã lưu trữ thành công, chuyển sang kho lưu trữ`
+          : `Successfully archived, switched to archive view`
       });
     },
     onError: (error: any) => {
@@ -510,7 +511,7 @@ export default function AdminDashboard() {
   });
 
   const bulkArchiveOrdersMutation = useMutation({
-    mutationFn: async (ids: number[]) => {
+    mutationFn: async (ids: string[]) => {
       return apiRequest("POST", "/api/orders/bulk-archive", { ids });
     },
     onSuccess: () => {
@@ -518,11 +519,12 @@ export default function AdminDashboard() {
       setSelectedOrders(new Set());
       setShowBulkArchiveOrders(false);
       setIsMultiSelectOrders(false);
+      setShowOrderArchive(true);
       toast({
         title: currentLanguage === 'vi' ? "Đã lưu trữ" : "Archived",
         description: currentLanguage === 'vi'
-          ? `Đã lưu trữ ${selectedOrders.size} đơn hàng thành công`
-          : `Successfully archived ${selectedOrders.size} orders`
+          ? `Đã lưu trữ thành công, chuyển sang kho lưu trữ`
+          : `Successfully archived, switched to archive view`
       });
     },
     onError: (error: any) => {
@@ -1128,7 +1130,7 @@ export default function AdminDashboard() {
                               {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
                             </AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => bulkArchiveReservationsMutation.mutate(Array.from(selectedReservations).map(Number))}
+                              onClick={() => bulkArchiveReservationsMutation.mutate(Array.from(selectedReservations))}
                               className="bg-blue-600 hover:bg-blue-700 text-white"
                               disabled={bulkArchiveReservationsMutation.isPending}
                             >
@@ -1526,7 +1528,7 @@ export default function AdminDashboard() {
                               {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
                             </AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => bulkArchiveOrdersMutation.mutate(Array.from(selectedOrders).map(Number))}
+                              onClick={() => bulkArchiveOrdersMutation.mutate(Array.from(selectedOrders))}
                               className="bg-blue-600 hover:bg-blue-700 text-white"
                               disabled={bulkArchiveOrdersMutation.isPending}
                             >
