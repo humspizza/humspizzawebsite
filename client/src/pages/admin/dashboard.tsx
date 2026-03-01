@@ -1475,8 +1475,8 @@ export default function AdminDashboard() {
                             </div>
                             <div className="flex items-center gap-1.5">
                               {(phoneCountMap.get(reservation.phone) ?? 0) > 1
-                                ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-blue-600/40 text-blue-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
-                                : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-emerald-600/40 text-emerald-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                                ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-white/40 text-white font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                                : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-white/40 text-white font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
                               }
                               {getStatusBadge(reservation.status, "reservation")}
                             </div>
@@ -1520,8 +1520,8 @@ export default function AdminDashboard() {
                         <div className="flex flex-col items-end gap-2">
                           <div className="flex items-center gap-2">
                             {(phoneCountMap.get(reservation.phone) ?? 0) > 1
-                              ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-blue-600/40 text-blue-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
-                              : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-emerald-600/40 text-emerald-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                              ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-white/40 text-white font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                              : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-white/40 text-white font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
                             }
                             {getStatusBadge(reservation.status, "reservation")}
                           </div>
