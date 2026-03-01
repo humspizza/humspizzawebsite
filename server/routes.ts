@@ -908,6 +908,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/reservations/archive", requireAuth, async (req, res) => {
+    try {
+      const month = req.query.month as string | undefined;
+      const archived = await storage.getArchivedReservations(month);
+      res.json(archived);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/orders/archive", requireAuth, async (req, res) => {
+    try {
+      const month = req.query.month as string | undefined;
+      const archived = await storage.getArchivedOrders(month);
+      res.json(archived);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/reservations/bulk-archive", requireAuth, async (req, res) => {
     try {
       const { ids } = req.body;

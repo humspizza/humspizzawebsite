@@ -106,6 +106,16 @@ export default function AdminDashboard() {
   const [orderSearch, setOrderSearch] = useState("");
   const [reservationTimeFilter, setReservationTimeFilter] = useState("all");
   const [orderTimeFilter, setOrderTimeFilter] = useState("all");
+  const [showReservationArchive, setShowReservationArchive] = useState(false);
+  const [reservationArchiveMonth, setReservationArchiveMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [showOrderArchive, setShowOrderArchive] = useState(false);
+  const [orderArchiveMonth, setOrderArchiveMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   
   // Global dashboard filters
   const [dashboardSearch, setDashboardSearch] = useState("");
@@ -176,6 +186,18 @@ export default function AdminDashboard() {
 
   const { data: orders = [] } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
+  });
+
+  const { data: archivedReservations = [] } = useQuery<any[]>({
+    queryKey: ["/api/reservations/archive", reservationArchiveMonth],
+    queryFn: () => fetch(`/api/reservations/archive?month=${reservationArchiveMonth}`, { credentials: 'include' }).then(r => r.json()),
+    enabled: showReservationArchive,
+  });
+
+  const { data: archivedOrders = [] } = useQuery<any[]>({
+    queryKey: ["/api/orders/archive", orderArchiveMonth],
+    queryFn: () => fetch(`/api/orders/archive?month=${orderArchiveMonth}`, { credentials: 'include' }).then(r => r.json()),
+    enabled: showOrderArchive,
   });
 
   const { data: contactMessages = [] } = useQuery({
@@ -941,26 +963,64 @@ export default function AdminDashboard() {
                       className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400"
                     />
                   </div>
-                  <Select value={reservationTimeFilter} onValueChange={setReservationTimeFilter}>
-                    <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
-                      <Filter className="w-4 h-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      <SelectItem value="all" className="text-white">{t('admin.allTime')}</SelectItem>
-                      <SelectItem value="today" className="text-white">{t('admin.today')}</SelectItem>
-                      <SelectItem value="7days" className="text-white">{t('admin.last7Days')}</SelectItem>
-                      <SelectItem value="30days" className="text-white">{t('admin.last30Days')}</SelectItem>
-                      <SelectItem value="90days" className="text-white">{t('admin.last90Days')}</SelectItem>
-                      <SelectItem value="180days" className="text-white">{t('admin.last180Days')}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {!showReservationArchive && (
+                    <Select value={reservationTimeFilter} onValueChange={setReservationTimeFilter}>
+                      <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
+                        <Filter className="w-4 h-4 mr-2" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        <SelectItem value="all" className="text-white">{t('admin.allTime')}</SelectItem>
+                        <SelectItem value="today" className="text-white">{t('admin.today')}</SelectItem>
+                        <SelectItem value="7days" className="text-white">{t('admin.last7Days')}</SelectItem>
+                        <SelectItem value="30days" className="text-white">{t('admin.last30Days')}</SelectItem>
+                        <SelectItem value="90days" className="text-white">{t('admin.last90Days')}</SelectItem>
+                        <SelectItem value="180days" className="text-white">{t('admin.last180Days')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {showReservationArchive && (
+                    <Select value={reservationArchiveMonth} onValueChange={setReservationArchiveMonth}>
+                      <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        {Array.from({ length: 12 }, (_, i) => {
+                          const d = new Date();
+                          d.setMonth(d.getMonth() - i);
+                          const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                          const label = currentLanguage === 'vi'
+                            ? `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
+                            : `${d.toLocaleString('en', { month: 'long' })} ${d.getFullYear()}`;
+                          return <SelectItem key={val} value={val} className="text-white">{label}</SelectItem>;
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <Button
+                    size="sm"
+                    onClick={() => setShowReservationArchive(!showReservationArchive)}
+                    className={showReservationArchive
+                      ? "bg-blue-600 text-white hover:bg-blue-500"
+                      : "bg-zinc-700 text-white hover:bg-zinc-600"
+                    }
+                  >
+                    {showReservationArchive
+                      ? (currentLanguage === 'vi' ? 'Xem hiện tại' : 'View Active')
+                      : (currentLanguage === 'vi' ? 'Xem kho lưu trữ' : 'View Archive')
+                    }
+                  </Button>
                 </div>
                 
                 {/* Results Count and Warning */}
                 <div className="flex justify-between items-center mt-4">
                   <div className="text-sm text-zinc-400">
-                    {t('admin.showing')} {filteredReservations.length} / {reservations.length} {t('admin.reservations')}
+                    {showReservationArchive
+                      ? (currentLanguage === 'vi'
+                          ? `Kho lưu trữ: ${archivedReservations.length} đặt bàn`
+                          : `Archive: ${archivedReservations.length} reservations`)
+                      : `${t('admin.showing')} ${filteredReservations.length} / ${reservations.length} ${t('admin.reservations')}`
+                    }
                   </div>
                   <div className="text-sm text-zinc-400 bg-zinc-800/50 px-3 py-1 rounded border border-zinc-700">
                     {currentLanguage === 'vi' 
@@ -974,7 +1034,7 @@ export default function AdminDashboard() {
               
               <CardContent>
                 {/* Bulk Actions Bar */}
-                <div className="flex items-center justify-between mb-4">
+                {!showReservationArchive && <div className="flex items-center justify-between mb-4">
                   {!isMultiSelectReservations ? (
                     <Button 
                       size="sm"
@@ -1098,10 +1158,38 @@ export default function AdminDashboard() {
                       </Button>
                     </div>
                   )}
-                </div>
+                </div>}
                 
                 <div className="space-y-4">
-                  {filteredReservations.map((reservation) => (
+                  {showReservationArchive ? (
+                    <>
+                      {archivedReservations.length === 0 ? (
+                        <p className="text-center text-zinc-500 py-8">
+                          {currentLanguage === 'vi' ? 'Không có dữ liệu lưu trữ trong tháng này' : 'No archived data for this month'}
+                        </p>
+                      ) : archivedReservations.map((reservation: any) => (
+                        <div key={reservation.id} className="p-4 border border-blue-800/50 bg-blue-900/10 rounded-lg space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-semibold text-white">{reservation.name}</h3>
+                              <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
+                              <p className="text-sm text-zinc-300">{reservation.date} lúc {reservation.time} - {reservation.guests} người</p>
+                              {reservation.specialRequests && (
+                                <p className="text-sm text-zinc-400 mt-1">{t('admin.requests')}: {reservation.specialRequests}</p>
+                              )}
+                              <p className="text-xs text-blue-400 mt-1">
+                                {currentLanguage === 'vi' ? 'Đã lưu trữ lúc:' : 'Archived at:'} {formatDbTimestamp(reservation.archivedAt)}
+                              </p>
+                            </div>
+                            <Badge className="bg-blue-600 text-white text-xs">
+                              {reservation.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  ) : null}
+                  {!showReservationArchive && filteredReservations.map((reservation) => (
                     <div
                       key={reservation.id}
                       className={`p-4 border rounded-lg space-y-2 ${selectedReservations.has(reservation.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-800'}`}
@@ -1240,12 +1328,12 @@ export default function AdminDashboard() {
 
                     </div>
                   ))}
-                  {filteredReservations.length === 0 && reservations.length > 0 && (
+                  {!showReservationArchive && filteredReservations.length === 0 && reservations.length > 0 && (
                     <p className="text-center text-zinc-500 py-8">
                       {t('admin.noReservationsFound')}
                     </p>
                   )}
-                  {reservations.length === 0 && (
+                  {!showReservationArchive && reservations.length === 0 && (
                     <p className="text-center text-zinc-500 py-8">
                       {t('admin.noReservations')}
                     </p>
@@ -1274,26 +1362,64 @@ export default function AdminDashboard() {
                       className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400"
                     />
                   </div>
-                  <Select value={orderTimeFilter} onValueChange={setOrderTimeFilter}>
-                    <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
-                      <Filter className="w-4 h-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      <SelectItem value="all" className="text-white">{t('admin.allTime')}</SelectItem>
-                      <SelectItem value="today" className="text-white">{t('admin.today')}</SelectItem>
-                      <SelectItem value="7days" className="text-white">{t('admin.last7Days')}</SelectItem>
-                      <SelectItem value="30days" className="text-white">{t('admin.last30Days')}</SelectItem>
-                      <SelectItem value="90days" className="text-white">{t('admin.last90Days')}</SelectItem>
-                      <SelectItem value="180days" className="text-white">{t('admin.last180Days')}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {!showOrderArchive && (
+                    <Select value={orderTimeFilter} onValueChange={setOrderTimeFilter}>
+                      <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
+                        <Filter className="w-4 h-4 mr-2" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        <SelectItem value="all" className="text-white">{t('admin.allTime')}</SelectItem>
+                        <SelectItem value="today" className="text-white">{t('admin.today')}</SelectItem>
+                        <SelectItem value="7days" className="text-white">{t('admin.last7Days')}</SelectItem>
+                        <SelectItem value="30days" className="text-white">{t('admin.last30Days')}</SelectItem>
+                        <SelectItem value="90days" className="text-white">{t('admin.last90Days')}</SelectItem>
+                        <SelectItem value="180days" className="text-white">{t('admin.last180Days')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {showOrderArchive && (
+                    <Select value={orderArchiveMonth} onValueChange={setOrderArchiveMonth}>
+                      <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        {Array.from({ length: 12 }, (_, i) => {
+                          const d = new Date();
+                          d.setMonth(d.getMonth() - i);
+                          const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                          const label = currentLanguage === 'vi'
+                            ? `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
+                            : `${d.toLocaleString('en', { month: 'long' })} ${d.getFullYear()}`;
+                          return <SelectItem key={val} value={val} className="text-white">{label}</SelectItem>;
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <Button
+                    size="sm"
+                    onClick={() => setShowOrderArchive(!showOrderArchive)}
+                    className={showOrderArchive
+                      ? "bg-blue-600 text-white hover:bg-blue-500"
+                      : "bg-zinc-700 text-white hover:bg-zinc-600"
+                    }
+                  >
+                    {showOrderArchive
+                      ? (currentLanguage === 'vi' ? 'Xem hiện tại' : 'View Active')
+                      : (currentLanguage === 'vi' ? 'Xem kho lưu trữ' : 'View Archive')
+                    }
+                  </Button>
                 </div>
                 
                 {/* Results Count and Warning */}
                 <div className="flex justify-between items-center mt-4">
                   <div className="text-sm text-zinc-400">
-                    {t('admin.showing')} {filteredOrders.length} / {orders.length} {t('admin.orders')}
+                    {showOrderArchive
+                      ? (currentLanguage === 'vi'
+                          ? `Kho lưu trữ: ${archivedOrders.length} đơn hàng`
+                          : `Archive: ${archivedOrders.length} orders`)
+                      : `${t('admin.showing')} ${filteredOrders.length} / ${orders.length} ${t('admin.orders')}`
+                    }
                   </div>
                   <div className="text-sm text-zinc-400 bg-zinc-800/50 px-3 py-1 rounded border border-zinc-700">
                     {currentLanguage === 'vi' 
@@ -1306,7 +1432,7 @@ export default function AdminDashboard() {
               
               <CardContent>
                 {/* Bulk Actions Bar */}
-                <div className="flex items-center justify-between mb-4">
+                {!showOrderArchive && <div className="flex items-center justify-between mb-4">
                   {!isMultiSelectOrders ? (
                     <Button 
                       size="sm"
@@ -1430,10 +1556,41 @@ export default function AdminDashboard() {
                       </Button>
                     </div>
                   )}
-                </div>
+                </div>}
                 
                 <div className="space-y-4">
-                  {filteredOrders.map((order) => (
+                  {showOrderArchive ? (
+                    <>
+                      {archivedOrders.length === 0 ? (
+                        <p className="text-center text-zinc-500 py-8">
+                          {currentLanguage === 'vi' ? 'Không có dữ liệu lưu trữ trong tháng này' : 'No archived data for this month'}
+                        </p>
+                      ) : archivedOrders.map((order: any) => (
+                        <div key={order.id} className="p-4 border border-blue-800/50 bg-blue-900/10 rounded-lg space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-semibold text-white">{order.customerName}</h3>
+                              <p className="text-sm text-zinc-400">{order.customerEmail} | {order.customerPhone}</p>
+                              {order.customerAddress && <p className="text-sm text-zinc-400">Địa chỉ: {order.customerAddress}</p>}
+                              <p className="text-sm text-zinc-300">
+                                Loại: {getOrderTypeText(order.orderType)} | Tổng: {formatPrice(order.totalAmount)}
+                              </p>
+                              <div className="text-sm text-zinc-400 mt-1">
+                                Món: {order.items?.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
+                              </div>
+                              <p className="text-xs text-blue-400 mt-1">
+                                {currentLanguage === 'vi' ? 'Đã lưu trữ lúc:' : 'Archived at:'} {formatDbTimestamp(order.archivedAt)}
+                              </p>
+                            </div>
+                            <Badge className="bg-blue-600 text-white text-xs">
+                              {order.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  ) : null}
+                  {!showOrderArchive && filteredOrders.map((order) => (
                     <div
                       key={order.id}
                       className={`p-4 border rounded-lg space-y-2 ${selectedOrders.has(order.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-800'}`}
@@ -1574,12 +1731,12 @@ export default function AdminDashboard() {
 
                     </div>
                   ))}
-                  {filteredOrders.length === 0 && orders.length > 0 && (
+                  {!showOrderArchive && filteredOrders.length === 0 && orders.length > 0 && (
                     <p className="text-center text-zinc-500 py-8">
                       {t('admin.noOrdersFound')}
                     </p>
                   )}
-                  {orders.length === 0 && (
+                  {!showOrderArchive && orders.length === 0 && (
                     <p className="text-center text-zinc-500 py-8">
                       {t('admin.noOrders')}
                     </p>
