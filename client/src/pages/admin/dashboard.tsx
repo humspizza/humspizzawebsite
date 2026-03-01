@@ -1367,10 +1367,10 @@ export default function AdminDashboard() {
                               </SelectContent>
                             </Select>
                             <div className="flex items-center gap-0.5">
-                              <Button size="sm" variant="ghost" asChild className="text-green-400 hover:text-green-300 h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                              <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
                                 <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-blue-400 hover:text-blue-300 h-8 w-8 p-0" data-testid={`button-copy-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}>
+                              <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-copy-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}>
                                 <Copy className="w-4 h-4" />
                               </Button>
                               <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setEditReservationData({ name: reservation.name, email: reservation.email, phone: reservation.phone, guests: reservation.guests.toString(), date: reservation.date, time: reservation.time, status: reservation.status, specialRequests: reservation.specialRequests || '' }); setIsEditReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-edit-reservation-${reservation.id}`} title={t('admin.edit')}>
