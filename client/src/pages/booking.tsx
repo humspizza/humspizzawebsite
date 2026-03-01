@@ -83,8 +83,24 @@ export default function BookingPage() {
     },
   });
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.date === todayStr && form.time) {
+      const [h, m] = form.time.split(':').map(Number);
+      if (h * 60 + m <= nowMinutes) {
+        toast({
+          title: language === 'vi' ? 'Khung giờ không hợp lệ' : 'Invalid time slot',
+          description: language === 'vi'
+            ? 'Khung giờ này đã qua. Vui lòng chọn giờ khác trong ngày hôm nay hoặc đặt cho ngày khác.'
+            : 'This time slot has already passed. Please choose a later time today or pick another date.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
     createReservation.mutate(form);
   };
 
@@ -105,8 +121,17 @@ export default function BookingPage() {
     }
   }
 
-  // Filter out locked time slots
-  const availableTimeSlots = allTimeSlots.filter(time => !lockedTimeSlots[time]);
+  // Filter out locked time slots and past time slots for today
+  const isToday = form.date === todayStr;
+
+  const availableTimeSlots = allTimeSlots.filter(time => {
+    if (lockedTimeSlots[time]) return false;
+    if (isToday) {
+      const [h, m] = time.split(':').map(Number);
+      return h * 60 + m > nowMinutes;
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-black pt-20">
