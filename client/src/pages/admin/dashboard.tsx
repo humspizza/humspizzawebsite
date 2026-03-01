@@ -1011,7 +1011,7 @@ export default function AdminDashboard() {
                     <Button
                       size="sm"
                       onClick={() => setIsAddReservationModalOpen(true)}
-                      className="bg-yellow-600 hover:bg-yellow-500 text-white"
+                      className="!bg-yellow-600 hover:!bg-yellow-500 text-white"
                     >
                       + {currentLanguage === 'vi' ? 'Thêm đặt bàn' : 'Add reservation'}
                     </Button>
