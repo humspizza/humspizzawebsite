@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -390,6 +390,18 @@ export default function AdminDashboard() {
       const q = reservationSearch.toLowerCase();
       return !q || (r.name?.toLowerCase() || '').includes(q) || r.phone?.includes(q) || (r.email?.toLowerCase() || '').includes(q);
     });
+
+  const phoneCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    const allPhones = [
+      ...reservations.map((r: any) => r.phone),
+      ...archivedReservationsRaw.map((r: any) => r.phone),
+    ];
+    for (const phone of allPhones) {
+      if (phone) map.set(phone, (map.get(phone) || 0) + 1);
+    }
+    return map;
+  }, [reservations, archivedReservationsRaw]);
 
   const filteredOrders = orders
     .filter(o => {
@@ -1450,7 +1462,13 @@ export default function AdminDashboard() {
                                 <Checkbox checked={selectedArchiveReservations.has(reservation.id)} onCheckedChange={() => toggleArchiveReservationSelection(reservation.id)} className="border-zinc-600 mt-1" />
                               )}
                               <div>
-                                <h3 className="font-semibold text-white">{reservation.name}</h3>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="font-semibold text-white">{reservation.name}</h3>
+                                  {(phoneCountMap.get(reservation.phone) ?? 0) > 1
+                                    ? <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-blue-600/40 text-blue-400 font-medium">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                                    : <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-emerald-600/40 text-emerald-400 font-medium">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                                  }
+                                </div>
                                 <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
                                 <p className="text-sm text-zinc-300">{reservation.date} lúc {reservation.time} - {reservation.guests} {t('admin.people')}</p>
                                 {reservation.specialRequests && (
@@ -1483,7 +1501,13 @@ export default function AdminDashboard() {
                             />
                           )}
                           <div className="flex-1">
-                            <h3 className="font-semibold text-white">{reservation.name}</h3>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-semibold text-white">{reservation.name}</h3>
+                              {(phoneCountMap.get(reservation.phone) ?? 0) > 1
+                                ? <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-blue-600/40 text-blue-400 font-medium">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                                : <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-emerald-600/40 text-emerald-400 font-medium">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                              }
+                            </div>
                             <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
                             <p className="text-sm text-zinc-300">
                               {reservation.date} {t('admin.at')} {reservation.time} - {reservation.guests} {t('admin.people')}
