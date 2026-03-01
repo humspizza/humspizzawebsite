@@ -11,7 +11,7 @@ import { Calendar, Clock, Users, Package, Menu as MenuIcon, BookOpen, Home, Eye,
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { formatPrice } from '@/lib/currency';
 import StaffMenuManagement from './menu-management';
 import ContactManagement from '../admin/contact-management';
@@ -66,6 +66,18 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
   // Ensure data is in array format
   const orders = Array.isArray(ordersData) ? ordersData : [];
   const reservations = Array.isArray(reservationsData) ? reservationsData : [];
+
+  const phoneCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    reservations.forEach((r: any) => { if (r.phone) map.set(r.phone, (map.get(r.phone) ?? 0) + 1); });
+    return map;
+  }, [reservations]);
+
+  const orderPhoneCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    orders.forEach((o: any) => { if (o.customerPhone) map.set(o.customerPhone, (map.get(o.customerPhone) ?? 0) + 1); });
+    return map;
+  }, [orders]);
 
   const navigationItems = [
     { 
@@ -558,74 +570,60 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {filteredOrders.map((order: any) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 bg-zinc-800 rounded-lg border border-zinc-700">
-                    <div className="flex-1">
-                      <div className="font-medium text-white">
-                        #{order.id.slice(0, 8).toUpperCase()}
-                      </div>
-                      <div className="text-sm text-zinc-400">
-                        {order.customerName} • {order.customerPhone}
-                      </div>
-                      {order.customerAddress && (
-                        <div className="text-sm text-zinc-400">
-                          {currentLanguage === 'vi' ? 'Địa chỉ:' : 'Address:'} {order.customerAddress}
+                  <div key={order.id} className="p-4 border rounded-lg border-zinc-800" data-testid={`order-${order.id}`}>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-0.5">
+                          <h3 className="font-semibold text-white leading-snug">{order.customerName}</h3>
+                          <div className="flex items-center gap-1 flex-wrap justify-end shrink-0">
+                            {(orderPhoneCountMap.get(order.customerPhone) ?? 0) > 1
+                              ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                              : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                            }
+                            {getStatusBadge(order.status)}
+                          </div>
                         </div>
-                      )}
-                      <div className="text-sm text-zinc-400">
-                        {currentLanguage === 'vi' ? 'Loại:' : 'Type:'} {getOrderTypeText(order.orderType)}
+                        <p className="text-sm text-zinc-300 break-all">{order.customerPhone} / {order.customerEmail}</p>
+                        {order.customerAddress && <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Địa chỉ:' : 'Address:'} {order.customerAddress}</p>}
+                        <p className="text-sm text-zinc-300">{currentLanguage === 'vi' ? 'Loại:' : 'Type:'} {getOrderTypeText(order.orderType)} | {currentLanguage === 'vi' ? 'Tổng:' : 'Total:'} {formatPrice(order.totalAmount)}</p>
+                        <p className="text-sm text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                          <Clock className="h-3 w-3 shrink-0" />
+                          {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Created:'} {formatDbTimestamp(order.createdAt)}
+                        </p>
+                        {order.items && order.items.length > 0 && (
+                          <p className="text-sm text-zinc-400 mt-0.5">{currentLanguage === 'vi' ? 'Món:' : 'Items:'} {order.items.map((item: any) => `${item.name} (x${item.quantity})`).join(', ')}</p>
+                        )}
                       </div>
-                      <div className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
-                        <Clock className="h-3 w-3" />
-                        {formatDbTimestamp(order.createdAt)}
-                      </div>
-                      <div className="text-sm font-medium text-white mt-1">
-                        {currentLanguage === 'vi' ? 'Tổng:' : 'Total:'} {formatPrice(order.totalAmount)}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(order.status)}
-                      </div>
-                      <Select 
-                        value={order.status} 
-                        onValueChange={(newStatus) => updateOrderStatus.mutate({ id: order.id, status: newStatus })}
-                      >
-                        <SelectTrigger className="w-36 bg-zinc-800 border-zinc-700 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                          <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                          <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
-                          <SelectItem value="completed" className="text-white">{t('admin.completed')}</SelectItem>
-                          <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          onClick={() => copyAllInfo('order', order)}
-                          className="text-blue-400 hover:text-blue-300"
-                          data-testid={`button-copy-order-${order.id}`}
-                          title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
+                        <Select
+                          value={order.status}
+                          onValueChange={(newStatus) => updateOrderStatus.mutate({ id: order.id, status: newStatus })}
                         >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setIsOrderModalOpen(true);
-                          }}
-                          data-testid={`button-view-order-${order.id}`}
-                          className="border-zinc-700 text-white hover:bg-zinc-800"
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          {currentLanguage === 'vi' ? 'Xem chi tiết' : 'View Details'}
-                        </Button>
+                          <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                            <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
+                            <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                            <SelectItem value="completed" className="text-white">{t('admin.completed')}</SelectItem>
+                            <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="flex items-center gap-0.5">
+                          {order.customerPhone && (
+                            <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                              <a href={`tel:${order.customerPhone}`}><Phone className="w-4 h-4" /></a>
+                            </Button>
+                          )}
+                          <Button size="sm" variant="ghost" onClick={() => copyAllInfo('order', order)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-copy-order-${order.id}`} title={currentLanguage === 'vi' ? 'Sao chép' : 'Copy'}>
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => { setSelectedOrder(order); setIsOrderModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-view-order-${order.id}`} title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -699,76 +697,56 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {filteredReservations.map((reservation: any) => (
-                  <div key={reservation.id} className="flex items-center justify-between p-4 bg-zinc-800 rounded-lg border border-zinc-700">
-                    <div className="flex-1">
-                      <div className="font-medium text-white">
-                        {reservation.name}
+                  <div key={reservation.id} className="p-4 border rounded-lg border-zinc-800">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-0.5">
+                          <h3 className="font-semibold text-white leading-snug">{reservation.name}</h3>
+                          <div className="flex items-center gap-1 flex-wrap justify-end shrink-0">
+                            {(phoneCountMap.get(reservation.phone) ?? 0) > 1
+                              ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                              : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                            }
+                            {getStatusBadge(reservation.status)}
+                          </div>
+                        </div>
+                        <p className="text-sm text-zinc-300 break-all">{reservation.phone} / {reservation.email}</p>
+                        <p className="text-sm text-zinc-300">{reservation.date} {currentLanguage === 'vi' ? 'lúc' : 'at'} {reservation.time} - {reservation.guests} {currentLanguage === 'vi' ? 'khách' : 'guests'}</p>
+                        {reservation.specialRequests && (
+                          <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Yêu cầu' : 'Requests'}: {reservation.specialRequests}</p>
+                        )}
+                        <p className="text-sm text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                          <Clock className="h-3 w-3 shrink-0" />
+                          {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Created:'} {formatDbTimestamp(reservation.createdAt)}
+                        </p>
                       </div>
-                      <div className="text-sm text-zinc-400">
-                        {reservation.phone} • {reservation.email}
-                      </div>
-                      <div className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
-                        <Clock className="h-3 w-3" />
-                        {currentLanguage === 'vi' ? 'Đặt lúc:' : 'Created at:'} {formatDbTimestamp(reservation.createdAt)}
-                      </div>
-                      <div className="text-sm text-white mt-1 flex items-center gap-4">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(reservation.date).toLocaleDateString()}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {reservation.time}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {reservation.guests} {currentLanguage === 'vi' ? 'khách' : 'guests'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(reservation.status)}
-                      </div>
-                      <Select 
-                        value={reservation.status} 
-                        onValueChange={(newStatus) => updateReservationStatus.mutate({ id: reservation.id, status: newStatus })}
-                      >
-                        <SelectTrigger className="w-36 bg-zinc-800 border-zinc-700 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                          <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                          <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
-                          <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          onClick={() => copyAllInfo('reservation', reservation)}
-                          className="text-blue-400 hover:text-blue-300"
-                          data-testid={`button-copy-reservation-${reservation.id}`}
-                          title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
+                        <Select
+                          value={reservation.status}
+                          onValueChange={(newStatus) => updateReservationStatus.mutate({ id: reservation.id, status: newStatus })}
                         >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedReservation(reservation);
-                            setIsReservationModalOpen(true);
-                          }}
-                          data-testid={`button-view-reservation-${reservation.id}`}
-                          className="border-zinc-700 text-white hover:bg-zinc-800"
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          {currentLanguage === 'vi' ? 'Xem chi tiết' : 'View Details'}
-                        </Button>
+                          <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                            <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
+                            <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                            <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="flex items-center gap-0.5">
+                          <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                            <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-copy-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Sao chép' : 'Copy'}>
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setIsReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-view-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
