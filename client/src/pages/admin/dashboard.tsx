@@ -2487,24 +2487,6 @@ export default function AdminDashboard() {
               />
             </div>
 
-            {/* Row 5: Status (admin only) */}
-            <div>
-              <label className="block text-sm font-medium mb-2">{t('admin.status')}</label>
-              <Select
-                value={addReservationData.status}
-                onValueChange={(v) => setAddReservationData({...addReservationData, status: v})}
-              >
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                  <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
-                  <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Submit */}
             <Button
               onClick={() => {
