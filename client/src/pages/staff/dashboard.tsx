@@ -74,11 +74,6 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
       icon: MenuIcon 
     },
     { 
-      id: 'orders', 
-      label: currentLanguage === 'vi' ? 'Quản Lý Đơn Hàng' : 'Order Management', 
-      icon: Package 
-    },
-    { 
       id: 'reservations', 
       label: currentLanguage === 'vi' ? 'Quản Lý Đặt Bàn' : 'Reservation Management', 
       icon: Calendar 
@@ -90,7 +85,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
     },
     { 
       id: 'contact', 
-      label: currentLanguage === 'vi' ? 'Tin Nhắn Liên Hệ' : 'Contact Messages', 
+      label: currentLanguage === 'vi' ? 'Liên Hệ' : 'Contact', 
       icon: Phone 
     },
   ];
