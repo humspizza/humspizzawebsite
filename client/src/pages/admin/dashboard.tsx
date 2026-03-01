@@ -169,6 +169,18 @@ export default function AdminDashboard() {
     specialRequests: ''
   });
 
+  const [isAddReservationModalOpen, setIsAddReservationModalOpen] = useState(false);
+  const [addReservationData, setAddReservationData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    guests: '2',
+    date: '',
+    time: '',
+    status: 'confirmed',
+    specialRequests: ''
+  });
+
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (userData) {
@@ -487,6 +499,22 @@ export default function AdminDashboard() {
   });
 
   // Mutation to update full reservation
+  const createReservationMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", "/api/reservations", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reservations"] });
+      setIsAddReservationModalOpen(false);
+      setAddReservationData({ name: '', email: '', phone: '', guests: '2', date: '', time: '', status: 'confirmed', specialRequests: '' });
+      toast({ title: currentLanguage === 'vi' ? 'Đặt bàn đã được thêm' : 'Reservation added' });
+    },
+    onError: () => {
+      toast({ title: currentLanguage === 'vi' ? 'Lỗi khi thêm đặt bàn' : 'Error adding reservation', variant: 'destructive' });
+    }
+  });
+
   const updateFullReservationMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const response = await apiRequest("PATCH", `/api/reservations/${id}`, data);
@@ -959,7 +987,18 @@ export default function AdminDashboard() {
           <TabsContent value="reservations" className="space-y-4">
             <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
-                <CardTitle className="text-white">{t('admin.reservationList')}</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white">{t('admin.reservationList')}</CardTitle>
+                  {!showReservationArchive && (
+                    <Button
+                      size="sm"
+                      onClick={() => setIsAddReservationModalOpen(true)}
+                      className="bg-yellow-600 hover:bg-yellow-500 text-white"
+                    >
+                      + {currentLanguage === 'vi' ? 'Thêm đặt bàn' : 'Add reservation'}
+                    </Button>
+                  )}
+                </div>
                 <CardDescription className="text-zinc-400">
                   {t('admin.reservationSubtitle')}
                 </CardDescription>
@@ -2324,6 +2363,136 @@ export default function AdminDashboard() {
         </DialogContent>
       </Dialog>
       {/* Edit Reservation Modal */}
+      {/* Add Reservation Modal */}
+      <Dialog open={isAddReservationModalOpen} onOpenChange={setIsAddReservationModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{currentLanguage === 'vi' ? 'Thêm đặt bàn' : 'Add Reservation'}</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              {currentLanguage === 'vi' ? 'Nhập thông tin khách đặt bàn' : 'Enter reservation details'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-zinc-300">{t('admin.customerName')} *</label>
+                <Input
+                  value={addReservationData.name}
+                  onChange={(e) => setAddReservationData({...addReservationData, name: e.target.value})}
+                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
+                  placeholder={currentLanguage === 'vi' ? 'Họ và tên' : 'Full name'}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-zinc-300">{t('booking.email')}</label>
+                <Input
+                  value={addReservationData.email}
+                  onChange={(e) => setAddReservationData({...addReservationData, email: e.target.value})}
+                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-zinc-300">{t('booking.phone')} *</label>
+                <Input
+                  value={addReservationData.phone}
+                  onChange={(e) => setAddReservationData({...addReservationData, phone: e.target.value})}
+                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="0912 345 678"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-zinc-300">{t('booking.guests')} *</label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={addReservationData.guests}
+                  onChange={(e) => setAddReservationData({...addReservationData, guests: e.target.value})}
+                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-zinc-300">{t('booking.date')} *</label>
+                <Input
+                  type="date"
+                  value={addReservationData.date}
+                  onChange={(e) => setAddReservationData({...addReservationData, date: e.target.value})}
+                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-zinc-300">{t('booking.time')} *</label>
+                <Input
+                  type="time"
+                  value={addReservationData.time}
+                  onChange={(e) => setAddReservationData({...addReservationData, time: e.target.value})}
+                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-sm font-medium text-zinc-300">{t('admin.status')}</label>
+                <Select
+                  value={addReservationData.status}
+                  onValueChange={(v) => setAddReservationData({...addReservationData, status: v})}
+                >
+                  <SelectTrigger className="mt-1 bg-zinc-800 border-zinc-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                    <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
+                    <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                    <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-zinc-300">{t('admin.specialRequests')}</label>
+              <textarea
+                value={addReservationData.specialRequests}
+                onChange={(e) => setAddReservationData({...addReservationData, specialRequests: e.target.value})}
+                className="mt-1 w-full p-3 bg-zinc-800 border border-zinc-700 rounded text-white text-sm"
+                rows={3}
+                placeholder={t('booking.requestsPlaceholder')}
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t border-zinc-700">
+              <Button
+                variant="outline"
+                onClick={() => setIsAddReservationModalOpen(false)}
+                className="border-zinc-600 text-white hover:bg-zinc-800"
+              >
+                {t('admin.cancel')}
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!addReservationData.name || !addReservationData.phone || !addReservationData.date || !addReservationData.time) {
+                    toast({ title: currentLanguage === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill in all required fields', variant: 'destructive' });
+                    return;
+                  }
+                  createReservationMutation.mutate({
+                    name: addReservationData.name,
+                    email: addReservationData.email || null,
+                    phone: addReservationData.phone,
+                    guests: parseInt(addReservationData.guests) || 2,
+                    date: addReservationData.date,
+                    time: addReservationData.time,
+                    status: addReservationData.status,
+                    specialRequests: addReservationData.specialRequests || null
+                  });
+                }}
+                disabled={createReservationMutation.isPending}
+                className="bg-yellow-600 hover:bg-yellow-500 text-white"
+              >
+                {createReservationMutation.isPending
+                  ? t('common.loading')
+                  : (currentLanguage === 'vi' ? 'Thêm đặt bàn' : 'Add reservation')}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isEditReservationModalOpen} onOpenChange={setIsEditReservationModalOpen}>
         <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl">
           <DialogHeader>
