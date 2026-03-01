@@ -821,6 +821,11 @@ export class DatabaseStorage implements IStorage {
     if (!month) return allArchived;
     const [year, mon] = month.split('-').map(Number);
     return allArchived.filter(r => {
+      // Filter by reservation appointment date (e.g. "2026-02-07"), not archive timestamp
+      if (r.date) {
+        const [rYear, rMon] = r.date.split('-').map(Number);
+        return rYear === year && rMon === mon;
+      }
       const d = new Date(r.archivedAt);
       return d.getFullYear() === year && d.getMonth() + 1 === mon;
     });
@@ -831,7 +836,8 @@ export class DatabaseStorage implements IStorage {
     if (!month) return allArchived;
     const [year, mon] = month.split('-').map(Number);
     return allArchived.filter(o => {
-      const d = new Date(o.archivedAt);
+      // Filter by original order creation date, not archive timestamp
+      const d = new Date(o.originalCreatedAt || o.archivedAt);
       return d.getFullYear() === year && d.getMonth() + 1 === mon;
     });
   }

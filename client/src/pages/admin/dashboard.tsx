@@ -1170,22 +1170,20 @@ export default function AdminDashboard() {
                           {currentLanguage === 'vi' ? 'Không có dữ liệu lưu trữ trong tháng này' : 'No archived data for this month'}
                         </p>
                       ) : archivedReservations.map((reservation: any) => (
-                        <div key={reservation.id} className="p-4 border border-blue-800/50 bg-blue-900/10 rounded-lg space-y-2">
+                        <div key={reservation.id} className="p-4 border border-zinc-700 bg-zinc-800/40 rounded-lg space-y-2">
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="font-semibold text-white">{reservation.name}</h3>
                               <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
-                              <p className="text-sm text-zinc-300">{reservation.date} lúc {reservation.time} - {reservation.guests} người</p>
+                              <p className="text-sm text-zinc-300">{reservation.date} lúc {reservation.time} - {reservation.guests} {t('admin.people')}</p>
                               {reservation.specialRequests && (
                                 <p className="text-sm text-zinc-400 mt-1">{t('admin.requests')}: {reservation.specialRequests}</p>
                               )}
-                              <p className="text-xs text-blue-400 mt-1">
+                              <p className="text-xs text-zinc-500 mt-1">
                                 {currentLanguage === 'vi' ? 'Đã lưu trữ lúc:' : 'Archived at:'} {formatDbTimestamp(reservation.archivedAt)}
                               </p>
                             </div>
-                            <Badge className="bg-blue-600 text-white text-xs">
-                              {reservation.status}
-                            </Badge>
+                            {getStatusBadge(reservation.status, "reservation")}
                           </div>
                         </div>
                       ))}
@@ -1568,7 +1566,7 @@ export default function AdminDashboard() {
                           {currentLanguage === 'vi' ? 'Không có dữ liệu lưu trữ trong tháng này' : 'No archived data for this month'}
                         </p>
                       ) : archivedOrders.map((order: any) => (
-                        <div key={order.id} className="p-4 border border-blue-800/50 bg-blue-900/10 rounded-lg space-y-2">
+                        <div key={order.id} className="p-4 border border-zinc-700 bg-zinc-800/40 rounded-lg space-y-2">
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="font-semibold text-white">{order.customerName}</h3>
@@ -1580,13 +1578,11 @@ export default function AdminDashboard() {
                               <div className="text-sm text-zinc-400 mt-1">
                                 Món: {order.items?.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
                               </div>
-                              <p className="text-xs text-blue-400 mt-1">
+                              <p className="text-xs text-zinc-500 mt-1">
                                 {currentLanguage === 'vi' ? 'Đã lưu trữ lúc:' : 'Archived at:'} {formatDbTimestamp(order.archivedAt)}
                               </p>
                             </div>
-                            <Badge className="bg-blue-600 text-white text-xs">
-                              {order.status}
-                            </Badge>
+                            {getStatusBadge(order.status, "order")}
                           </div>
                         </div>
                       ))}
