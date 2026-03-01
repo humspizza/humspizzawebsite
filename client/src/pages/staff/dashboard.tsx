@@ -178,17 +178,19 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
       ready: 'Ready'
     };
 
-    const colors = {
-      pending: 'bg-yellow-500/10 text-yellow-600 border-yellow-600',
-      confirmed: 'bg-blue-500/10 text-blue-600 border-blue-600',
-      completed: 'bg-green-500/10 text-green-600 border-green-600',
-      cancelled: 'bg-red-500/10 text-red-600 border-red-600',
-      preparing: 'bg-orange-500/10 text-orange-600 border-orange-600',
-      ready: 'bg-purple-500/10 text-purple-600 border-purple-600'
+    const colors: Record<string, string> = {
+      pending: 'bg-yellow-500',
+      confirmed: 'bg-green-500',
+      completed: 'bg-blue-500',
+      cancelled: 'bg-red-500',
+      preparing: 'bg-orange-500',
+      ready: 'bg-purple-500'
     };
 
+    const color = colors[status] || 'bg-zinc-500';
+
     return (
-      <Badge variant="outline" className={colors[status as keyof typeof colors] || 'bg-zinc-100 text-zinc-600'}>
+      <Badge className={`${color} text-white hover:opacity-90`}>
         {statusText[status as keyof typeof statusText] || status}
       </Badge>
     );
