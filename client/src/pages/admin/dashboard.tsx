@@ -1455,23 +1455,23 @@ export default function AdminDashboard() {
                       </div>
                     );
 
-                    const groups: { status: string; label: string; color: string; items: any[] }[] = [
+                    const groups: { status: string; label: string; style: React.CSSProperties; items: any[] }[] = [
                       {
                         status: 'pending',
                         label: currentLanguage === 'vi' ? 'Đang Chờ' : 'Pending',
-                        color: 'text-yellow-400',
+                        style: { color: '#facc15' },
                         items: filteredReservations.filter((r: any) => r.status === 'pending'),
                       },
                       {
                         status: 'confirmed',
                         label: currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed',
-                        color: 'text-emerald-400',
+                        style: { color: '#34d399' },
                         items: filteredReservations.filter((r: any) => r.status === 'confirmed'),
                       },
                       {
                         status: 'cancelled',
                         label: currentLanguage === 'vi' ? 'Đã Hủy' : 'Cancelled',
-                        color: 'text-red-400',
+                        style: { color: '#f87171' },
                         items: filteredReservations.filter((r: any) => r.status === 'cancelled'),
                       },
                     ];
@@ -1479,7 +1479,7 @@ export default function AdminDashboard() {
                     return groups.map((group, idx) => group.items.length > 0 && (
                       <div key={group.status}>
                         <div className={`flex items-center gap-3 ${idx > 0 ? 'mt-6' : 'mt-2'} mb-3`}>
-                          <span className={`text-sm font-semibold ${group.color} whitespace-nowrap`}>
+                          <span className="text-sm font-semibold whitespace-nowrap" style={group.style}>
                             {group.label} ({group.items.length})
                           </span>
                           <div className="flex-1 h-px bg-zinc-700" />
