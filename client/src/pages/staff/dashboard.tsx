@@ -942,7 +942,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                     {groups.map((group, idx) => group.items.length > 0 && (
                       <div key={group.status}>
                         <div className={`flex items-center gap-3 ${idx > 0 || upcomingItems.length > 0 ? 'mt-6' : 'mt-2'} mb-3`}>
-                          <span className="text-sm font-semibold whitespace-nowrap" style={{ color: group.color }}>
+                          <span className="text-sm font-semibold whitespace-nowrap text-white">
                             {group.label} ({group.items.length})
                           </span>
                           <div className="flex-1 h-px bg-zinc-700" />
