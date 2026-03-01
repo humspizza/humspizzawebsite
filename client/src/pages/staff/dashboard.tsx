@@ -233,8 +233,8 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
 
   const getStatusBadge = (status: string) => {
     const statusText = currentLanguage === 'vi' ? {
-      pending: 'Chờ xử lý',
-      confirmed: 'Đã xác nhận',
+      pending: 'Đặt Bàn',
+      confirmed: 'Nhận Bàn',
       completed: 'Hoàn thành',
       cancelled: 'Đã hủy',
       preparing: 'Đang chuẩn bị',
@@ -714,7 +714,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                       ))}
                     {reservations.filter((reservation: any) => reservation.status === 'pending' || reservation.status === 'confirmed').length === 0 && (
                       <p className="text-zinc-400 text-center py-4">
-                        {currentLanguage === 'vi' ? 'Không có đặt bàn đang chờ hoặc đã xác nhận' : 'No pending or confirmed reservations'}
+                        {currentLanguage === 'vi' ? 'Không có đặt bàn mới hoặc đã nhận bàn' : 'No pending or confirmed reservations'}
                       </p>
                     )}
                   </div>
@@ -814,10 +814,10 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                            <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                            <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
-                            <SelectItem value="completed" className="text-white">{t('admin.completed')}</SelectItem>
-                            <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
+                            <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
+                            <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
+                            <SelectItem value="completed" className="text-white">{currentLanguage === 'vi' ? 'Hoàn thành' : 'Completed'}</SelectItem>
+                            <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</SelectItem>
                           </SelectContent>
                         </Select>
                         <div className="flex items-center gap-0.5">
@@ -928,8 +928,8 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                   .sort((a: any, b: any) => a.time.localeCompare(b.time));
 
                 const groups = [
-                  { status: 'pending', label: currentLanguage === 'vi' ? 'Đang Chờ' : 'Pending', color: '#facc15', items: filteredReservations.filter((r: any) => r.status === 'pending').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
-                  { status: 'confirmed', label: currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed', color: '#34d399', items: filteredReservations.filter((r: any) => r.status === 'confirmed').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
+                  { status: 'pending', label: currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending', color: '#facc15', items: filteredReservations.filter((r: any) => r.status === 'pending').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
+                  { status: 'confirmed', label: currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed', color: '#34d399', items: filteredReservations.filter((r: any) => r.status === 'confirmed').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
                   { status: 'cancelled', label: currentLanguage === 'vi' ? 'Đã Hủy' : 'Cancelled', color: '#f87171', items: filteredReservations.filter((r: any) => r.status === 'cancelled').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
                 ];
 
@@ -961,9 +961,9 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                         <Select value={reservation.status} onValueChange={(newStatus) => updateReservationStatus.mutate({ id: reservation.id, status: newStatus })}>
                           <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                            <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                            <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
-                            <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
+                            <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
+                            <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
+                            <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</SelectItem>
                           </SelectContent>
                         </Select>
                         <div className="flex items-center gap-0.5">
