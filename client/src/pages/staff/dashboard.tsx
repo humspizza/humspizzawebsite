@@ -339,6 +339,87 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
               </Card>
             </div>
 
+            {/* Upcoming Reservations Today */}
+            {(() => {
+              const now = new Date();
+              const todayStr = now.toISOString().slice(0, 10);
+              const nowTime = now.toTimeString().slice(0, 5);
+              const upcomingToday = reservations
+                .filter((r: any) => r.date === todayStr && r.status !== 'cancelled' && r.time >= nowTime)
+                .sort((a: any, b: any) => a.time.localeCompare(b.time));
+              return (
+                <Card className="bg-zinc-900 border-zinc-800 mb-6">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <Clock className="h-5 w-5 text-yellow-500" />
+                      {currentLanguage === 'vi'
+                        ? `Đặt Bàn Sắp Tới Trong Ngày${upcomingToday.length > 0 ? ` (${upcomingToday.length})` : ''}`
+                        : `Today's Upcoming Reservations${upcomingToday.length > 0 ? ` (${upcomingToday.length})` : ''}`}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {upcomingToday.length === 0 ? (
+                      <p className="text-zinc-400 text-center py-4">
+                        {currentLanguage === 'vi' ? 'Không có đặt bàn sắp tới hôm nay' : 'No upcoming reservations today'}
+                      </p>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {upcomingToday.map((reservation: any) => (
+                          <div key={`upcoming-${reservation.id}`} className="p-4 border rounded-lg border-yellow-500/40 bg-yellow-500/5">
+                            <div className="flex flex-col gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2 mb-0.5">
+                                  <h3 className="font-semibold text-white leading-snug">{reservation.name}</h3>
+                                  <div className="flex items-center gap-1 flex-wrap justify-end shrink-0">
+                                    {(phoneCountMap.get(reservation.phone) ?? 0) > 1
+                                      ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                                      : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                                    }
+                                    {getStatusBadge(reservation.status)}
+                                  </div>
+                                </div>
+                                <p className="text-sm text-zinc-300 break-all">{reservation.phone} / {reservation.email}</p>
+                                <p className="text-sm font-medium text-yellow-400">{reservation.date} {currentLanguage === 'vi' ? 'lúc' : 'at'} {reservation.time} — {reservation.guests} {currentLanguage === 'vi' ? 'khách' : 'guests'}</p>
+                                {reservation.specialRequests && (
+                                  <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Yêu cầu:' : 'Requests:'} {reservation.specialRequests}</p>
+                                )}
+                              </div>
+                              <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
+                                <Select
+                                  value={reservation.status}
+                                  onValueChange={(newStatus) => updateReservationStatus.mutate({ id: reservation.id, status: newStatus })}
+                                >
+                                  <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                                    <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
+                                    <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                                    <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <div className="flex items-center gap-0.5">
+                                  <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                                    <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Sao chép' : 'Copy'}>
+                                    <Copy className="w-4 h-4" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setIsReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
             {/* Recent Activities */}
             <div className="grid gap-6 md:grid-cols-2">
               <Card className="bg-zinc-900 border-zinc-800">
