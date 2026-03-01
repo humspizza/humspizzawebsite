@@ -38,7 +38,8 @@ import {
   Database,
   BarChart,
   AlertTriangle,
-  Copy
+  Copy,
+  Phone
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1330,7 +1331,15 @@ export default function AdminDashboard() {
                               />
                             )}
                             <div className="flex-1">
-                              <h3 className="font-semibold text-white">{reservation.name} - {reservation.phone} / {reservation.email}</h3>
+                              <h3 className="font-semibold text-white">{reservation.name}</h3>
+                              <p className="text-sm text-zinc-300 flex items-center gap-1.5">
+                                <a href={`tel:${reservation.phone}`} className="flex items-center gap-1 hover:text-green-400 transition-colors">
+                                  <Phone className="h-3 w-3 shrink-0" />
+                                  {reservation.phone}
+                                </a>
+                                <span className="text-zinc-500">/</span>
+                                {reservation.email}
+                              </p>
                               <p className="text-sm text-zinc-300">
                                 {reservation.date} {t('admin.at')} {reservation.time} - {reservation.guests} {t('admin.people')}
                               </p>
