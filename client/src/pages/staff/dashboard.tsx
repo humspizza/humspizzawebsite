@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Calendar, Clock, Users, Package, Menu as MenuIcon, BookOpen, Home, Eye, Edit, LogOut, Phone, Search, Filter, AlertTriangle, Copy } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiRequest } from '@/lib/queryClient';
@@ -47,6 +48,12 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
     checkSession();
   }, [checkSession, user]);
   
+  // Add reservation modal state
+  const [isAddReservationModalOpen, setIsAddReservationModalOpen] = useState(false);
+  const [addReservationData, setAddReservationData] = useState({
+    name: '', email: '', phone: '', guests: '2', date: '', time: '', status: 'confirmed', specialRequests: ''
+  });
+
   // Search and filter states
   const [reservationSearch, setReservationSearch] = useState("");
   const [orderSearch, setOrderSearch] = useState("");
@@ -63,6 +70,32 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
   // Get all reservations
   const { data: reservationsData = [], isLoading: reservationsLoading } = useQuery({
     queryKey: ['/api/reservations'],
+  });
+
+  const { data: systemSettings } = useQuery<Record<string, any>>({
+    queryKey: ["/api/system-settings"],
+  });
+
+  const lockedTimeSlots: Record<string, boolean> = systemSettings?.locked_time_slots || {};
+  const allTimeSlots = useMemo(() => {
+    const slots: string[] = [];
+    let h = 11, m = 30;
+    while (h < 21 || (h === 21 && m === 0)) {
+      slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+      m += 15;
+      if (m >= 60) { m = 0; h += 1; }
+    }
+    return slots;
+  }, []);
+  const addTodayStr = new Date().toISOString().split('T')[0];
+  const addNowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  const availableAddTimeSlots = allTimeSlots.filter(slot => {
+    if (lockedTimeSlots[slot]) return false;
+    if (addReservationData.date === addTodayStr) {
+      const [h, m] = slot.split(':').map(Number);
+      return h * 60 + m > addNowMinutes;
+    }
+    return true;
   });
 
   // Ensure data is in array format
@@ -308,7 +341,21 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
     },
   });
 
-
+  const createReservationMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", "/api/reservations", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/reservations'] });
+      setIsAddReservationModalOpen(false);
+      setAddReservationData({ name: '', email: '', phone: '', guests: '2', date: '', time: '', status: 'confirmed', specialRequests: '' });
+      toast({ title: currentLanguage === 'vi' ? 'Đặt bàn đã được thêm' : 'Reservation added' });
+    },
+    onError: () => {
+      toast({ title: currentLanguage === 'vi' ? 'Lỗi khi thêm đặt bàn' : 'Error adding reservation', variant: 'destructive' });
+    }
+  });
 
   if (ordersLoading || reservationsLoading) {
     return (
@@ -809,9 +856,18 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
         return (
           <Card className="bg-zinc-900 border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white">
-                {currentLanguage === 'vi' ? 'Quản Lý Đặt Bàn' : 'Reservation Management'}
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white">
+                  {currentLanguage === 'vi' ? 'Quản Lý Đặt Bàn' : 'Reservation Management'}
+                </CardTitle>
+                <Button
+                  size="sm"
+                  onClick={() => setIsAddReservationModalOpen(true)}
+                  className="bg-zinc-700 text-white hover:bg-zinc-600"
+                >
+                  + {currentLanguage === 'vi' ? 'Thêm đặt bàn' : 'Add reservation'}
+                </Button>
+              </div>
               <CardDescription className="text-zinc-400">
                 {currentLanguage === 'vi' ? 'Quản lý đặt bàn của nhà hàng' : 'Manage restaurant table reservations'}
               </CardDescription>
@@ -1207,6 +1263,143 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Reservation Modal */}
+      <Dialog open={isAddReservationModalOpen} onOpenChange={setIsAddReservationModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">{currentLanguage === 'vi' ? 'Thêm đặt bàn' : 'Add Reservation'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 pt-2">
+            {/* Row 1: Date / Time / Guests */}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Ngày' : 'Date'}</label>
+                <Input
+                  type="date"
+                  value={addReservationData.date}
+                  onChange={(e) => setAddReservationData({...addReservationData, date: e.target.value, time: ''})}
+                  className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Giờ' : 'Time'}</label>
+                {availableAddTimeSlots.length === 0 ? (
+                  <div className="h-10 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-zinc-400 text-sm flex items-center">
+                    {currentLanguage === 'vi' ? 'Không còn khung giờ trống' : 'No available time slots'}
+                  </div>
+                ) : (
+                  <Select
+                    value={addReservationData.time}
+                    onValueChange={(v) => setAddReservationData({...addReservationData, time: v})}
+                  >
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                      <SelectValue placeholder={currentLanguage === 'vi' ? 'Chọn giờ' : 'Select time'} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px] overflow-y-auto">
+                      {availableAddTimeSlots.map((slot) => (
+                        <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Số khách' : 'Guests'}</label>
+                <Select
+                  value={addReservationData.guests}
+                  onValueChange={(v) => setAddReservationData({...addReservationData, guests: v})}
+                >
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                    <SelectValue placeholder={currentLanguage === 'vi' ? 'Chọn số khách' : 'Select guests'} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {Array.from({ length: 50 }, (_, i) => i + 1).map((num) => (
+                      <SelectItem key={num} value={num.toString()}>
+                        {num} {currentLanguage === 'vi' ? 'khách' : (num > 1 ? 'guests' : 'guest')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Row 2: Name / Email */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Họ tên' : 'Full Name'}</label>
+                <Input
+                  value={addReservationData.name}
+                  onChange={(e) => setAddReservationData({...addReservationData, name: e.target.value})}
+                  className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
+                  placeholder={currentLanguage === 'vi' ? 'Nhập họ tên' : 'Enter full name'}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Email (Tùy chọn)' : 'Email (Optional)'}</label>
+                <Input
+                  type="email"
+                  value={addReservationData.email}
+                  onChange={(e) => setAddReservationData({...addReservationData, email: e.target.value})}
+                  className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
+                  placeholder="email@example.com"
+                />
+              </div>
+            </div>
+
+            {/* Row 3: Phone */}
+            <div>
+              <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Số điện thoại' : 'Phone'}</label>
+              <Input
+                type="tel"
+                value={addReservationData.phone}
+                onChange={(e) => setAddReservationData({...addReservationData, phone: e.target.value})}
+                className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
+                placeholder={currentLanguage === 'vi' ? 'Nhập số điện thoại' : 'Enter phone number'}
+              />
+            </div>
+
+            {/* Row 4: Notes */}
+            <div>
+              <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Ghi chú (Tùy chọn)' : 'Notes (Optional)'}</label>
+              <Textarea
+                value={addReservationData.specialRequests}
+                onChange={(e) => setAddReservationData({...addReservationData, specialRequests: e.target.value})}
+                className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white resize-none"
+                rows={3}
+                placeholder={currentLanguage === 'vi' ? 'Trang trí dịp đặc biệt, sở thích chỗ ngồi...' : 'Special occasion, seating preferences...'}
+              />
+            </div>
+
+            {/* Submit */}
+            <Button
+              onClick={() => {
+                if (!addReservationData.name || !addReservationData.phone || !addReservationData.date || !addReservationData.time) {
+                  toast({ title: currentLanguage === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill in all required fields', variant: 'destructive' });
+                  return;
+                }
+                createReservationMutation.mutate({
+                  name: addReservationData.name,
+                  email: addReservationData.email || null,
+                  phone: addReservationData.phone,
+                  guests: parseInt(addReservationData.guests) || 2,
+                  date: addReservationData.date,
+                  time: addReservationData.time,
+                  status: addReservationData.status,
+                  specialRequests: addReservationData.specialRequests || null
+                });
+              }}
+              disabled={createReservationMutation.isPending}
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-zinc-900 font-bold py-4 text-base"
+            >
+              {createReservationMutation.isPending
+                ? (currentLanguage === 'vi' ? 'Đang xử lý...' : 'Processing...')
+                : (currentLanguage === 'vi' ? 'Xác nhận đặt bàn' : 'Confirm Reservation')}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
