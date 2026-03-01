@@ -131,6 +131,8 @@ export default function AdminDashboard() {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [showBulkDeleteReservations, setShowBulkDeleteReservations] = useState(false);
   const [showBulkDeleteOrders, setShowBulkDeleteOrders] = useState(false);
+  const [showBulkArchiveReservations, setShowBulkArchiveReservations] = useState(false);
+  const [showBulkArchiveOrders, setShowBulkArchiveOrders] = useState(false);
   const [isMultiSelectReservations, setIsMultiSelectReservations] = useState(false);
   const [isMultiSelectOrders, setIsMultiSelectOrders] = useState(false);
   
@@ -455,6 +457,56 @@ export default function AdminDashboard() {
       toast({
         title: "Lỗi",
         description: error.message || "Không thể xóa đơn hàng",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const bulkArchiveReservationsMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      return apiRequest("POST", "/api/reservations/bulk-archive", { ids });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reservations"] });
+      setSelectedReservations(new Set());
+      setShowBulkArchiveReservations(false);
+      setIsMultiSelectReservations(false);
+      toast({
+        title: currentLanguage === 'vi' ? "Đã lưu trữ" : "Archived",
+        description: currentLanguage === 'vi'
+          ? `Đã lưu trữ ${selectedReservations.size} đặt bàn thành công`
+          : `Successfully archived ${selectedReservations.size} reservations`
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Không thể lưu trữ đặt bàn",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const bulkArchiveOrdersMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      return apiRequest("POST", "/api/orders/bulk-archive", { ids });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      setSelectedOrders(new Set());
+      setShowBulkArchiveOrders(false);
+      setIsMultiSelectOrders(false);
+      toast({
+        title: currentLanguage === 'vi' ? "Đã lưu trữ" : "Archived",
+        description: currentLanguage === 'vi'
+          ? `Đã lưu trữ ${selectedOrders.size} đơn hàng thành công`
+          : `Successfully archived ${selectedOrders.size} orders`
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Không thể lưu trữ đơn hàng",
         variant: "destructive",
       });
     },
@@ -985,6 +1037,49 @@ export default function AdminDashboard() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                       </AlertDialog>
+                      <AlertDialog open={showBulkArchiveReservations} onOpenChange={setShowBulkArchiveReservations}>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            size="sm"
+                            disabled={selectedReservations.size === 0}
+                            className={selectedReservations.size > 0 
+                              ? "bg-blue-600 text-white hover:bg-blue-500" 
+                              : "bg-zinc-600 text-zinc-400 hover:bg-zinc-500 cursor-not-allowed"
+                            }
+                            title={currentLanguage === 'vi' ? 'Lưu trữ' : 'Archive'}
+                          >
+                            {currentLanguage === 'vi' ? 'Lưu trữ' : 'Archive'}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-white">
+                              {currentLanguage === 'vi' ? 'Xác nhận lưu trữ' : 'Confirm Archive'}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-zinc-400">
+                              {currentLanguage === 'vi' 
+                                ? `Bạn có chắc chắn muốn lưu trữ ${selectedReservations.size} đặt bàn đã chọn? Dữ liệu sẽ được chuyển sang kho lưu trữ.`
+                                : `Are you sure you want to archive ${selectedReservations.size} selected reservations? Data will be moved to the archive.`
+                              }
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
+                              {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => bulkArchiveReservationsMutation.mutate(Array.from(selectedReservations).map(Number))}
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                              disabled={bulkArchiveReservationsMutation.isPending}
+                            >
+                              {bulkArchiveReservationsMutation.isPending 
+                                ? (currentLanguage === 'vi' ? 'Đang lưu trữ...' : 'Archiving...') 
+                                : (currentLanguage === 'vi' ? 'Lưu trữ' : 'Archive')
+                              }
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                       <span className="text-sm text-zinc-400">
                         {selectedReservations.size > 0 
                           ? (currentLanguage === 'vi' ? `Đã chọn ${selectedReservations.size}` : `${selectedReservations.size} selected`)
@@ -1273,6 +1368,49 @@ export default function AdminDashboard() {
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
+                      </AlertDialog>
+                      <AlertDialog open={showBulkArchiveOrders} onOpenChange={setShowBulkArchiveOrders}>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            size="sm"
+                            disabled={selectedOrders.size === 0}
+                            className={selectedOrders.size > 0 
+                              ? "bg-blue-600 text-white hover:bg-blue-500" 
+                              : "bg-zinc-600 text-zinc-400 hover:bg-zinc-500 cursor-not-allowed"
+                            }
+                            title={currentLanguage === 'vi' ? 'Lưu trữ' : 'Archive'}
+                          >
+                            {currentLanguage === 'vi' ? 'Lưu trữ' : 'Archive'}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-white">
+                              {currentLanguage === 'vi' ? 'Xác nhận lưu trữ' : 'Confirm Archive'}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-zinc-400">
+                              {currentLanguage === 'vi' 
+                                ? `Bạn có chắc chắn muốn lưu trữ ${selectedOrders.size} đơn hàng đã chọn? Dữ liệu sẽ được chuyển sang kho lưu trữ.`
+                                : `Are you sure you want to archive ${selectedOrders.size} selected orders? Data will be moved to the archive.`
+                              }
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
+                              {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => bulkArchiveOrdersMutation.mutate(Array.from(selectedOrders).map(Number))}
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                              disabled={bulkArchiveOrdersMutation.isPending}
+                            >
+                              {bulkArchiveOrdersMutation.isPending 
+                                ? (currentLanguage === 'vi' ? 'Đang lưu trữ...' : 'Archiving...') 
+                                : (currentLanguage === 'vi' ? 'Lưu trữ' : 'Archive')
+                              }
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
                       </AlertDialog>
                       <span className="text-sm text-zinc-400">
                         {selectedOrders.size > 0 

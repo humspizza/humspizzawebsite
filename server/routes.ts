@@ -908,6 +908,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/reservations/bulk-archive", requireAuth, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid ids" });
+      }
+      const count = await storage.bulkArchiveReservations(ids);
+      res.json({ success: true, archived: count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/orders/bulk-archive", requireAuth, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid ids" });
+      }
+      const count = await storage.bulkArchiveOrders(ids);
+      res.json({ success: true, archived: count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // About Content Routes
   app.get("/api/about-content", async (req, res) => {
     try {

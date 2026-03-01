@@ -86,6 +86,8 @@ export interface IStorage {
 
   // Data Management
   archiveOldData(period: string): Promise<{ orders: number; reservations: number }>;
+  bulkArchiveReservations(ids: number[]): Promise<number>;
+  bulkArchiveOrders(ids: number[]): Promise<number>;
   getDataStatistics(): Promise<{
     totalOrders: number;
     oldOrders: number;
@@ -760,6 +762,56 @@ export class DatabaseStorage implements IStorage {
       orders: oldOrders.length,
       reservations: oldReservations.length
     };
+  }
+
+  async bulkArchiveReservations(ids: number[]): Promise<number> {
+    let count = 0;
+    for (const id of ids) {
+      const [reservation] = await db.select().from(reservations).where(eq(reservations.id, id));
+      if (reservation) {
+        await db.insert(reservationsArchive).values({
+          originalId: reservation.id,
+          name: reservation.name,
+          email: reservation.email,
+          phone: reservation.phone,
+          date: reservation.date,
+          time: reservation.time,
+          guests: reservation.guests,
+          specialRequests: reservation.specialRequests,
+          status: reservation.status,
+          originalCreatedAt: reservation.createdAt,
+        });
+        await db.delete(reservations).where(eq(reservations.id, id));
+        count++;
+      }
+    }
+    return count;
+  }
+
+  async bulkArchiveOrders(ids: number[]): Promise<number> {
+    let count = 0;
+    for (const id of ids) {
+      const [order] = await db.select().from(orders).where(eq(orders.id, id));
+      if (order) {
+        await db.insert(ordersArchive).values({
+          originalId: order.id,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          customerPhone: order.customerPhone,
+          customerAddress: order.customerAddress,
+          items: order.items,
+          totalAmount: order.totalAmount,
+          status: order.status,
+          orderType: order.orderType,
+          paymentMethod: order.paymentMethod,
+          specialInstructions: order.specialInstructions,
+          originalCreatedAt: order.createdAt,
+        });
+        await db.delete(orders).where(eq(orders.id, id));
+        count++;
+      }
+    }
+    return count;
   }
 
   async getDataStatistics(): Promise<{
