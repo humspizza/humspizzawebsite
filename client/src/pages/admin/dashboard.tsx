@@ -42,6 +42,7 @@ import {
   Phone
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
@@ -213,6 +214,23 @@ export default function AdminDashboard() {
   const { data: contactMessages = [] } = useQuery({
     queryKey: ["/api/contact"],
   });
+
+  const { data: systemSettings } = useQuery<Record<string, any>>({
+    queryKey: ["/api/system-settings"],
+  });
+
+  const lockedTimeSlots: Record<string, boolean> = systemSettings?.locked_time_slots || {};
+  const allTimeSlots = useMemo(() => {
+    const slots: string[] = [];
+    let h = 11, m = 30;
+    while (h < 21 || (h === 21 && m === 0)) {
+      slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+      m += 15;
+      if (m >= 60) { m = 0; h += 1; }
+    }
+    return slots;
+  }, []);
+  const availableAddTimeSlots = allTimeSlots.filter(t => !lockedTimeSlots[t]);
 
   const { data: allMenuItems = [] } = useQuery({
     queryKey: ["/api/menu-items"],
@@ -2365,130 +2383,153 @@ export default function AdminDashboard() {
       {/* Edit Reservation Modal */}
       {/* Add Reservation Modal */}
       <Dialog open={isAddReservationModalOpen} onOpenChange={setIsAddReservationModalOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl">
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{currentLanguage === 'vi' ? 'Thêm đặt bàn' : 'Add Reservation'}</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              {currentLanguage === 'vi' ? 'Nhập thông tin khách đặt bàn' : 'Enter reservation details'}
-            </DialogDescription>
+            <DialogTitle className="text-xl font-bold">{currentLanguage === 'vi' ? 'Thêm đặt bàn' : 'Add Reservation'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-5 pt-2">
+            {/* Row 1: Date / Time / Guests */}
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium text-zinc-300">{t('admin.customerName')} *</label>
-                <Input
-                  value={addReservationData.name}
-                  onChange={(e) => setAddReservationData({...addReservationData, name: e.target.value})}
-                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
-                  placeholder={currentLanguage === 'vi' ? 'Họ và tên' : 'Full name'}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-zinc-300">{t('booking.email')}</label>
-                <Input
-                  value={addReservationData.email}
-                  onChange={(e) => setAddReservationData({...addReservationData, email: e.target.value})}
-                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
-                  placeholder="email@example.com"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-zinc-300">{t('booking.phone')} *</label>
-                <Input
-                  value={addReservationData.phone}
-                  onChange={(e) => setAddReservationData({...addReservationData, phone: e.target.value})}
-                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
-                  placeholder="0912 345 678"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-zinc-300">{t('booking.guests')} *</label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={addReservationData.guests}
-                  onChange={(e) => setAddReservationData({...addReservationData, guests: e.target.value})}
-                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-zinc-300">{t('booking.date')} *</label>
+                <label className="block text-sm font-medium mb-2">{t('booking.date')}</label>
                 <Input
                   type="date"
                   value={addReservationData.date}
                   onChange={(e) => setAddReservationData({...addReservationData, date: e.target.value})}
-                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
+                  className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
+                  min={new Date().toISOString().split('T')[0]}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-zinc-300">{t('booking.time')} *</label>
-                <Input
-                  type="time"
-                  value={addReservationData.time}
-                  onChange={(e) => setAddReservationData({...addReservationData, time: e.target.value})}
-                  className="mt-1 bg-zinc-800 border-zinc-700 text-white"
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="text-sm font-medium text-zinc-300">{t('admin.status')}</label>
+                <label className="block text-sm font-medium mb-2">{t('booking.time')}</label>
                 <Select
-                  value={addReservationData.status}
-                  onValueChange={(v) => setAddReservationData({...addReservationData, status: v})}
+                  value={addReservationData.time}
+                  onValueChange={(v) => setAddReservationData({...addReservationData, time: v})}
                 >
-                  <SelectTrigger className="mt-1 bg-zinc-800 border-zinc-700 text-white">
-                    <SelectValue />
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                    <SelectValue placeholder={currentLanguage === 'vi' ? 'Chọn giờ' : 'Select time'} />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-800 border-zinc-700">
-                    <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                    <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
-                    <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {allTimeSlots.map((slot) => (
+                      <SelectItem key={slot} value={slot} disabled={!!lockedTimeSlots[slot]}>
+                        {slot}{lockedTimeSlots[slot] ? (currentLanguage === 'vi' ? ' (đã khóa)' : ' (locked)') : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Số khách' : 'Guests'}</label>
+                <Select
+                  value={addReservationData.guests}
+                  onValueChange={(v) => setAddReservationData({...addReservationData, guests: v})}
+                >
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                    <SelectValue placeholder={currentLanguage === 'vi' ? 'Chọn số khách' : 'Select guests'} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
+                    {Array.from({ length: 50 }, (_, i) => i + 1).map((num) => (
+                      <SelectItem key={num} value={num.toString()}>
+                        {num} {currentLanguage === 'vi' ? 'khách' : (num > 1 ? 'guests' : 'guest')}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
+            {/* Row 2: Name / Email */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">{t('booking.name')}</label>
+                <Input
+                  value={addReservationData.name}
+                  onChange={(e) => setAddReservationData({...addReservationData, name: e.target.value})}
+                  className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
+                  placeholder={currentLanguage === 'vi' ? 'Nhập họ tên' : 'Enter full name'}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Email (Tùy chọn)' : 'Email (Optional)'}</label>
+                <Input
+                  type="email"
+                  value={addReservationData.email}
+                  onChange={(e) => setAddReservationData({...addReservationData, email: e.target.value})}
+                  className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
+                  placeholder="email@example.com"
+                />
+              </div>
+            </div>
+
+            {/* Row 3: Phone */}
             <div>
-              <label className="text-sm font-medium text-zinc-300">{t('admin.specialRequests')}</label>
-              <textarea
-                value={addReservationData.specialRequests}
-                onChange={(e) => setAddReservationData({...addReservationData, specialRequests: e.target.value})}
-                className="mt-1 w-full p-3 bg-zinc-800 border border-zinc-700 rounded text-white text-sm"
-                rows={3}
-                placeholder={t('booking.requestsPlaceholder')}
+              <label className="block text-sm font-medium mb-2">{t('booking.phone')}</label>
+              <Input
+                type="tel"
+                value={addReservationData.phone}
+                onChange={(e) => setAddReservationData({...addReservationData, phone: e.target.value})}
+                className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
+                placeholder={currentLanguage === 'vi' ? 'Nhập số điện thoại' : 'Enter phone number'}
               />
             </div>
-            <div className="flex justify-end gap-2 pt-4 border-t border-zinc-700">
-              <Button
-                variant="outline"
-                onClick={() => setIsAddReservationModalOpen(false)}
-                className="border-zinc-600 text-white hover:bg-zinc-800"
-              >
-                {t('admin.cancel')}
-              </Button>
-              <Button
-                onClick={() => {
-                  if (!addReservationData.name || !addReservationData.phone || !addReservationData.date || !addReservationData.time) {
-                    toast({ title: currentLanguage === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill in all required fields', variant: 'destructive' });
-                    return;
-                  }
-                  createReservationMutation.mutate({
-                    name: addReservationData.name,
-                    email: addReservationData.email || null,
-                    phone: addReservationData.phone,
-                    guests: parseInt(addReservationData.guests) || 2,
-                    date: addReservationData.date,
-                    time: addReservationData.time,
-                    status: addReservationData.status,
-                    specialRequests: addReservationData.specialRequests || null
-                  });
-                }}
-                disabled={createReservationMutation.isPending}
-                className="bg-yellow-600 hover:bg-yellow-500 text-white"
-              >
-                {createReservationMutation.isPending
-                  ? t('common.loading')
-                  : (currentLanguage === 'vi' ? 'Thêm đặt bàn' : 'Add reservation')}
-              </Button>
+
+            {/* Row 4: Notes */}
+            <div>
+              <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Ghi chú (Tùy chọn)' : 'Notes (Optional)'}</label>
+              <Textarea
+                value={addReservationData.specialRequests}
+                onChange={(e) => setAddReservationData({...addReservationData, specialRequests: e.target.value})}
+                className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white resize-none"
+                rows={3}
+                placeholder={currentLanguage === 'vi'
+                  ? 'Trang trí dịp đặc biệt, sở thích chỗ ngồi...'
+                  : 'Special occasion, seating preferences...'}
+              />
             </div>
+
+            {/* Row 5: Status (admin only) */}
+            <div>
+              <label className="block text-sm font-medium mb-2">{t('admin.status')}</label>
+              <Select
+                value={addReservationData.status}
+                onValueChange={(v) => setAddReservationData({...addReservationData, status: v})}
+              >
+                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-800 border-zinc-700">
+                  <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
+                  <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                  <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Submit */}
+            <Button
+              onClick={() => {
+                if (!addReservationData.name || !addReservationData.phone || !addReservationData.date || !addReservationData.time) {
+                  toast({ title: currentLanguage === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill in all required fields', variant: 'destructive' });
+                  return;
+                }
+                createReservationMutation.mutate({
+                  name: addReservationData.name,
+                  email: addReservationData.email || null,
+                  phone: addReservationData.phone,
+                  guests: parseInt(addReservationData.guests) || 2,
+                  date: addReservationData.date,
+                  time: addReservationData.time,
+                  status: addReservationData.status,
+                  specialRequests: addReservationData.specialRequests || null
+                });
+              }}
+              disabled={createReservationMutation.isPending}
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-zinc-900 font-bold py-4 text-base"
+            >
+              {createReservationMutation.isPending
+                ? (currentLanguage === 'vi' ? 'Đang xử lý...' : 'Processing...')
+                : (currentLanguage === 'vi' ? 'Xác nhận đặt bàn' : 'Confirm Reservation')}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
