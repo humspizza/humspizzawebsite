@@ -230,7 +230,16 @@ export default function AdminDashboard() {
     }
     return slots;
   }, []);
-  const availableAddTimeSlots = allTimeSlots.filter(t => !lockedTimeSlots[t]);
+  const addTodayStr = new Date().toISOString().split('T')[0];
+  const addNowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  const availableAddTimeSlots = allTimeSlots.filter(slot => {
+    if (lockedTimeSlots[slot]) return false;
+    if (addReservationData.date === addTodayStr) {
+      const [h, m] = slot.split(':').map(Number);
+      return h * 60 + m > addNowMinutes;
+    }
+    return true;
+  });
 
   const { data: allMenuItems = [] } = useQuery({
     queryKey: ["/api/menu-items"],
@@ -2395,28 +2404,32 @@ export default function AdminDashboard() {
                 <Input
                   type="date"
                   value={addReservationData.date}
-                  onChange={(e) => setAddReservationData({...addReservationData, date: e.target.value})}
+                  onChange={(e) => setAddReservationData({...addReservationData, date: e.target.value, time: ''})}
                   className="bg-zinc-800 border-zinc-700 focus:border-yellow-400 text-white"
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">{t('booking.time')}</label>
-                <Select
-                  value={addReservationData.time}
-                  onValueChange={(v) => setAddReservationData({...addReservationData, time: v})}
-                >
-                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                    <SelectValue placeholder={currentLanguage === 'vi' ? 'Chọn giờ' : 'Select time'} />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px] overflow-y-auto">
-                    {allTimeSlots.map((slot) => (
-                      <SelectItem key={slot} value={slot} disabled={!!lockedTimeSlots[slot]}>
-                        {slot}{lockedTimeSlots[slot] ? (currentLanguage === 'vi' ? ' (đã khóa)' : ' (locked)') : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {availableAddTimeSlots.length === 0 ? (
+                  <div className="h-10 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-zinc-400 text-sm flex items-center">
+                    {currentLanguage === 'vi' ? 'Không còn khung giờ trống' : 'No available time slots'}
+                  </div>
+                ) : (
+                  <Select
+                    value={addReservationData.time}
+                    onValueChange={(v) => setAddReservationData({...addReservationData, time: v})}
+                  >
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                      <SelectValue placeholder={currentLanguage === 'vi' ? 'Chọn giờ' : 'Select time'} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px] overflow-y-auto">
+                      {availableAddTimeSlots.map((slot) => (
+                        <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">{currentLanguage === 'vi' ? 'Số khách' : 'Guests'}</label>
