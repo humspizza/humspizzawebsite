@@ -257,8 +257,6 @@ app.use(async (req, res, next) => {
   await seedAboutContent();
   await seedHomeContent();
   
-  // Initialize auto archive system
-  await initAutoArchiveSystem();
 
 async function seedHomeContent() {
   try {
@@ -291,43 +289,6 @@ async function seedHomeContent() {
     }
   } catch (error) {
     console.error("Failed to check/create home content:", error);
-  }
-}
-
-// Auto archive system - runs every 3 months to prevent database overload
-async function initAutoArchiveSystem() {
-  try {
-    // Check if we need to run archiving on startup
-    const stats = await storage.getDataStatistics();
-    
-    // If we have old data (3+ months), run archiving
-    if (stats.oldOrders > 0 || stats.oldReservations > 0) {
-      console.log(`🗂️ Auto-archiving detected: ${stats.oldOrders} old orders, ${stats.oldReservations} old reservations`);
-      const result = await storage.archiveOldData('3months');
-      console.log(`✓ Auto-archive completed: ${result.orders} orders, ${result.reservations} reservations archived`);
-    }
-
-    // Set up daily check for archiving (every 24 hours)
-    const oneDayMs = 24 * 60 * 60 * 1000;
-    setInterval(async () => {
-      try {
-        // Check if we have old data (3+ months) before archiving
-        const stats = await storage.getDataStatistics();
-        
-        if (stats.oldOrders > 0 || stats.oldReservations > 0) {
-          console.log("🗂️ Running scheduled data archiving...");
-          const result = await storage.archiveOldData('3months');
-          console.log(`✓ Scheduled archive completed: ${result.orders} orders, ${result.reservations} reservations archived`);
-        }
-        // Only log if there's data to archive to avoid spam
-      } catch (error) {
-        console.error("❌ Scheduled archiving failed:", error);
-      }
-    }, oneDayMs);
-
-    console.log("✓ Auto-archive system initialized - data cleanup every 3 months");
-  } catch (error) {
-    console.error("Failed to initialize auto-archive system:", error);
   }
 }
 
