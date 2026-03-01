@@ -725,17 +725,10 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 </div>
               </div>
 
-              {/* Warning and Count */}
-              <div className="flex justify-between items-center mb-4">
+              {/* Count */}
+              <div className="mb-4">
                 <div className="text-sm text-zinc-400">
                   {filteredOrders.length} / {orders.length} {currentLanguage === 'vi' ? 'đơn hàng' : 'orders'}
-                </div>
-                <div className="text-sm text-amber-400 bg-amber-900/20 px-3 py-1 rounded border border-amber-500/30 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  {currentLanguage === 'vi' 
-                    ? 'Đơn hàng sẽ tự động bị xóa sau 6 tháng' 
-                    : 'Orders will be automatically deleted after 6 months'
-                  }
                 </div>
               </div>
 
@@ -852,17 +845,10 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 </div>
               </div>
 
-              {/* Warning and Count */}
-              <div className="flex justify-between items-center mb-4">
+              {/* Count */}
+              <div className="mb-4">
                 <div className="text-sm text-zinc-400">
                   {filteredReservations.length} / {reservations.length} {currentLanguage === 'vi' ? 'đặt bàn' : 'reservations'}
-                </div>
-                <div className="text-sm text-amber-400 bg-amber-900/20 px-3 py-1 rounded border border-amber-500/30 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  {currentLanguage === 'vi' 
-                    ? 'Đặt bàn sẽ tự động bị xóa sau 6 tháng' 
-                    : 'Reservations will be automatically deleted after 6 months'
-                  }
                 </div>
               </div>
 
