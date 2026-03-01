@@ -1068,23 +1068,9 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                   <h4 className="font-medium text-zinc-300">
                     {currentLanguage === 'vi' ? 'Trạng thái đơn hàng' : 'Order Status'}
                   </h4>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mt-1">
                     {getStatusBadge(selectedOrder.status)}
                   </div>
-                  <Select 
-                    value={selectedOrder.status} 
-                    onValueChange={(value) => updateOrderStatus.mutate({ id: selectedOrder.id, status: value })}
-                  >
-                    <SelectTrigger className="bg-zinc-800 border-zinc-700">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      <SelectItem value="pending">{currentLanguage === 'vi' ? 'Đang Chờ' : 'Pending'}</SelectItem>
-                      <SelectItem value="confirmed">{currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed'}</SelectItem>
-                      <SelectItem value="completed">{currentLanguage === 'vi' ? 'Đã Hoàn Thành' : 'Completed'}</SelectItem>
-                      <SelectItem value="cancelled">{currentLanguage === 'vi' ? 'Đã Hủy' : 'Cancelled'}</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
               
@@ -1147,22 +1133,9 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                   <h4 className="font-medium text-zinc-300">
                     {currentLanguage === 'vi' ? 'Trạng thái đặt bàn' : 'Reservation Status'}
                   </h4>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mt-1">
                     {getStatusBadge(selectedReservation.status)}
                   </div>
-                  <Select 
-                    value={selectedReservation.status} 
-                    onValueChange={(value) => updateReservationStatus.mutate({ id: selectedReservation.id, status: value })}
-                  >
-                    <SelectTrigger className="bg-zinc-800 border-zinc-700">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      <SelectItem value="pending">{currentLanguage === 'vi' ? 'Chờ xác nhận' : 'Pending'}</SelectItem>
-                      <SelectItem value="confirmed">{currentLanguage === 'vi' ? 'Đã xác nhận' : 'Confirmed'}</SelectItem>
-                      <SelectItem value="cancelled">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
               
