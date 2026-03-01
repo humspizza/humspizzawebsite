@@ -860,9 +860,25 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {filteredReservations.map((reservation: any) => (
-                  <div key={reservation.id} className="p-4 border rounded-lg border-zinc-800">
+              {(() => {
+                const now = new Date();
+                const todayStr = now.toISOString().slice(0, 10);
+                const nowTime = now.toTimeString().slice(0, 5);
+                const plusTwo = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+                const plusTwoTime = plusTwo.toTimeString().slice(0, 5);
+
+                const upcomingItems = filteredReservations
+                  .filter((r: any) => r.date === todayStr && r.status !== 'cancelled' && r.time >= nowTime && r.time <= plusTwoTime)
+                  .sort((a: any, b: any) => a.time.localeCompare(b.time));
+
+                const groups = [
+                  { status: 'pending', label: currentLanguage === 'vi' ? 'Đang Chờ' : 'Pending', color: '#facc15', items: filteredReservations.filter((r: any) => r.status === 'pending').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
+                  { status: 'confirmed', label: currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed', color: '#34d399', items: filteredReservations.filter((r: any) => r.status === 'confirmed').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
+                  { status: 'cancelled', label: currentLanguage === 'vi' ? 'Đã Hủy' : 'Cancelled', color: '#f87171', items: filteredReservations.filter((r: any) => r.status === 'cancelled').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
+                ];
+
+                const renderCard = (reservation: any, keyPrefix = '') => (
+                  <div key={`${keyPrefix}${reservation.id}`} className="p-4 border rounded-lg border-zinc-800">
                     <div className="flex flex-col gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-0.5">
@@ -886,13 +902,8 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                         </p>
                       </div>
                       <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
-                        <Select
-                          value={reservation.status}
-                          onValueChange={(newStatus) => updateReservationStatus.mutate({ id: reservation.id, status: newStatus })}
-                        >
-                          <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
+                        <Select value={reservation.status} onValueChange={(newStatus) => updateReservationStatus.mutate({ id: reservation.id, status: newStatus })}>
+                          <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
                             <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
                             <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
@@ -913,18 +924,41 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                       </div>
                     </div>
                   </div>
-                ))}
-                {filteredReservations.length === 0 && reservations.length > 0 && (
-                  <p className="text-zinc-400 text-center py-8">
-                    {currentLanguage === 'vi' ? 'Không tìm thấy đặt bàn phù hợp' : 'No matching reservations found'}
-                  </p>
-                )}
-                {reservations.length === 0 && (
-                  <p className="text-zinc-400 text-center py-8">
-                    {currentLanguage === 'vi' ? 'Không có đặt bàn nào' : 'No reservations found'}
-                  </p>
-                )}
-              </div>
+                );
+
+                return (
+                  <div>
+                    {upcomingItems.length > 0 && (
+                      <div className="mb-6">
+                        <div className="flex items-center gap-3 mt-2 mb-3">
+                          <span className="text-sm font-semibold whitespace-nowrap text-white">
+                            {currentLanguage === 'vi' ? `Sắp Đến (${upcomingItems.length})` : `Upcoming (${upcomingItems.length})`}
+                          </span>
+                          <div className="flex-1 h-px bg-zinc-700" />
+                        </div>
+                        <div className="space-y-3">{upcomingItems.map((r: any) => renderCard(r, 'upcoming-'))}</div>
+                      </div>
+                    )}
+                    {groups.map((group, idx) => group.items.length > 0 && (
+                      <div key={group.status}>
+                        <div className={`flex items-center gap-3 ${idx > 0 || upcomingItems.length > 0 ? 'mt-6' : 'mt-2'} mb-3`}>
+                          <span className="text-sm font-semibold whitespace-nowrap" style={{ color: group.color }}>
+                            {group.label} ({group.items.length})
+                          </span>
+                          <div className="flex-1 h-px bg-zinc-700" />
+                        </div>
+                        <div className="space-y-3">{group.items.map((r: any) => renderCard(r))}</div>
+                      </div>
+                    ))}
+                    {filteredReservations.length === 0 && reservations.length > 0 && (
+                      <p className="text-zinc-400 text-center py-8">{currentLanguage === 'vi' ? 'Không tìm thấy đặt bàn phù hợp' : 'No matching reservations found'}</p>
+                    )}
+                    {reservations.length === 0 && (
+                      <p className="text-zinc-400 text-center py-8">{currentLanguage === 'vi' ? 'Không có đặt bàn nào' : 'No reservations found'}</p>
+                    )}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         );
