@@ -747,7 +747,6 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                         <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
                           <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
                           <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
-                          <SelectItem value="completed" className="text-white">{t('admin.completed')}</SelectItem>
                           <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1028,7 +1027,6 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                     <SelectContent className="bg-zinc-800 border-zinc-700">
                       <SelectItem value="pending">{currentLanguage === 'vi' ? 'Chờ xác nhận' : 'Pending'}</SelectItem>
                       <SelectItem value="confirmed">{currentLanguage === 'vi' ? 'Đã xác nhận' : 'Confirmed'}</SelectItem>
-                      <SelectItem value="completed">{currentLanguage === 'vi' ? 'Hoàn thành' : 'Completed'}</SelectItem>
                       <SelectItem value="cancelled">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</SelectItem>
                     </SelectContent>
                   </Select>
