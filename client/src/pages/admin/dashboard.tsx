@@ -1459,19 +1459,19 @@ export default function AdminDashboard() {
                         status: 'pending',
                         label: currentLanguage === 'vi' ? 'Đang Chờ' : 'Pending',
                         style: { color: '#facc15' },
-                        items: filteredReservations.filter((r: any) => r.status === 'pending'),
+                        items: filteredReservations.filter((r: any) => r.status === 'pending').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)),
                       },
                       {
                         status: 'confirmed',
                         label: currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed',
                         style: { color: '#34d399' },
-                        items: filteredReservations.filter((r: any) => r.status === 'confirmed'),
+                        items: filteredReservations.filter((r: any) => r.status === 'confirmed').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)),
                       },
                       {
                         status: 'cancelled',
                         label: currentLanguage === 'vi' ? 'Đã Hủy' : 'Cancelled',
                         style: { color: '#f87171' },
-                        items: filteredReservations.filter((r: any) => r.status === 'cancelled'),
+                        items: filteredReservations.filter((r: any) => r.status === 'cancelled').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)),
                       },
                     ];
 
