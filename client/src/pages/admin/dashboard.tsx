@@ -857,7 +857,7 @@ export default function AdminDashboard() {
               <Calendar className="h-4 w-4 text-zinc-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.totalReservations}</div>
+              <div className="text-2xl font-bold text-white">{reservations.length}</div>
             </CardContent>
           </Card>
 
@@ -869,7 +869,7 @@ export default function AdminDashboard() {
               <ShoppingBag className="h-4 w-4 text-zinc-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.totalOrders}</div>
+              <div className="text-2xl font-bold text-white">{orders.length}</div>
             </CardContent>
           </Card>
 
@@ -881,7 +881,7 @@ export default function AdminDashboard() {
               <Users className="h-4 w-4 text-zinc-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{stats.totalMessages}</div>
+              <div className="text-2xl font-bold text-white">{contacts.length}</div>
             </CardContent>
           </Card>
 
@@ -893,7 +893,7 @@ export default function AdminDashboard() {
               <XCircle className="h-4 w-4 text-red-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-400">{stats.cancelledReservations}</div>
+              <div className="text-2xl font-bold text-red-400">{reservations.filter((r: any) => r.status === 'cancelled').length}</div>
             </CardContent>
           </Card>
 
@@ -905,7 +905,7 @@ export default function AdminDashboard() {
               <XCircle className="h-4 w-4 text-red-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-400">{stats.cancelledOrders}</div>
+              <div className="text-2xl font-bold text-red-400">{orders.filter((o: any) => o.status === 'cancelled').length}</div>
             </CardContent>
           </Card>
         </div>
