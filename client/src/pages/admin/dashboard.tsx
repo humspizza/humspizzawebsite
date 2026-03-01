@@ -1350,14 +1350,12 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap justify-end">
                               {(phoneCountMap.get(reservation.phone) ?? 0) > 1
                                 ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
                                 : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
                               }
                               {getStatusBadge(reservation.status, "reservation")}
-                            </div>
-                            <div className="flex gap-2">
                               <Select 
                                 value={reservation.status} 
                                 onValueChange={(newStatus) => updateReservationMutation.mutate({ 
@@ -1380,6 +1378,8 @@ export default function AdminDashboard() {
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
+                            </div>
+                            <div className="flex gap-2">
                               <Button
                                 size="sm"
                                 variant="ghost"
