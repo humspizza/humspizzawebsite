@@ -1101,83 +1101,82 @@ export default function AdminDashboard() {
                 </CardDescription>
                 
                 {/* Search and Filter Controls */}
-                <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
-                    <Input
-                      placeholder={t('admin.searchReservations')}
-                      value={reservationSearch}
-                      onChange={(e) => setReservationSearch(e.target.value)}
-                      className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400"
-                    />
+                <div className="flex flex-col gap-2 mt-4">
+                  {/* Row 1: Search + Archive toggle */}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
+                      <Input
+                        placeholder={t('admin.searchReservations')}
+                        value={reservationSearch}
+                        onChange={(e) => setReservationSearch(e.target.value)}
+                        className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400 h-9"
+                      />
+                    </div>
+                    {showReservationArchive && (
+                      <Select value={reservationArchiveMonth} onValueChange={setReservationArchiveMonth}>
+                        <SelectTrigger className="w-[150px] bg-zinc-800 border-zinc-700 text-white h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-800 border-zinc-700">
+                          {Array.from({ length: 12 }, (_, i) => {
+                            const d = new Date();
+                            d.setMonth(d.getMonth() - i);
+                            const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                            const label = currentLanguage === 'vi'
+                              ? `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
+                              : `${d.toLocaleString('en', { month: 'long' })} ${d.getFullYear()}`;
+                            return <SelectItem key={val} value={val} className="text-white">{label}</SelectItem>;
+                          })}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <Button
+                      size="sm"
+                      onClick={() => setShowReservationArchive(!showReservationArchive)}
+                      className="bg-zinc-700 text-white hover:bg-zinc-600 shrink-0"
+                    >
+                      {showReservationArchive
+                        ? (currentLanguage === 'vi' ? 'Xem hiện tại' : 'View Active')
+                        : (currentLanguage === 'vi' ? 'Kho lưu trữ' : 'Archive')
+                      }
+                    </Button>
                   </div>
+                  {/* Row 2: Date shortcuts + date range (active list only) */}
                   {!showReservationArchive && (
-                    <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center gap-1">
-                        {(['today', 'week', 'month'] as const).map(s => {
-                          const active = getActiveShortcut(reservationDateFrom, reservationDateTo) === s;
-                          const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
-                          return (
-                            <button key={s} onClick={() => applyDateShortcut(s, setReservationDateFrom, setReservationDateTo, reservationDateFrom, reservationDateTo)}
-                              className={`text-xs px-2 py-1 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                              {label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-zinc-400 shrink-0" />
-                        <input
-                          type="date"
-                          value={reservationDateFrom}
-                          onChange={e => setReservationDateFrom(e.target.value)}
-                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
-                          title={currentLanguage === 'vi' ? 'Từ ngày' : 'From date'}
-                        />
-                        <span className="text-zinc-500 text-sm">—</span>
-                        <input
-                          type="date"
-                          value={reservationDateTo}
-                          onChange={e => setReservationDateTo(e.target.value)}
-                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
-                          title={currentLanguage === 'vi' ? 'Đến ngày' : 'To date'}
-                        />
-                        {(reservationDateFrom || reservationDateTo) && (
-                          <button onClick={() => { setReservationDateFrom(""); setReservationDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
-                            ✕
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
+                      {(['today', 'week', 'month'] as const).map(s => {
+                        const active = getActiveShortcut(reservationDateFrom, reservationDateTo) === s;
+                        const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                        return (
+                          <button key={s} onClick={() => applyDateShortcut(s, setReservationDateFrom, setReservationDateTo, reservationDateFrom, reservationDateTo)}
+                            className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                            {label}
                           </button>
-                        )}
-                      </div>
+                        );
+                      })}
+                      <span className="text-zinc-600 text-xs">|</span>
+                      <input
+                        type="date"
+                        value={reservationDateFrom}
+                        onChange={e => setReservationDateFrom(e.target.value)}
+                        className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]"
+                      />
+                      <span className="text-zinc-500 text-sm">—</span>
+                      <input
+                        type="date"
+                        value={reservationDateTo}
+                        onChange={e => setReservationDateTo(e.target.value)}
+                        className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]"
+                      />
+                      {(reservationDateFrom || reservationDateTo) && (
+                        <button onClick={() => { setReservationDateFrom(""); setReservationDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
+                          ✕
+                        </button>
+                      )}
                     </div>
                   )}
-                  {showReservationArchive && (
-                    <Select value={reservationArchiveMonth} onValueChange={setReservationArchiveMonth}>
-                      <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-800 border-zinc-700">
-                        {Array.from({ length: 12 }, (_, i) => {
-                          const d = new Date();
-                          d.setMonth(d.getMonth() - i);
-                          const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                          const label = currentLanguage === 'vi'
-                            ? `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
-                            : `${d.toLocaleString('en', { month: 'long' })} ${d.getFullYear()}`;
-                          return <SelectItem key={val} value={val} className="text-white">{label}</SelectItem>;
-                        })}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  <Button
-                    size="sm"
-                    onClick={() => setShowReservationArchive(!showReservationArchive)}
-                    className="bg-zinc-700 text-white hover:bg-zinc-600"
-                  >
-                    {showReservationArchive
-                      ? (currentLanguage === 'vi' ? 'Xem hiện tại' : 'View Active')
-                      : (currentLanguage === 'vi' ? 'Xem kho lưu trữ' : 'View Archive')
-                    }
-                  </Button>
                 </div>
                 
                 {/* Results Count and Warning */}
@@ -1592,83 +1591,82 @@ export default function AdminDashboard() {
                 </CardDescription>
                 
                 {/* Search and Filter Controls */}
-                <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
-                    <Input
-                      placeholder={t('admin.searchOrders')}
-                      value={orderSearch}
-                      onChange={(e) => setOrderSearch(e.target.value)}
-                      className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400"
-                    />
+                <div className="flex flex-col gap-2 mt-4">
+                  {/* Row 1: Search + Archive toggle */}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
+                      <Input
+                        placeholder={t('admin.searchOrders')}
+                        value={orderSearch}
+                        onChange={(e) => setOrderSearch(e.target.value)}
+                        className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400 h-9"
+                      />
+                    </div>
+                    {showOrderArchive && (
+                      <Select value={orderArchiveMonth} onValueChange={setOrderArchiveMonth}>
+                        <SelectTrigger className="w-[150px] bg-zinc-800 border-zinc-700 text-white h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-800 border-zinc-700">
+                          {Array.from({ length: 12 }, (_, i) => {
+                            const d = new Date();
+                            d.setMonth(d.getMonth() - i);
+                            const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                            const label = currentLanguage === 'vi'
+                              ? `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
+                              : `${d.toLocaleString('en', { month: 'long' })} ${d.getFullYear()}`;
+                            return <SelectItem key={val} value={val} className="text-white">{label}</SelectItem>;
+                          })}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <Button
+                      size="sm"
+                      onClick={() => setShowOrderArchive(!showOrderArchive)}
+                      className="bg-zinc-700 text-white hover:bg-zinc-600 shrink-0"
+                    >
+                      {showOrderArchive
+                        ? (currentLanguage === 'vi' ? 'Xem hiện tại' : 'View Active')
+                        : (currentLanguage === 'vi' ? 'Kho lưu trữ' : 'Archive')
+                      }
+                    </Button>
                   </div>
+                  {/* Row 2: Date shortcuts + date range (active list only) */}
                   {!showOrderArchive && (
-                    <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center gap-1">
-                        {(['today', 'week', 'month'] as const).map(s => {
-                          const active = getActiveShortcut(orderDateFrom, orderDateTo) === s;
-                          const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
-                          return (
-                            <button key={s} onClick={() => applyDateShortcut(s, setOrderDateFrom, setOrderDateTo, orderDateFrom, orderDateTo)}
-                              className={`text-xs px-2 py-1 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                              {label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-zinc-400 shrink-0" />
-                        <input
-                          type="date"
-                          value={orderDateFrom}
-                          onChange={e => setOrderDateFrom(e.target.value)}
-                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
-                          title={currentLanguage === 'vi' ? 'Từ ngày' : 'From date'}
-                        />
-                        <span className="text-zinc-500 text-sm">—</span>
-                        <input
-                          type="date"
-                          value={orderDateTo}
-                          onChange={e => setOrderDateTo(e.target.value)}
-                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
-                          title={currentLanguage === 'vi' ? 'Đến ngày' : 'To date'}
-                        />
-                        {(orderDateFrom || orderDateTo) && (
-                          <button onClick={() => { setOrderDateFrom(""); setOrderDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
-                            ✕
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
+                      {(['today', 'week', 'month'] as const).map(s => {
+                        const active = getActiveShortcut(orderDateFrom, orderDateTo) === s;
+                        const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                        return (
+                          <button key={s} onClick={() => applyDateShortcut(s, setOrderDateFrom, setOrderDateTo, orderDateFrom, orderDateTo)}
+                            className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                            {label}
                           </button>
-                        )}
-                      </div>
+                        );
+                      })}
+                      <span className="text-zinc-600 text-xs">|</span>
+                      <input
+                        type="date"
+                        value={orderDateFrom}
+                        onChange={e => setOrderDateFrom(e.target.value)}
+                        className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]"
+                      />
+                      <span className="text-zinc-500 text-sm">—</span>
+                      <input
+                        type="date"
+                        value={orderDateTo}
+                        onChange={e => setOrderDateTo(e.target.value)}
+                        className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]"
+                      />
+                      {(orderDateFrom || orderDateTo) && (
+                        <button onClick={() => { setOrderDateFrom(""); setOrderDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
+                          ✕
+                        </button>
+                      )}
                     </div>
                   )}
-                  {showOrderArchive && (
-                    <Select value={orderArchiveMonth} onValueChange={setOrderArchiveMonth}>
-                      <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-800 border-zinc-700">
-                        {Array.from({ length: 12 }, (_, i) => {
-                          const d = new Date();
-                          d.setMonth(d.getMonth() - i);
-                          const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                          const label = currentLanguage === 'vi'
-                            ? `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`
-                            : `${d.toLocaleString('en', { month: 'long' })} ${d.getFullYear()}`;
-                          return <SelectItem key={val} value={val} className="text-white">{label}</SelectItem>;
-                        })}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  <Button
-                    size="sm"
-                    onClick={() => setShowOrderArchive(!showOrderArchive)}
-                    className="bg-zinc-700 text-white hover:bg-zinc-600"
-                  >
-                    {showOrderArchive
-                      ? (currentLanguage === 'vi' ? 'Xem hiện tại' : 'View Active')
-                      : (currentLanguage === 'vi' ? 'Xem kho lưu trữ' : 'View Archive')
-                    }
-                  </Button>
                 </div>
                 
                 {/* Results Count and Warning */}
