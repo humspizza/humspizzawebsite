@@ -1448,7 +1448,7 @@ export default function AdminDashboard() {
                         {upcomingItems.length > 0 && (
                           <div className="mb-6">
                             <div className="flex items-center gap-3 mt-2 mb-3">
-                              <span className="text-sm font-semibold whitespace-nowrap" style={{ color: '#fb923c' }}>
+                              <span className="text-sm font-semibold whitespace-nowrap text-[#ffffff]" style={{ color: '#fb923c' }}>
                                 {currentLanguage === 'vi' ? `Sắp Đến (${upcomingItems.length})` : `Upcoming (${upcomingItems.length})`}
                               </span>
                               <div className="flex-1 h-px bg-zinc-700" />
