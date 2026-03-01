@@ -1462,13 +1462,7 @@ export default function AdminDashboard() {
                                 <Checkbox checked={selectedArchiveReservations.has(reservation.id)} onCheckedChange={() => toggleArchiveReservationSelection(reservation.id)} className="border-zinc-600 mt-1" />
                               )}
                               <div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <h3 className="font-semibold text-white">{reservation.name}</h3>
-                                  {(phoneCountMap.get(reservation.phone) ?? 0) > 1
-                                    ? <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-blue-600/40 text-blue-400 font-medium">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
-                                    : <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-emerald-600/40 text-emerald-400 font-medium">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
-                                  }
-                                </div>
+                                <h3 className="font-semibold text-white">{reservation.name}</h3>
                                 <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
                                 <p className="text-sm text-zinc-300">{reservation.date} lúc {reservation.time} - {reservation.guests} {t('admin.people')}</p>
                                 {reservation.specialRequests && (
@@ -1479,7 +1473,13 @@ export default function AdminDashboard() {
                                 </p>
                               </div>
                             </div>
-                            {getStatusBadge(reservation.status, "reservation")}
+                            <div className="flex items-center gap-1.5">
+                              {(phoneCountMap.get(reservation.phone) ?? 0) > 1
+                                ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-blue-600/40 text-blue-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                                : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-emerald-600/40 text-emerald-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                              }
+                              {getStatusBadge(reservation.status, "reservation")}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1501,13 +1501,7 @@ export default function AdminDashboard() {
                             />
                           )}
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-semibold text-white">{reservation.name}</h3>
-                              {(phoneCountMap.get(reservation.phone) ?? 0) > 1
-                                ? <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-blue-600/40 text-blue-400 font-medium">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
-                                : <span className="text-xs px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-emerald-600/40 text-emerald-400 font-medium">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
-                              }
-                            </div>
+                            <h3 className="font-semibold text-white">{reservation.name}</h3>
                             <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
                             <p className="text-sm text-zinc-300">
                               {reservation.date} {t('admin.at')} {reservation.time} - {reservation.guests} {t('admin.people')}
@@ -1525,6 +1519,10 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <div className="flex items-center gap-2">
+                            {(phoneCountMap.get(reservation.phone) ?? 0) > 1
+                              ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-600/20 border border-blue-600/40 text-blue-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                              : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-600/20 border border-emerald-600/40 text-emerald-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                            }
                             {getStatusBadge(reservation.status, "reservation")}
                           </div>
                           <div className="flex gap-2">
