@@ -74,7 +74,7 @@ export default function Login() {
         const error = await response.json();
         toast({
           title: language === 'vi' ? 'Đăng nhập thất bại' : 'Login Failed',
-          description: error.message || (language === 'vi' ? 'Tên đăng nhập hoặc mật khẩu không đúng' : 'Invalid username or password'),
+          description: language === 'vi' ? 'Sai tên đăng nhập hoặc mật khẩu' : 'Incorrect username or password',
           variant: "destructive",
         });
       }
