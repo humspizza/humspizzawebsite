@@ -954,6 +954,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/reservations/archive/restore", requireAuth, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid ids" });
+      }
+      const count = await storage.restoreArchivedReservations(ids);
+      res.json({ success: true, restored: count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/reservations/archive/bulk-delete", requireAuth, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid ids" });
+      }
+      const count = await storage.bulkDeleteArchivedReservations(ids);
+      res.json({ success: true, deleted: count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/orders/archive/restore", requireAuth, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid ids" });
+      }
+      const count = await storage.restoreArchivedOrders(ids);
+      res.json({ success: true, restored: count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/orders/archive/bulk-delete", requireAuth, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid ids" });
+      }
+      const count = await storage.bulkDeleteArchivedOrders(ids);
+      res.json({ success: true, deleted: count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // About Content Routes
   app.get("/api/about-content", async (req, res) => {
     try {

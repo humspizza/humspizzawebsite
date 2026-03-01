@@ -90,6 +90,10 @@ export interface IStorage {
   bulkArchiveOrders(ids: string[]): Promise<number>;
   getArchivedReservations(month?: string): Promise<any[]>;
   getArchivedOrders(month?: string): Promise<any[]>;
+  restoreArchivedReservations(ids: string[]): Promise<number>;
+  bulkDeleteArchivedReservations(ids: string[]): Promise<number>;
+  restoreArchivedOrders(ids: string[]): Promise<number>;
+  bulkDeleteArchivedOrders(ids: string[]): Promise<number>;
   getDataStatistics(): Promise<{
     totalOrders: number;
     oldOrders: number;
@@ -840,6 +844,74 @@ export class DatabaseStorage implements IStorage {
       const d = new Date(o.originalCreatedAt || o.archivedAt);
       return d.getFullYear() === year && d.getMonth() + 1 === mon;
     });
+  }
+
+  async restoreArchivedReservations(ids: string[]): Promise<number> {
+    let count = 0;
+    for (const id of ids) {
+      const [archived] = await db.select().from(reservationsArchive).where(eq(reservationsArchive.id, id));
+      if (archived) {
+        await db.insert(reservations).values({
+          id: archived.originalId,
+          name: archived.name,
+          email: archived.email || '',
+          phone: archived.phone,
+          date: archived.date,
+          time: archived.time,
+          guests: archived.guests,
+          specialRequests: archived.specialRequests,
+          status: archived.status,
+          createdAt: archived.originalCreatedAt,
+        });
+        await db.delete(reservationsArchive).where(eq(reservationsArchive.id, id));
+        count++;
+      }
+    }
+    return count;
+  }
+
+  async bulkDeleteArchivedReservations(ids: string[]): Promise<number> {
+    let count = 0;
+    for (const id of ids) {
+      const result = await db.delete(reservationsArchive).where(eq(reservationsArchive.id, id));
+      count++;
+    }
+    return count;
+  }
+
+  async restoreArchivedOrders(ids: string[]): Promise<number> {
+    let count = 0;
+    for (const id of ids) {
+      const [archived] = await db.select().from(ordersArchive).where(eq(ordersArchive.id, id));
+      if (archived) {
+        await db.insert(orders).values({
+          id: archived.originalId,
+          customerName: archived.customerName,
+          customerEmail: archived.customerEmail,
+          customerPhone: archived.customerPhone,
+          customerAddress: archived.customerAddress,
+          items: archived.items,
+          totalAmount: archived.totalAmount,
+          status: archived.status,
+          orderType: archived.orderType,
+          paymentMethod: archived.paymentMethod,
+          specialInstructions: archived.specialInstructions,
+          createdAt: archived.originalCreatedAt,
+        });
+        await db.delete(ordersArchive).where(eq(ordersArchive.id, id));
+        count++;
+      }
+    }
+    return count;
+  }
+
+  async bulkDeleteArchivedOrders(ids: string[]): Promise<number> {
+    let count = 0;
+    for (const id of ids) {
+      await db.delete(ordersArchive).where(eq(ordersArchive.id, id));
+      count++;
+    }
+    return count;
   }
 
   async getDataStatistics(): Promise<{

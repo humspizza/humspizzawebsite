@@ -145,6 +145,14 @@ export default function AdminDashboard() {
   const [showBulkArchiveOrders, setShowBulkArchiveOrders] = useState(false);
   const [isMultiSelectReservations, setIsMultiSelectReservations] = useState(false);
   const [isMultiSelectOrders, setIsMultiSelectOrders] = useState(false);
+  const [isMultiSelectArchiveReservations, setIsMultiSelectArchiveReservations] = useState(false);
+  const [isMultiSelectArchiveOrders, setIsMultiSelectArchiveOrders] = useState(false);
+  const [selectedArchiveReservations, setSelectedArchiveReservations] = useState<Set<string>>(new Set());
+  const [selectedArchiveOrders, setSelectedArchiveOrders] = useState<Set<string>>(new Set());
+  const [showBulkDeleteArchiveReservations, setShowBulkDeleteArchiveReservations] = useState(false);
+  const [showBulkDeleteArchiveOrders, setShowBulkDeleteArchiveOrders] = useState(false);
+  const [showBulkRestoreReservations, setShowBulkRestoreReservations] = useState(false);
+  const [showBulkRestoreOrders, setShowBulkRestoreOrders] = useState(false);
   
   // Form states for editing
   const [editOrderData, setEditOrderData] = useState({
@@ -536,6 +544,56 @@ export default function AdminDashboard() {
     },
   });
 
+  const restoreArchivedReservationsMutation = useMutation({
+    mutationFn: async (ids: string[]) => apiRequest("POST", "/api/reservations/archive/restore", { ids }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reservations/archive"] });
+      setSelectedArchiveReservations(new Set());
+      setIsMultiSelectArchiveReservations(false);
+      setShowBulkRestoreReservations(false);
+      toast({ title: currentLanguage === 'vi' ? "Đã phục hồi" : "Restored", description: currentLanguage === 'vi' ? "Phục hồi thành công về danh sách hiện tại" : "Successfully restored to active list" });
+    },
+    onError: (error: any) => toast({ title: "Lỗi", description: error.message, variant: "destructive" }),
+  });
+
+  const bulkDeleteArchivedReservationsMutation = useMutation({
+    mutationFn: async (ids: string[]) => apiRequest("POST", "/api/reservations/archive/bulk-delete", { ids }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reservations/archive"] });
+      setSelectedArchiveReservations(new Set());
+      setIsMultiSelectArchiveReservations(false);
+      setShowBulkDeleteArchiveReservations(false);
+      toast({ title: currentLanguage === 'vi' ? "Đã xóa" : "Deleted", description: currentLanguage === 'vi' ? "Đã xóa vĩnh viễn khỏi kho lưu trữ" : "Permanently deleted from archive" });
+    },
+    onError: (error: any) => toast({ title: "Lỗi", description: error.message, variant: "destructive" }),
+  });
+
+  const restoreArchivedOrdersMutation = useMutation({
+    mutationFn: async (ids: string[]) => apiRequest("POST", "/api/orders/archive/restore", { ids }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders/archive"] });
+      setSelectedArchiveOrders(new Set());
+      setIsMultiSelectArchiveOrders(false);
+      setShowBulkRestoreOrders(false);
+      toast({ title: currentLanguage === 'vi' ? "Đã phục hồi" : "Restored", description: currentLanguage === 'vi' ? "Phục hồi thành công về danh sách hiện tại" : "Successfully restored to active list" });
+    },
+    onError: (error: any) => toast({ title: "Lỗi", description: error.message, variant: "destructive" }),
+  });
+
+  const bulkDeleteArchivedOrdersMutation = useMutation({
+    mutationFn: async (ids: string[]) => apiRequest("POST", "/api/orders/archive/bulk-delete", { ids }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders/archive"] });
+      setSelectedArchiveOrders(new Set());
+      setIsMultiSelectArchiveOrders(false);
+      setShowBulkDeleteArchiveOrders(false);
+      toast({ title: currentLanguage === 'vi' ? "Đã xóa" : "Deleted", description: currentLanguage === 'vi' ? "Đã xóa vĩnh viễn khỏi kho lưu trữ" : "Permanently deleted from archive" });
+    },
+    onError: (error: any) => toast({ title: "Lỗi", description: error.message, variant: "destructive" }),
+  });
+
   // Toggle selection functions
   const toggleReservationSelection = (id: string) => {
     setSelectedReservations(prev => {
@@ -574,6 +632,38 @@ export default function AdminDashboard() {
       setSelectedOrders(new Set());
     } else {
       setSelectedOrders(new Set(filteredOrders.map(o => o.id)));
+    }
+  };
+
+  const toggleArchiveReservationSelection = (id: string) => {
+    setSelectedArchiveReservations(prev => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
+    });
+  };
+
+  const toggleAllArchiveReservations = () => {
+    if (selectedArchiveReservations.size === archivedReservations.length) {
+      setSelectedArchiveReservations(new Set());
+    } else {
+      setSelectedArchiveReservations(new Set(archivedReservations.map((r: any) => r.id)));
+    }
+  };
+
+  const toggleArchiveOrderSelection = (id: string) => {
+    setSelectedArchiveOrders(prev => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
+    });
+  };
+
+  const toggleAllArchiveOrders = () => {
+    if (selectedArchiveOrders.size === archivedOrders.length) {
+      setSelectedArchiveOrders(new Set());
+    } else {
+      setSelectedArchiveOrders(new Set(archivedOrders.map((o: any) => o.id)));
     }
   };
 
@@ -1162,23 +1252,97 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   {showReservationArchive ? (
                     <>
+                      {/* Archive Multi-select Bar */}
+                      {archivedReservations.length > 0 && (
+                        <div className="flex items-center justify-between mb-2">
+                          {!isMultiSelectArchiveReservations ? (
+                            <Button size="sm" onClick={() => setIsMultiSelectArchiveReservations(true)} className="bg-zinc-700 text-white hover:bg-zinc-600">
+                              {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
+                            </Button>
+                          ) : (
+                            <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg flex-wrap">
+                              <Button size="sm" onClick={toggleAllArchiveReservations} className="bg-zinc-700 text-white hover:bg-zinc-600">
+                                {selectedArchiveReservations.size === archivedReservations.length && archivedReservations.length > 0
+                                  ? (currentLanguage === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
+                                  : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
+                                }
+                              </Button>
+                              <AlertDialog open={showBulkRestoreReservations} onOpenChange={setShowBulkRestoreReservations}>
+                                <AlertDialogTrigger asChild>
+                                  <Button size="sm" disabled={selectedArchiveReservations.size === 0}
+                                    className={selectedArchiveReservations.size > 0 ? "bg-zinc-600 text-white hover:bg-zinc-500" : "bg-zinc-700 text-zinc-500 cursor-not-allowed"}>
+                                    {currentLanguage === 'vi' ? 'Phục hồi' : 'Restore'}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận phục hồi' : 'Confirm Restore'}</AlertDialogTitle>
+                                    <AlertDialogDescription className="text-zinc-400">
+                                      {currentLanguage === 'vi' ? `Phục hồi ${selectedArchiveReservations.size} đặt bàn về danh sách hiện tại?` : `Restore ${selectedArchiveReservations.size} reservations to active list?`}
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => restoreArchivedReservationsMutation.mutate(Array.from(selectedArchiveReservations))} className="bg-zinc-600 hover:bg-zinc-500 text-white" disabled={restoreArchivedReservationsMutation.isPending}>
+                                      {restoreArchivedReservationsMutation.isPending ? (currentLanguage === 'vi' ? 'Đang phục hồi...' : 'Restoring...') : (currentLanguage === 'vi' ? 'Phục hồi' : 'Restore')}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                              <AlertDialog open={showBulkDeleteArchiveReservations} onOpenChange={setShowBulkDeleteArchiveReservations}>
+                                <AlertDialogTrigger asChild>
+                                  <Button size="sm" disabled={selectedArchiveReservations.size === 0}
+                                    className={selectedArchiveReservations.size > 0 ? "bg-red-600 text-white hover:bg-red-500" : "bg-zinc-600 text-zinc-400 cursor-not-allowed"}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xóa vĩnh viễn' : 'Permanent Delete'}</AlertDialogTitle>
+                                    <AlertDialogDescription className="text-zinc-400">
+                                      {currentLanguage === 'vi' ? `Xóa vĩnh viễn ${selectedArchiveReservations.size} đặt bàn? Không thể hoàn tác.` : `Permanently delete ${selectedArchiveReservations.size} reservations? Cannot be undone.`}
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => bulkDeleteArchivedReservationsMutation.mutate(Array.from(selectedArchiveReservations))} className="bg-red-600 hover:bg-red-700 text-white" disabled={bulkDeleteArchivedReservationsMutation.isPending}>
+                                      {bulkDeleteArchivedReservationsMutation.isPending ? (currentLanguage === 'vi' ? 'Đang xóa...' : 'Deleting...') : (currentLanguage === 'vi' ? 'Xóa' : 'Delete')}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                              <span className="text-sm text-zinc-400">
+                                {selectedArchiveReservations.size > 0 ? (currentLanguage === 'vi' ? `Đã chọn ${selectedArchiveReservations.size}` : `${selectedArchiveReservations.size} selected`) : (currentLanguage === 'vi' ? 'Chưa chọn' : 'None selected')}
+                              </span>
+                              <Button size="sm" onClick={() => { setIsMultiSelectArchiveReservations(false); setSelectedArchiveReservations(new Set()); }} className="bg-zinc-700 text-white hover:bg-zinc-600">
+                                {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {archivedReservations.length === 0 ? (
                         <p className="text-center text-zinc-500 py-8">
                           {currentLanguage === 'vi' ? 'Không có dữ liệu lưu trữ trong tháng này' : 'No archived data for this month'}
                         </p>
                       ) : archivedReservations.map((reservation: any) => (
-                        <div key={reservation.id} className="p-4 border border-zinc-700 bg-zinc-800/40 rounded-lg space-y-2">
+                        <div key={reservation.id} className={`p-4 border rounded-lg space-y-2 ${selectedArchiveReservations.has(reservation.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
                           <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-semibold text-white">{reservation.name}</h3>
-                              <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
-                              <p className="text-sm text-zinc-300">{reservation.date} lúc {reservation.time} - {reservation.guests} {t('admin.people')}</p>
-                              {reservation.specialRequests && (
-                                <p className="text-sm text-zinc-400 mt-1">{t('admin.requests')}: {reservation.specialRequests}</p>
+                            <div className="flex items-start gap-3 flex-1">
+                              {isMultiSelectArchiveReservations && (
+                                <Checkbox checked={selectedArchiveReservations.has(reservation.id)} onCheckedChange={() => toggleArchiveReservationSelection(reservation.id)} className="border-zinc-600 mt-1" />
                               )}
-                              <p className="text-xs text-zinc-500 mt-1">
-                                {currentLanguage === 'vi' ? 'Đã lưu trữ lúc:' : 'Archived at:'} {formatDbTimestamp(reservation.archivedAt)}
-                              </p>
+                              <div>
+                                <h3 className="font-semibold text-white">{reservation.name}</h3>
+                                <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
+                                <p className="text-sm text-zinc-300">{reservation.date} lúc {reservation.time} - {reservation.guests} {t('admin.people')}</p>
+                                {reservation.specialRequests && (
+                                  <p className="text-sm text-zinc-400 mt-1">{t('admin.requests')}: {reservation.specialRequests}</p>
+                                )}
+                                <p className="text-xs text-zinc-500 mt-1">
+                                  {currentLanguage === 'vi' ? 'Đã lưu trữ lúc:' : 'Archived at:'} {formatDbTimestamp(reservation.archivedAt)}
+                                </p>
+                              </div>
                             </div>
                             {getStatusBadge(reservation.status, "reservation")}
                           </div>
@@ -1555,26 +1719,100 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   {showOrderArchive ? (
                     <>
+                      {/* Archive Multi-select Bar */}
+                      {archivedOrders.length > 0 && (
+                        <div className="flex items-center justify-between mb-2">
+                          {!isMultiSelectArchiveOrders ? (
+                            <Button size="sm" onClick={() => setIsMultiSelectArchiveOrders(true)} className="bg-zinc-700 text-white hover:bg-zinc-600">
+                              {currentLanguage === 'vi' ? 'Chọn nhiều' : 'Select multiple'}
+                            </Button>
+                          ) : (
+                            <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg flex-wrap">
+                              <Button size="sm" onClick={toggleAllArchiveOrders} className="bg-zinc-700 text-white hover:bg-zinc-600">
+                                {selectedArchiveOrders.size === archivedOrders.length && archivedOrders.length > 0
+                                  ? (currentLanguage === 'vi' ? 'Bỏ chọn tất cả' : 'Deselect all')
+                                  : (currentLanguage === 'vi' ? 'Chọn tất cả' : 'Select all')
+                                }
+                              </Button>
+                              <AlertDialog open={showBulkRestoreOrders} onOpenChange={setShowBulkRestoreOrders}>
+                                <AlertDialogTrigger asChild>
+                                  <Button size="sm" disabled={selectedArchiveOrders.size === 0}
+                                    className={selectedArchiveOrders.size > 0 ? "bg-zinc-600 text-white hover:bg-zinc-500" : "bg-zinc-700 text-zinc-500 cursor-not-allowed"}>
+                                    {currentLanguage === 'vi' ? 'Phục hồi' : 'Restore'}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận phục hồi' : 'Confirm Restore'}</AlertDialogTitle>
+                                    <AlertDialogDescription className="text-zinc-400">
+                                      {currentLanguage === 'vi' ? `Phục hồi ${selectedArchiveOrders.size} đơn hàng về danh sách hiện tại?` : `Restore ${selectedArchiveOrders.size} orders to active list?`}
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => restoreArchivedOrdersMutation.mutate(Array.from(selectedArchiveOrders))} className="bg-zinc-600 hover:bg-zinc-500 text-white" disabled={restoreArchivedOrdersMutation.isPending}>
+                                      {restoreArchivedOrdersMutation.isPending ? (currentLanguage === 'vi' ? 'Đang phục hồi...' : 'Restoring...') : (currentLanguage === 'vi' ? 'Phục hồi' : 'Restore')}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                              <AlertDialog open={showBulkDeleteArchiveOrders} onOpenChange={setShowBulkDeleteArchiveOrders}>
+                                <AlertDialogTrigger asChild>
+                                  <Button size="sm" disabled={selectedArchiveOrders.size === 0}
+                                    className={selectedArchiveOrders.size > 0 ? "bg-red-600 text-white hover:bg-red-500" : "bg-zinc-600 text-zinc-400 cursor-not-allowed"}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xóa vĩnh viễn' : 'Permanent Delete'}</AlertDialogTitle>
+                                    <AlertDialogDescription className="text-zinc-400">
+                                      {currentLanguage === 'vi' ? `Xóa vĩnh viễn ${selectedArchiveOrders.size} đơn hàng? Không thể hoàn tác.` : `Permanently delete ${selectedArchiveOrders.size} orders? Cannot be undone.`}
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => bulkDeleteArchivedOrdersMutation.mutate(Array.from(selectedArchiveOrders))} className="bg-red-600 hover:bg-red-700 text-white" disabled={bulkDeleteArchivedOrdersMutation.isPending}>
+                                      {bulkDeleteArchivedOrdersMutation.isPending ? (currentLanguage === 'vi' ? 'Đang xóa...' : 'Deleting...') : (currentLanguage === 'vi' ? 'Xóa' : 'Delete')}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                              <span className="text-sm text-zinc-400">
+                                {selectedArchiveOrders.size > 0 ? (currentLanguage === 'vi' ? `Đã chọn ${selectedArchiveOrders.size}` : `${selectedArchiveOrders.size} selected`) : (currentLanguage === 'vi' ? 'Chưa chọn' : 'None selected')}
+                              </span>
+                              <Button size="sm" onClick={() => { setIsMultiSelectArchiveOrders(false); setSelectedArchiveOrders(new Set()); }} className="bg-zinc-700 text-white hover:bg-zinc-600">
+                                {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {archivedOrders.length === 0 ? (
                         <p className="text-center text-zinc-500 py-8">
                           {currentLanguage === 'vi' ? 'Không có dữ liệu lưu trữ trong tháng này' : 'No archived data for this month'}
                         </p>
                       ) : archivedOrders.map((order: any) => (
-                        <div key={order.id} className="p-4 border border-zinc-700 bg-zinc-800/40 rounded-lg space-y-2">
+                        <div key={order.id} className={`p-4 border rounded-lg space-y-2 ${selectedArchiveOrders.has(order.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
                           <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-semibold text-white">{order.customerName}</h3>
-                              <p className="text-sm text-zinc-400">{order.customerEmail} | {order.customerPhone}</p>
-                              {order.customerAddress && <p className="text-sm text-zinc-400">Địa chỉ: {order.customerAddress}</p>}
-                              <p className="text-sm text-zinc-300">
-                                Loại: {getOrderTypeText(order.orderType)} | Tổng: {formatPrice(order.totalAmount)}
-                              </p>
-                              <div className="text-sm text-zinc-400 mt-1">
-                                Món: {order.items?.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
+                            <div className="flex items-start gap-3 flex-1">
+                              {isMultiSelectArchiveOrders && (
+                                <Checkbox checked={selectedArchiveOrders.has(order.id)} onCheckedChange={() => toggleArchiveOrderSelection(order.id)} className="border-zinc-600 mt-1" />
+                              )}
+                              <div>
+                                <h3 className="font-semibold text-white">{order.customerName}</h3>
+                                <p className="text-sm text-zinc-400">{order.customerEmail} | {order.customerPhone}</p>
+                                {order.customerAddress && <p className="text-sm text-zinc-400">Địa chỉ: {order.customerAddress}</p>}
+                                <p className="text-sm text-zinc-300">
+                                  Loại: {getOrderTypeText(order.orderType)} | Tổng: {formatPrice(order.totalAmount)}
+                                </p>
+                                <div className="text-sm text-zinc-400 mt-1">
+                                  Món: {order.items?.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
+                                </div>
+                                <p className="text-xs text-zinc-500 mt-1">
+                                  {currentLanguage === 'vi' ? 'Đã lưu trữ lúc:' : 'Archived at:'} {formatDbTimestamp(order.archivedAt)}
+                                </p>
                               </div>
-                              <p className="text-xs text-zinc-500 mt-1">
-                                {currentLanguage === 'vi' ? 'Đã lưu trữ lúc:' : 'Archived at:'} {formatDbTimestamp(order.archivedAt)}
-                              </p>
                             </div>
                             {getStatusBadge(order.status, "order")}
                           </div>
