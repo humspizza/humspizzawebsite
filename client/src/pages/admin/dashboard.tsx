@@ -881,7 +881,7 @@ export default function AdminDashboard() {
               <Users className="h-4 w-4 text-zinc-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{contacts.length}</div>
+              <div className="text-2xl font-bold text-white">{contactMessages.length}</div>
             </CardContent>
           </Card>
 
