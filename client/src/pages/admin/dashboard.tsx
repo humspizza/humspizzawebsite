@@ -395,6 +395,18 @@ export default function AdminDashboard() {
     return map;
   }, [reservations, archivedReservationsRaw]);
 
+  const orderPhoneCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    const allPhones = [
+      ...orders.map((o: any) => o.customerPhone),
+      ...archivedOrdersRaw.map((o: any) => o.customerPhone),
+    ];
+    for (const phone of allPhones) {
+      if (phone) map.set(phone, (map.get(phone) || 0) + 1);
+    }
+    return map;
+  }, [orders, archivedOrdersRaw]);
+
   const filteredOrders = orders
     .filter(o => {
       if (orderDateFrom || orderDateTo) {
@@ -1790,139 +1802,87 @@ export default function AdminDashboard() {
                   {!showOrderArchive && filteredOrders.map((order) => (
                     <div
                       key={order.id}
-                      className={`p-4 border rounded-lg space-y-2 ${selectedOrders.has(order.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-800'}`}
+                      className={`p-4 border rounded-lg ${selectedOrders.has(order.id) ? 'border-yellow-500 bg-yellow-500/5' : 'border-zinc-800'}`}
                       data-testid={`order-${order.id}`}
                     >
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-start gap-3 flex-1">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-start gap-2">
                           {isMultiSelectOrders && (
                             <Checkbox 
                               checked={selectedOrders.has(order.id)}
                               onCheckedChange={() => toggleOrderSelection(order.id)}
-                              className="border-zinc-600 mt-1"
+                              className="border-zinc-600 mt-1 shrink-0"
                             />
                           )}
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-white">{order.customerName}</h3>
-                            <p className="text-sm text-zinc-400">{order.customerEmail} | {order.customerPhone}</p>
-                            {order.customerAddress && (
-                              <p className="text-sm text-zinc-400">
-                                Địa chỉ: {order.customerAddress}
-                              </p>
-                            )}
-                            <p className="text-sm text-zinc-300">
-                              Loại: {getOrderTypeText(order.orderType)} | Tổng: {formatPrice(order.totalAmount)}
-                            </p>
-                            <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
-                              <Clock className="h-3 w-3" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-0.5">
+                              <h3 className="font-semibold text-white leading-snug">{order.customerName}</h3>
+                              <div className="flex items-center gap-1 flex-wrap justify-end shrink-0">
+                                {(orderPhoneCountMap.get(order.customerPhone) ?? 0) > 1
+                                  ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Cũ' : 'Returning'}</span>
+                                  : <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 border border-zinc-600 text-zinc-400 font-medium whitespace-nowrap">{currentLanguage === 'vi' ? 'Khách Mới' : 'New'}</span>
+                                }
+                                {getStatusBadge(order.status, "order")}
+                              </div>
+                            </div>
+                            <p className="text-sm text-zinc-300 break-all">{order.customerPhone} / {order.customerEmail}</p>
+                            {order.customerAddress && <p className="text-sm text-zinc-400">Địa chỉ: {order.customerAddress}</p>}
+                            <p className="text-sm text-zinc-300">Loại: {getOrderTypeText(order.orderType)} | Tổng: {formatPrice(order.totalAmount)}</p>
+                            <p className="text-sm text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                              <Clock className="h-3 w-3 shrink-0" />
                               Đặt lúc: {formatDbTimestamp(order.createdAt)}
                             </p>
-                            <div className="text-sm text-zinc-400 mt-1">
-                              Món: {order.items.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}
-                            </div>
+                            <p className="text-sm text-zinc-400 mt-0.5">Món: {order.items.map((item: any) => `${item.name} (x${item.quantity})`).join(", ")}</p>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <div className="flex items-center gap-2">
-                            {getStatusBadge(order.status, "order")}
-                          </div>
-                          <div className="flex gap-2">
-                            <Select 
-                              value={order.status} 
-                              onValueChange={(newStatus) => updateOrderMutation.mutate({ 
-                                id: order.id, 
-                                status: newStatus 
-                              })}
-                            >
-                              <SelectTrigger className="w-36 h-8 bg-zinc-800 border-zinc-700 text-white text-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-zinc-800 border-zinc-700">
-                                <SelectItem value="pending" className="text-white">
-                                  {t('admin.pending')}
-                                </SelectItem>
-                                <SelectItem value="confirmed" className="text-white">
-                                  {t('admin.confirmed')}
-                                </SelectItem>
-                                <SelectItem value="cancelled" className="text-white">
-                                  {t('admin.cancelled')}
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => copyAllInfo('order', order)}
-                              className="text-blue-400 hover:text-blue-300"
-                              data-testid={`button-copy-order-${order.id}`}
-                              title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}
-                            >
+                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
+                          <Select 
+                            value={order.status} 
+                            onValueChange={(newStatus) => updateOrderMutation.mutate({ id: order.id, status: newStatus })}
+                          >
+                            <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-zinc-800 border-zinc-700">
+                              <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
+                              <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                              <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <div className="flex items-center gap-0.5">
+                            {order.customerPhone && (
+                              <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                                <a href={`tel:${order.customerPhone}`}><Phone className="w-4 h-4" /></a>
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" onClick={() => copyAllInfo('order', order)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-copy-order-${order.id}`} title={currentLanguage === 'vi' ? 'Sao chép thông tin' : 'Copy info'}>
                               <Copy className="w-4 h-4" />
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setSelectedOrder(order);
-                                setEditOrderData({
-                                  customerName: order.customerName,
-                                  customerEmail: order.customerEmail,
-                                  customerPhone: order.customerPhone || '',
-                                  customerAddress: order.customerAddress || '',
-                                  status: order.status,
-                                  orderType: order.orderType,
-                                  items: [...order.items]
-                                });
-                                setIsEditOrderModalOpen(true);
-                              }}
-                              className="text-zinc-400 hover:text-white"
-                              data-testid={`button-edit-order-${order.id}`}
-                              title={t('admin.edit')}
-                            >
+                            <Button size="sm" variant="ghost" onClick={() => { setSelectedOrder(order); setEditOrderData({ customerName: order.customerName, customerEmail: order.customerEmail, customerPhone: order.customerPhone || '', customerAddress: order.customerAddress || '', status: order.status, orderType: order.orderType, items: [...order.items] }); setIsEditOrderModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-edit-order-${order.id}`} title={t('admin.edit')}>
                               <Edit className="w-4 h-4" />
                             </Button>
                             <AlertDialog open={deleteOrderId === order.id} onOpenChange={(open) => !open && setDeleteOrderId(null)}>
                               <AlertDialogTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => setDeleteOrderId(order.id)}
-                                  className="text-red-400 hover:text-red-300"
-                                  data-testid={`button-delete-order-${order.id}`}
-                                  title={currentLanguage === 'vi' ? 'Xóa đơn hàng' : 'Delete order'}
-                                >
+                                <Button size="sm" variant="ghost" onClick={() => setDeleteOrderId(order.id)} className="text-red-400 hover:text-red-300 h-8 w-8 p-0" data-testid={`button-delete-order-${order.id}`} title={currentLanguage === 'vi' ? 'Xóa đơn hàng' : 'Delete order'}>
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent className="bg-zinc-900 border-zinc-800">
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-white">
-                                    {currentLanguage === 'vi' ? 'Xác nhận xóa' : 'Confirm Delete'}
-                                  </AlertDialogTitle>
+                                  <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận xóa' : 'Confirm Delete'}</AlertDialogTitle>
                                   <AlertDialogDescription className="text-zinc-400">
-                                    {currentLanguage === 'vi' 
-                                      ? `Bạn có chắc chắn muốn xóa đơn hàng của ${order.customerName}? Hành động này không thể hoàn tác.`
-                                      : `Are you sure you want to delete the order for ${order.customerName}? This action cannot be undone.`
-                                    }
+                                    {currentLanguage === 'vi' ? `Bạn có chắc chắn muốn xóa đơn hàng của ${order.customerName}? Hành động này không thể hoàn tác.` : `Are you sure you want to delete the order for ${order.customerName}? This action cannot be undone.`}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">
-                                    {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => deleteOrderMutation.mutate(order.id)}
-                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                  >
-                                    {currentLanguage === 'vi' ? 'Xóa' : 'Delete'}
-                                  </AlertDialogAction>
+                                  <AlertDialogCancel className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteOrderMutation.mutate(order.id)} className="bg-red-600 hover:bg-red-700 text-white">{currentLanguage === 'vi' ? 'Xóa' : 'Delete'}</AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
                           </div>
                         </div>
                       </div>
-
                     </div>
                   ))}
                   {!showOrderArchive && filteredOrders.length === 0 && orders.length > 0 && (
