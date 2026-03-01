@@ -1062,15 +1062,15 @@ export default function AdminDashboard() {
                         <div className="text-xs text-white mt-0.5">{currentLanguage === 'vi' ? 'Tổng đặt bàn' : 'Total'}</div>
                       </div>
                       <div className="bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-3 text-center">
-                        <div className="text-2xl font-bold text-red-400">{cancelled}</div>
+                        <div className="text-2xl font-bold text-white">{cancelled}</div>
                         <div className="text-xs text-white mt-0.5">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</div>
                       </div>
                       <div className="bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-3 text-center">
-                        <div className="text-2xl font-bold text-emerald-400">{newGuests}</div>
+                        <div className="text-2xl font-bold text-white">{newGuests}</div>
                         <div className="text-xs text-white mt-0.5">{currentLanguage === 'vi' ? 'Khách mới' : 'New guests'}</div>
                       </div>
                       <div className="bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-3 py-3 text-center">
-                        <div className="text-2xl font-bold text-blue-400">{returning}</div>
+                        <div className="text-2xl font-bold text-white">{returning}</div>
                         <div className="text-xs text-white mt-0.5">{currentLanguage === 'vi' ? 'Khách cũ' : 'Returning'}</div>
                       </div>
                     </div>
