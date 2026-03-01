@@ -1330,20 +1330,19 @@ export default function AdminDashboard() {
                               />
                             )}
                             <div className="flex-1">
-                              <h3 className="font-semibold text-white">{reservation.name}</h3>
-                              <p className="text-sm text-zinc-400">{reservation.email} | {reservation.phone}</p>
+                              <h3 className="font-semibold text-white">{reservation.name} - {reservation.phone} / {reservation.email}</h3>
                               <p className="text-sm text-zinc-300">
                                 {reservation.date} {t('admin.at')} {reservation.time} - {reservation.guests} {t('admin.people')}
                               </p>
-                              <p className="text-sm text-zinc-400 flex items-center gap-2 mt-1">
-                                <Clock className="h-3 w-3" />
-                                Đặt lúc: {formatDbTimestamp(reservation.createdAt)}
-                              </p>
                               {reservation.specialRequests && (
-                                <p className="text-sm text-zinc-400 mt-1">
+                                <p className="text-sm text-zinc-400">
                                   {t('admin.requests')}: {reservation.specialRequests}
                                 </p>
                               )}
+                              <p className="text-sm text-zinc-400 flex items-center gap-2">
+                                <Clock className="h-3 w-3" />
+                                Đặt lúc: {formatDbTimestamp(reservation.createdAt)}
+                              </p>
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-2">
