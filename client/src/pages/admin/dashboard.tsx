@@ -334,6 +334,28 @@ export default function AdminDashboard() {
     if (currentFrom === from && currentTo === to) { setFrom(''); setTo(''); }
     else { setFrom(from); setTo(to); }
   };
+  const applyMonthRange = (year: number, month: number, setFrom: (v: string) => void, setTo: (v: string) => void, currentFrom: string, currentTo: string) => {
+    const from = fmtDate(new Date(year, month - 1, 1));
+    const to = fmtDate(new Date(year, month, 0));
+    if (currentFrom === from && currentTo === to) { setFrom(''); setTo(''); }
+    else { setFrom(from); setTo(to); }
+  };
+  const getActiveMonthShortcut = (from: string, to: string): string => {
+    if (!from || !to) return '';
+    for (let i = 0; i < 12; i++) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const mFrom = fmtDate(new Date(d.getFullYear(), d.getMonth(), 1));
+      const mTo = fmtDate(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+      if (from === mFrom && to === mTo) return `${d.getFullYear()}-${d.getMonth() + 1}`;
+    }
+    return '';
+  };
+  const monthShortcuts = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    return { year: d.getFullYear(), month: d.getMonth() + 1, key: `${d.getFullYear()}-${d.getMonth() + 1}` };
+  });
   const getActiveShortcut = (from: string, to: string): string => {
     const now = new Date();
     const todayStr = fmtDate(now);
@@ -1143,19 +1165,33 @@ export default function AdminDashboard() {
                     const dateTo = isArchive ? reservationArchiveDateTo : reservationDateTo;
                     const setFrom = isArchive ? setReservationArchiveDateFrom : setReservationDateFrom;
                     const setTo = isArchive ? setReservationArchiveDateTo : setReservationDateTo;
+                    const activeMonth = isArchive ? getActiveMonthShortcut(dateFrom, dateTo) : '';
                     return (
                       <div className="flex items-center gap-2 flex-wrap">
                         <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
-                        {(['today', 'week', 'month'] as const).map(s => {
-                          const active = getActiveShortcut(dateFrom, dateTo) === s;
-                          const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
-                          return (
-                            <button key={s} onClick={() => applyDateShortcut(s, setFrom, setTo, dateFrom, dateTo)}
-                              className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                              {label}
-                            </button>
-                          );
-                        })}
+                        {isArchive ? (
+                          monthShortcuts.map(({ year, month, key }) => {
+                            const active = activeMonth === key;
+                            const label = currentLanguage === 'vi' ? `T${month}/${String(year).slice(2)}` : `${new Date(year, month - 1).toLocaleString('en', { month: 'short' })} ${String(year).slice(2)}`;
+                            return (
+                              <button key={key} onClick={() => applyMonthRange(year, month, setFrom, setTo, dateFrom, dateTo)}
+                                className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                                {label}
+                              </button>
+                            );
+                          })
+                        ) : (
+                          (['today', 'week', 'month'] as const).map(s => {
+                            const active = getActiveShortcut(dateFrom, dateTo) === s;
+                            const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                            return (
+                              <button key={s} onClick={() => applyDateShortcut(s, setFrom, setTo, dateFrom, dateTo)}
+                                className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                                {label}
+                              </button>
+                            );
+                          })
+                        )}
                         <span className="text-zinc-600 text-xs">|</span>
                         <input type="date" value={dateFrom} onChange={e => setFrom(e.target.value)}
                           className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
@@ -1612,19 +1648,33 @@ export default function AdminDashboard() {
                     const dateTo = isArchive ? orderArchiveDateTo : orderDateTo;
                     const setFrom = isArchive ? setOrderArchiveDateFrom : setOrderDateFrom;
                     const setTo = isArchive ? setOrderArchiveDateTo : setOrderDateTo;
+                    const activeMonth = isArchive ? getActiveMonthShortcut(dateFrom, dateTo) : '';
                     return (
                       <div className="flex items-center gap-2 flex-wrap">
                         <Filter className="w-4 h-4 text-zinc-500 shrink-0" />
-                        {(['today', 'week', 'month'] as const).map(s => {
-                          const active = getActiveShortcut(dateFrom, dateTo) === s;
-                          const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
-                          return (
-                            <button key={s} onClick={() => applyDateShortcut(s, setFrom, setTo, dateFrom, dateTo)}
-                              className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
-                              {label}
-                            </button>
-                          );
-                        })}
+                        {isArchive ? (
+                          monthShortcuts.map(({ year, month, key }) => {
+                            const active = activeMonth === key;
+                            const label = currentLanguage === 'vi' ? `T${month}/${String(year).slice(2)}` : `${new Date(year, month - 1).toLocaleString('en', { month: 'short' })} ${String(year).slice(2)}`;
+                            return (
+                              <button key={key} onClick={() => applyMonthRange(year, month, setFrom, setTo, dateFrom, dateTo)}
+                                className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                                {label}
+                              </button>
+                            );
+                          })
+                        ) : (
+                          (['today', 'week', 'month'] as const).map(s => {
+                            const active = getActiveShortcut(dateFrom, dateTo) === s;
+                            const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                            return (
+                              <button key={s} onClick={() => applyDateShortcut(s, setFrom, setTo, dateFrom, dateTo)}
+                                className={`text-xs px-2.5 py-1.5 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                                {label}
+                              </button>
+                            );
+                          })
+                        )}
                         <span className="text-zinc-600 text-xs">|</span>
                         <input type="date" value={dateFrom} onChange={e => setFrom(e.target.value)}
                           className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
