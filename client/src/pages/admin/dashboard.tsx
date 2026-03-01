@@ -308,6 +308,52 @@ export default function AdminDashboard() {
     });
   };
 
+  // Date shortcut helper
+  const fmtDate = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  };
+  const applyDateShortcut = (
+    shortcut: 'today' | 'week' | 'month',
+    setFrom: (v: string) => void,
+    setTo: (v: string) => void,
+    currentFrom: string,
+    currentTo: string
+  ) => {
+    const now = new Date();
+    let from = '', to = '';
+    if (shortcut === 'today') {
+      from = to = fmtDate(now);
+    } else if (shortcut === 'week') {
+      const day = now.getDay();
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      from = fmtDate(monday); to = fmtDate(sunday);
+    } else if (shortcut === 'month') {
+      from = fmtDate(new Date(now.getFullYear(), now.getMonth(), 1));
+      to = fmtDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    }
+    if (currentFrom === from && currentTo === to) { setFrom(''); setTo(''); }
+    else { setFrom(from); setTo(to); }
+  };
+  const getActiveShortcut = (from: string, to: string): string => {
+    const now = new Date();
+    const todayStr = fmtDate(now);
+    if (from === todayStr && to === todayStr) return 'today';
+    const day = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    if (from === fmtDate(monday) && to === fmtDate(sunday)) return 'week';
+    const monthFrom = fmtDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    const monthTo = fmtDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    if (from === monthFrom && to === monthTo) return 'month';
+    return '';
+  };
+
   // Filtered data
   const filteredReservations = reservations
     .filter(r => {
@@ -1066,30 +1112,42 @@ export default function AdminDashboard() {
                     />
                   </div>
                   {!showReservationArchive && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-1">
+                        {(['today', 'week', 'month'] as const).map(s => {
+                          const active = getActiveShortcut(reservationDateFrom, reservationDateTo) === s;
+                          const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                          return (
+                            <button key={s} onClick={() => applyDateShortcut(s, setReservationDateFrom, setReservationDateTo, reservationDateFrom, reservationDateTo)}
+                              className={`text-xs px-2 py-1 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex items-center gap-2">
                         <Filter className="w-4 h-4 text-zinc-400 shrink-0" />
                         <input
                           type="date"
                           value={reservationDateFrom}
                           onChange={e => setReservationDateFrom(e.target.value)}
-                          className="h-9 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
+                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
                           title={currentLanguage === 'vi' ? 'Từ ngày' : 'From date'}
                         />
+                        <span className="text-zinc-500 text-sm">—</span>
+                        <input
+                          type="date"
+                          value={reservationDateTo}
+                          onChange={e => setReservationDateTo(e.target.value)}
+                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
+                          title={currentLanguage === 'vi' ? 'Đến ngày' : 'To date'}
+                        />
+                        {(reservationDateFrom || reservationDateTo) && (
+                          <button onClick={() => { setReservationDateFrom(""); setReservationDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
+                            ✕
+                          </button>
+                        )}
                       </div>
-                      <span className="text-zinc-500 text-sm">—</span>
-                      <input
-                        type="date"
-                        value={reservationDateTo}
-                        onChange={e => setReservationDateTo(e.target.value)}
-                        className="h-9 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
-                        title={currentLanguage === 'vi' ? 'Đến ngày' : 'To date'}
-                      />
-                      {(reservationDateFrom || reservationDateTo) && (
-                        <button onClick={() => { setReservationDateFrom(""); setReservationDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
-                          ✕
-                        </button>
-                      )}
                     </div>
                   )}
                   {showReservationArchive && (
@@ -1545,30 +1603,42 @@ export default function AdminDashboard() {
                     />
                   </div>
                   {!showOrderArchive && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-1">
+                        {(['today', 'week', 'month'] as const).map(s => {
+                          const active = getActiveShortcut(orderDateFrom, orderDateTo) === s;
+                          const label = s === 'today' ? (currentLanguage === 'vi' ? 'Hôm nay' : 'Today') : s === 'week' ? (currentLanguage === 'vi' ? 'Tuần này' : 'This week') : (currentLanguage === 'vi' ? 'Tháng này' : 'This month');
+                          return (
+                            <button key={s} onClick={() => applyDateShortcut(s, setOrderDateFrom, setOrderDateTo, orderDateFrom, orderDateTo)}
+                              className={`text-xs px-2 py-1 rounded border transition-colors ${active ? 'bg-yellow-600/20 border-yellow-600 text-yellow-400' : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex items-center gap-2">
                         <Filter className="w-4 h-4 text-zinc-400 shrink-0" />
                         <input
                           type="date"
                           value={orderDateFrom}
                           onChange={e => setOrderDateFrom(e.target.value)}
-                          className="h-9 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
+                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
                           title={currentLanguage === 'vi' ? 'Từ ngày' : 'From date'}
                         />
+                        <span className="text-zinc-500 text-sm">—</span>
+                        <input
+                          type="date"
+                          value={orderDateTo}
+                          onChange={e => setOrderDateTo(e.target.value)}
+                          className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
+                          title={currentLanguage === 'vi' ? 'Đến ngày' : 'To date'}
+                        />
+                        {(orderDateFrom || orderDateTo) && (
+                          <button onClick={() => { setOrderDateFrom(""); setOrderDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
+                            ✕
+                          </button>
+                        )}
                       </div>
-                      <span className="text-zinc-500 text-sm">—</span>
-                      <input
-                        type="date"
-                        value={orderDateTo}
-                        onChange={e => setOrderDateTo(e.target.value)}
-                        className="h-9 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm focus:outline-none focus:border-zinc-500 w-[130px]"
-                        title={currentLanguage === 'vi' ? 'Đến ngày' : 'To date'}
-                      />
-                      {(orderDateFrom || orderDateTo) && (
-                        <button onClick={() => { setOrderDateFrom(""); setOrderDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">
-                          ✕
-                        </button>
-                      )}
                     </div>
                   )}
                   {showOrderArchive && (
