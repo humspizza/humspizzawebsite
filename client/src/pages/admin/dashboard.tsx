@@ -879,11 +879,38 @@ export default function AdminDashboard() {
       }
     };
 
+    const reservationLabels: Record<string, string> = currentLanguage === 'vi' ? {
+      pending: 'Đặt Bàn',
+      confirmed: 'Nhận Bàn',
+      cancelled: 'Đã Hủy'
+    } : {
+      pending: 'Pending',
+      confirmed: 'Confirmed',
+      cancelled: 'Cancelled'
+    };
+
+    const orderLabels: Record<string, string> = currentLanguage === 'vi' ? {
+      pending: 'Chờ xử lý',
+      confirmed: 'Đã xác nhận',
+      preparing: 'Đang chuẩn bị',
+      ready: 'Sẵn sàng',
+      delivered: 'Đã giao',
+      cancelled: 'Đã hủy'
+    } : {
+      pending: 'Pending',
+      confirmed: 'Confirmed',
+      preparing: 'Preparing',
+      ready: 'Ready',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled'
+    };
+
     const color = statusColors[type][status as keyof typeof statusColors[typeof type]] || "bg-gray-500";
+    const label = type === 'reservation' ? (reservationLabels[status] || status) : (orderLabels[status] || status);
     
     return (
       <Badge className={`${color} text-white hover:${color}/80`}>
-        {status}
+        {label}
       </Badge>
     );
   };
@@ -1439,8 +1466,8 @@ export default function AdminDashboard() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-zinc-800 border-zinc-700">
-                                <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                                <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                                <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
+                                <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
                                 <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
                               </SelectContent>
                             </Select>
@@ -1491,13 +1518,13 @@ export default function AdminDashboard() {
                     const groups: { status: string; label: string; style: React.CSSProperties; items: any[] }[] = [
                       {
                         status: 'pending',
-                        label: currentLanguage === 'vi' ? 'Đang Chờ' : 'Pending',
+                        label: currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending',
                         style: { color: '#facc15' },
                         items: filteredReservations.filter((r: any) => r.status === 'pending').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)),
                       },
                       {
                         status: 'confirmed',
-                        label: currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed',
+                        label: currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed',
                         style: { color: '#34d399' },
                         items: filteredReservations.filter((r: any) => r.status === 'confirmed').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)),
                       },
@@ -1558,8 +1585,8 @@ export default function AdminDashboard() {
                                           <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent className="bg-zinc-800 border-zinc-700">
-                                          <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                                          <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                                          <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
+                                          <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
                                           <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
                                         </SelectContent>
                                       </Select>
@@ -2601,8 +2628,8 @@ export default function AdminDashboard() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-800 border-zinc-700">
-                      <SelectItem value="pending" className="text-white">{t('admin.pending')}</SelectItem>
-                      <SelectItem value="confirmed" className="text-white">{t('admin.confirmed')}</SelectItem>
+                      <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
+                      <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
                       <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
                     </SelectContent>
                   </Select>
