@@ -71,6 +71,13 @@ export const reservations = pgTable("reservations", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const reservationTableNumbers = pgTable("reservation_table_numbers", {
+  reservationId: varchar("reservation_id").primaryKey(),
+  tableNumber: text("table_number").notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type ReservationTableNumber = typeof reservationTableNumbers.$inferSelect;
+
 export const reservationsArchive = pgTable("reservations_archive", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   originalId: varchar("original_id").notNull(), // Reference to original reservation ID

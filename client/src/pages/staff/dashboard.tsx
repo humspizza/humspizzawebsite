@@ -76,6 +76,11 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
     queryKey: ["/api/system-settings"],
   });
 
+  const { data: tableNumbers = {} } = useQuery<Record<string, string>>({
+    queryKey: ["/api/reservation-table-numbers"],
+    queryFn: () => fetch("/api/reservation-table-numbers", { credentials: "include" }).then(r => r.json()),
+  });
+
   const lockedTimeSlots: Record<string, boolean> = systemSettings?.locked_time_slots || {};
   const allTimeSlots = useMemo(() => {
     const slots: string[] = [];
@@ -338,6 +343,16 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
         title: currentLanguage === 'vi' ? 'Đã cập nhật' : 'Updated',
         description: currentLanguage === 'vi' ? 'Trạng thái đặt bàn đã được cập nhật' : 'Reservation status updated successfully',
       });
+    },
+  });
+
+  const setTableNumberMutation = useMutation({
+    mutationFn: async ({ id, tableNumber }: { id: string; tableNumber: string }) => {
+      const response = await apiRequest("PATCH", `/api/reservations/${id}/table-number`, { tableNumber });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reservation-table-numbers"] });
     },
   });
 
@@ -958,14 +973,31 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                         </p>
                       </div>
                       <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-800">
-                        <Select value={reservation.status} onValueChange={(newStatus) => updateReservationStatus.mutate({ id: reservation.id, status: newStatus })}>
-                          <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm"><SelectValue /></SelectTrigger>
-                          <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                            <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
-                            <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
-                            <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                          <Select value={reservation.status} onValueChange={(newStatus) => updateReservationStatus.mutate({ id: reservation.id, status: newStatus })}>
+                            <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm"><SelectValue /></SelectTrigger>
+                            <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                              <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
+                              <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
+                              <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <input
+                            key={tableNumbers[reservation.id] || ''}
+                            defaultValue={tableNumbers[reservation.id] || ''}
+                            placeholder="Bàn..."
+                            className="h-8 w-16 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-yellow-400 placeholder-zinc-500 text-center font-medium"
+                            onBlur={(e) => {
+                              const val = e.target.value.trim();
+                              if (val !== (tableNumbers[reservation.id] || '')) {
+                                setTableNumberMutation.mutate({ id: reservation.id, tableNumber: val });
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                            }}
+                          />
+                        </div>
                         <div className="flex items-center gap-0.5">
                           <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
                             <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>

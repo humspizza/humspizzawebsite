@@ -1,5 +1,5 @@
 import { 
-  users, categories, menuItems, menuItemCustomizationSchemas, reservations, orders, blogPosts, contactMessages,
+  users, categories, menuItems, menuItemCustomizationSchemas, reservations, reservationTableNumbers, orders, blogPosts, contactMessages,
   thirdPartyBookings, integrationSettings, customerReviews, customizationSchemas, aboutContent, homeContent,
   ordersArchive, reservationsArchive, notifications, pageSeo,
   type User, type InsertUser, type Category, type InsertCategory, 
@@ -44,6 +44,8 @@ export interface IStorage {
   getReservations(): Promise<Reservation[]>;
   updateReservationStatus(id: string, status: string): Promise<Reservation>;
   updateReservation(id: string, updates: Partial<InsertReservation>): Promise<Reservation>;
+  getReservationTableNumbers(): Promise<Record<string, string>>;
+  setReservationTableNumber(reservationId: string, tableNumber: string): Promise<void>;
 
   // Orders
   createOrder(order: InsertOrder): Promise<Order>;
@@ -392,6 +394,23 @@ export class DatabaseStorage implements IStorage {
       .where(eq(reservations.id, id))
       .returning();
     return updatedReservation;
+  }
+
+  async getReservationTableNumbers(): Promise<Record<string, string>> {
+    const rows = await db.select().from(reservationTableNumbers);
+    const result: Record<string, string> = {};
+    for (const row of rows) result[row.reservationId] = row.tableNumber;
+    return result;
+  }
+
+  async setReservationTableNumber(reservationId: string, tableNumber: string): Promise<void> {
+    if (!tableNumber.trim()) {
+      await db.delete(reservationTableNumbers).where(eq(reservationTableNumbers.reservationId, reservationId));
+    } else {
+      await db.insert(reservationTableNumbers)
+        .values({ reservationId, tableNumber: tableNumber.trim() })
+        .onConflictDoUpdate({ target: reservationTableNumbers.reservationId, set: { tableNumber: tableNumber.trim(), updatedAt: new Date() } });
+    }
   }
 
   // Orders

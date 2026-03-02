@@ -546,6 +546,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/reservation-table-numbers", requireAuth, async (req, res) => {
+    try {
+      const tableNumbers = await storage.getReservationTableNumbers();
+      res.json(tableNumbers);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/reservations/:id/table-number", requireAuth, async (req, res) => {
+    try {
+      const { tableNumber } = req.body;
+      await storage.setReservationTableNumber(req.params.id, tableNumber ?? '');
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Orders
   app.post("/api/orders", async (req, res) => {
     try {
