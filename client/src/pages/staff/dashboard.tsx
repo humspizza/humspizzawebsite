@@ -998,10 +998,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                     );
                   })}
                   <span className="text-zinc-600 text-xs">|</span>
-                  <input type="date" value={reservationDateFrom} onChange={e => setReservationDateFrom(e.target.value)}
-                    className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
-                  <span className="text-zinc-500 text-sm">—</span>
-                  <input type="date" value={reservationDateTo} onChange={e => setReservationDateTo(e.target.value)}
+                  <input type="date" value={reservationDateFrom} onChange={e => { setReservationDateFrom(e.target.value); setReservationDateTo(e.target.value); }}
                     className="h-8 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-zinc-500 w-[120px]" />
                   {(reservationDateFrom || reservationDateTo) && (
                     <button onClick={() => { setReservationDateFrom(""); setReservationDateTo(""); }} className="text-zinc-400 hover:text-white text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600">✕</button>
