@@ -34,6 +34,18 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
+  const [isEditOrderModalOpen, setIsEditOrderModalOpen] = useState(false);
+  const [isEditReservationModalOpen, setIsEditReservationModalOpen] = useState(false);
+  const [editOrderData, setEditOrderData] = useState({
+    customerName: '', customerEmail: '', customerPhone: '', customerAddress: '',
+    status: '', orderType: '',
+    items: [] as Array<{id: string, name: string, price: number, quantity: number}>
+  });
+  const [editReservationData, setEditReservationData] = useState({
+    name: '', email: '', phone: '', guests: '', date: '', time: '', status: '', specialRequests: ''
+  });
+  const [showAddItemSection, setShowAddItemSection] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Setup session timeout (2 hours with 10 minute warning)
   const { logout: sessionLogout, checkSession } = useSessionTimeout({
@@ -79,6 +91,14 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
   const { data: tableNumbers = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/reservation-table-numbers"],
     queryFn: () => fetch("/api/reservation-table-numbers", { credentials: "include" }).then(r => r.json()),
+  });
+
+  const { data: menuItemsData = [] } = useQuery({ queryKey: ['/api/menu-items'] });
+  const menuItems = Array.isArray(menuItemsData) ? menuItemsData : [];
+  const filteredMenuItems = menuItems.filter((item: any) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (item.name?.toLowerCase() || '').includes(q) || (item.nameVi?.toLowerCase() || item.name_vi?.toLowerCase() || '').includes(q);
   });
 
   const lockedTimeSlots: Record<string, boolean> = systemSettings?.locked_time_slots || {};
@@ -372,6 +392,36 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
     }
   });
 
+  const updateFullOrderMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PATCH", `/api/orders/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      setIsEditOrderModalOpen(false);
+      toast({ title: currentLanguage === 'vi' ? 'Đã cập nhật đơn hàng' : 'Order updated' });
+    },
+    onError: () => {
+      toast({ title: currentLanguage === 'vi' ? 'Lỗi cập nhật đơn hàng' : 'Error updating order', variant: 'destructive' });
+    }
+  });
+
+  const updateFullReservationMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PATCH", `/api/reservations/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reservations"] });
+      setIsEditReservationModalOpen(false);
+      toast({ title: currentLanguage === 'vi' ? 'Đã cập nhật đặt bàn' : 'Reservation updated' });
+    },
+    onError: () => {
+      toast({ title: currentLanguage === 'vi' ? 'Lỗi cập nhật đặt bàn' : 'Error updating reservation', variant: 'destructive' });
+    }
+  });
+
   if (ordersLoading || reservationsLoading) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center">
@@ -504,6 +554,9 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                                 <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setIsReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
                                   <Eye className="w-4 h-4" />
                                 </Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setEditReservationData({ name: reservation.name, email: reservation.email, phone: reservation.phone, guests: reservation.guests.toString(), date: reservation.date, time: reservation.time, status: reservation.status, specialRequests: reservation.specialRequests || '' }); setIsEditReservationModalOpen(true); }} className="text-yellow-400 hover:text-yellow-300 h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Chỉnh sửa' : 'Edit'}>
+                                  <Edit className="w-4 h-4" />
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -567,6 +620,9 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                                 </Button>
                                 <Button size="sm" variant="ghost" onClick={() => { setSelectedOrder(order); setIsOrderModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
                                   <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => { setSelectedOrder(order); setEditOrderData({ customerName: order.customerName, customerEmail: order.customerEmail, customerPhone: order.customerPhone || '', customerAddress: order.customerAddress || '', status: order.status, orderType: order.orderType, items: [...order.items] }); setIsEditOrderModalOpen(true); }} className="text-yellow-400 hover:text-yellow-300 h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Chỉnh sửa' : 'Edit'}>
+                                  <Edit className="w-4 h-4" />
                                 </Button>
                               </div>
                             </div>
@@ -847,6 +903,9 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                           <Button size="sm" variant="ghost" onClick={() => { setSelectedOrder(order); setIsOrderModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-view-order-${order.id}`} title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
                             <Eye className="w-4 h-4" />
                           </Button>
+                          <Button size="sm" variant="ghost" onClick={() => { setSelectedOrder(order); setEditOrderData({ customerName: order.customerName, customerEmail: order.customerEmail, customerPhone: order.customerPhone || '', customerAddress: order.customerAddress || '', status: order.status, orderType: order.orderType, items: [...order.items] }); setIsEditOrderModalOpen(true); }} className="text-yellow-400 hover:text-yellow-300 h-8 w-8 p-0" data-testid={`button-edit-order-${order.id}`} title={currentLanguage === 'vi' ? 'Chỉnh sửa' : 'Edit'}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -1007,6 +1066,9 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setIsReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" data-testid={`button-view-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
                             <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setEditReservationData({ name: reservation.name, email: reservation.email, phone: reservation.phone, guests: reservation.guests.toString(), date: reservation.date, time: reservation.time, status: reservation.status, specialRequests: reservation.specialRequests || '' }); setIsEditReservationModalOpen(true); }} className="text-yellow-400 hover:text-yellow-300 h-8 w-8 p-0" data-testid={`button-edit-reservation-${reservation.id}`} title={currentLanguage === 'vi' ? 'Chỉnh sửa' : 'Edit'}>
+                            <Edit className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
@@ -1432,6 +1494,208 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 : (currentLanguage === 'vi' ? 'Xác nhận đặt bàn' : 'Confirm Reservation')}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Order Modal */}
+      <Dialog open={isEditOrderModalOpen} onOpenChange={setIsEditOrderModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{currentLanguage === 'vi' ? 'Chỉnh sửa đơn hàng' : 'Edit Order'}</DialogTitle>
+          </DialogHeader>
+          {selectedOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Tên khách hàng' : 'Customer Name'}</label>
+                  <Input value={editOrderData.customerName} onChange={(e) => setEditOrderData({...editOrderData, customerName: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">Email</label>
+                  <Input value={editOrderData.customerEmail} onChange={(e) => setEditOrderData({...editOrderData, customerEmail: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Số điện thoại' : 'Phone'}</label>
+                  <Input value={editOrderData.customerPhone || ''} onChange={(e) => setEditOrderData({...editOrderData, customerPhone: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Địa chỉ' : 'Address'}</label>
+                  <Input value={editOrderData.customerAddress || ''} onChange={(e) => setEditOrderData({...editOrderData, customerAddress: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" placeholder={currentLanguage === 'vi' ? 'Nhập địa chỉ giao hàng' : 'Enter delivery address'} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Loại đơn' : 'Order Type'}</label>
+                  <Select value={editOrderData.orderType} onValueChange={(value) => setEditOrderData({...editOrderData, orderType: value})}>
+                    <SelectTrigger className="mt-1 bg-zinc-800 border-zinc-700 text-white"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                      <SelectItem value="dine-in" className="text-white">{currentLanguage === 'vi' ? 'Tại chỗ' : 'Dine In'}</SelectItem>
+                      <SelectItem value="takeout" className="text-white">{currentLanguage === 'vi' ? 'Mang về' : 'Takeout'}</SelectItem>
+                      <SelectItem value="delivery" className="text-white">{currentLanguage === 'vi' ? 'Giao hàng' : 'Delivery'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Tổng tiền' : 'Total'}</label>
+                  <Input value={editOrderData.items.reduce((t, i) => t + i.price * i.quantity, 0).toLocaleString() + ' VND'} className="mt-1 bg-zinc-800 border-zinc-700 text-white" readOnly />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Trạng thái' : 'Status'}</label>
+                  <Select value={editOrderData.status} onValueChange={(v) => setEditOrderData({...editOrderData, status: v})}>
+                    <SelectTrigger className="mt-1 bg-zinc-800 border-zinc-700 text-white"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                      <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Chờ xử lý' : 'Pending'}</SelectItem>
+                      <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Đã xác nhận' : 'Confirmed'}</SelectItem>
+                      <SelectItem value="preparing" className="text-white">{currentLanguage === 'vi' ? 'Đang chuẩn bị' : 'Preparing'}</SelectItem>
+                      <SelectItem value="ready" className="text-white">{currentLanguage === 'vi' ? 'Sẵn sàng' : 'Ready'}</SelectItem>
+                      <SelectItem value="completed" className="text-white">{currentLanguage === 'vi' ? 'Hoàn thành' : 'Completed'}</SelectItem>
+                      <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Món đã đặt' : 'Ordered Items'}</label>
+                <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+                  {editOrderData.items.map((item, index) => (
+                    <div key={index} className="bg-zinc-800 p-3 rounded border border-zinc-700">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-white flex-1">{item.name}</span>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline" onClick={() => { const ni = [...editOrderData.items]; if (ni[index].quantity > 1) { ni[index].quantity -= 1; setEditOrderData({...editOrderData, items: ni}); } }} className="h-6 w-6 p-0 border-zinc-600 text-white hover:bg-zinc-700">-</Button>
+                          <span className="text-white w-8 text-center">{item.quantity}</span>
+                          <Button size="sm" variant="outline" onClick={() => { const ni = [...editOrderData.items]; ni[index].quantity += 1; setEditOrderData({...editOrderData, items: ni}); }} className="h-6 w-6 p-0 border-zinc-600 text-white hover:bg-zinc-700">+</Button>
+                          <Button size="sm" variant="outline" onClick={() => { setEditOrderData({...editOrderData, items: editOrderData.items.filter((_, i) => i !== index)}); }} className="h-6 w-6 p-0 border-red-600 text-red-400 hover:bg-red-900">×</Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {!showAddItemSection && (
+                  <Button variant="outline" onClick={() => setShowAddItemSection(true)} className="mt-2 border-zinc-600 text-white hover:bg-zinc-700">
+                    + {currentLanguage === 'vi' ? 'Thêm món' : 'Add Item'}
+                  </Button>
+                )}
+
+                {showAddItemSection && (
+                  <div className="mt-4 p-3 bg-zinc-800 border border-zinc-700 rounded">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Chọn món' : 'Select Item'}</h4>
+                      <Button size="sm" variant="outline" onClick={() => { setShowAddItemSection(false); setSearchQuery(''); }} className="border-zinc-600 text-white hover:bg-zinc-700">×</Button>
+                    </div>
+                    <div className="mb-3">
+                      <Input placeholder={currentLanguage === 'vi' ? 'Tìm kiếm món...' : 'Search food...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-zinc-700 border-zinc-600 text-white placeholder-zinc-400" />
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
+                      {filteredMenuItems.map((item: any) => (
+                        <div key={item.id} className="flex justify-between items-center p-2 bg-zinc-700 rounded">
+                          <div className="flex flex-col">
+                            <span className="text-white text-sm">{item.name}</span>
+                            {(item.nameVi || item.name_vi) && <span className="text-zinc-400 text-xs">{item.nameVi || item.name_vi}</span>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-zinc-300 text-sm">{Math.round(parseFloat(item.price))?.toLocaleString()} VND</span>
+                            <Button size="sm" onClick={() => {
+                              const idx = editOrderData.items.findIndex(o => o.id === item.id);
+                              if (idx >= 0) {
+                                const ni = [...editOrderData.items]; ni[idx].quantity += 1; setEditOrderData({...editOrderData, items: ni});
+                              } else {
+                                setEditOrderData({...editOrderData, items: [...editOrderData.items, { id: item.id, name: item.name, price: item.price, quantity: 1 }]});
+                              }
+                              setShowAddItemSection(false); setSearchQuery('');
+                            }} className="bg-yellow-600 hover:bg-yellow-700 text-white h-6 px-2 text-xs">
+                              {currentLanguage === 'vi' ? 'Thêm' : 'Add'}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {filteredMenuItems.length === 0 && searchQuery && (
+                        <div className="text-center text-zinc-400 text-sm py-4">{currentLanguage === 'vi' ? 'Không tìm thấy món' : 'No items found'} "{searchQuery}"</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-zinc-700">
+                <Button variant="outline" onClick={() => setIsEditOrderModalOpen(false)} className="border-zinc-600 text-white hover:bg-zinc-800">
+                  {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                </Button>
+                <Button onClick={() => {
+                  const total = editOrderData.items.reduce((t, i) => t + i.price * i.quantity, 0);
+                  updateFullOrderMutation.mutate({ id: selectedOrder.id, data: { customerName: editOrderData.customerName, customerEmail: editOrderData.customerEmail, customerPhone: editOrderData.customerPhone, customerAddress: editOrderData.customerAddress, orderType: editOrderData.orderType, status: editOrderData.status, items: editOrderData.items, totalAmount: total.toString() } });
+                }} className="bg-yellow-600 hover:bg-yellow-700 text-white" disabled={updateFullOrderMutation.isPending}>
+                  {updateFullOrderMutation.isPending ? (currentLanguage === 'vi' ? 'Đang lưu...' : 'Saving...') : (currentLanguage === 'vi' ? 'Lưu thay đổi' : 'Save Changes')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Reservation Modal */}
+      <Dialog open={isEditReservationModalOpen} onOpenChange={setIsEditReservationModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{currentLanguage === 'vi' ? 'Chỉnh sửa đặt bàn' : 'Edit Reservation'}</DialogTitle>
+          </DialogHeader>
+          {selectedReservation && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Tên khách' : 'Customer Name'}</label>
+                  <Input value={editReservationData.name} onChange={(e) => setEditReservationData({...editReservationData, name: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">Email</label>
+                  <Input value={editReservationData.email} onChange={(e) => setEditReservationData({...editReservationData, email: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Số điện thoại' : 'Phone'}</label>
+                  <Input value={editReservationData.phone} onChange={(e) => setEditReservationData({...editReservationData, phone: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Số người' : 'Guests'}</label>
+                  <Input type="number" value={editReservationData.guests} onChange={(e) => setEditReservationData({...editReservationData, guests: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Ngày' : 'Date'}</label>
+                  <Input type="date" value={editReservationData.date} onChange={(e) => setEditReservationData({...editReservationData, date: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Giờ' : 'Time'}</label>
+                  <Input type="time" value={editReservationData.time} onChange={(e) => setEditReservationData({...editReservationData, time: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Trạng thái' : 'Status'}</label>
+                  <Select value={editReservationData.status} onValueChange={(v) => setEditReservationData({...editReservationData, status: v})}>
+                    <SelectTrigger className="mt-1 bg-zinc-800 border-zinc-700 text-white"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                      <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
+                      <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
+                      <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã Hủy' : 'Cancelled'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-zinc-300">{currentLanguage === 'vi' ? 'Ghi chú' : 'Special Requests'}</label>
+                <textarea value={editReservationData.specialRequests} onChange={(e) => setEditReservationData({...editReservationData, specialRequests: e.target.value})} className="mt-1 w-full p-3 bg-zinc-800 border border-zinc-700 rounded text-white text-sm" rows={3} placeholder={currentLanguage === 'vi' ? 'Yêu cầu đặc biệt...' : 'Special requests...'} />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-zinc-700">
+                <Button variant="outline" onClick={() => setIsEditReservationModalOpen(false)} className="border-zinc-600 text-white hover:bg-zinc-800">
+                  {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
+                </Button>
+                <Button onClick={() => {
+                  updateFullReservationMutation.mutate({ id: selectedReservation.id, data: { name: editReservationData.name, email: editReservationData.email, phone: editReservationData.phone, guests: parseInt(editReservationData.guests), date: editReservationData.date, time: editReservationData.time, status: editReservationData.status, specialRequests: editReservationData.specialRequests } });
+                }} className="bg-yellow-600 hover:bg-yellow-700 text-white" disabled={updateFullReservationMutation.isPending}>
+                  {updateFullReservationMutation.isPending ? (currentLanguage === 'vi' ? 'Đang lưu...' : 'Saving...') : (currentLanguage === 'vi' ? 'Lưu thay đổi' : 'Save Changes')}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
