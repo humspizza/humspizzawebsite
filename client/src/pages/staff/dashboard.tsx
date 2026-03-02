@@ -783,21 +783,13 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                               <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Đặt lúc:' : 'Booked at:'} {formatDbTimestamp(reservation.createdAt)}</p>
                             </div>
                             <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
-                              <input
-                                key={tableNumbers[reservation.id] || ''}
-                                defaultValue={tableNumbers[reservation.id] || ''}
-                                placeholder="Bàn..."
-                                className="h-8 w-16 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-yellow-400 placeholder-zinc-500 text-center font-medium"
-                                onBlur={(e) => {
-                                  const val = e.target.value.trim();
-                                  if (val !== (tableNumbers[reservation.id] || '')) {
-                                    setTableNumberMutation.mutate({ id: reservation.id, tableNumber: val });
-                                  }
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                                }}
-                              />
+                              {tableNumbers[reservation.id] ? (
+                                <span className="h-8 w-16 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs text-center font-medium flex items-center justify-center">
+                                  {tableNumbers[reservation.id]}
+                                </span>
+                              ) : (
+                                <span className="h-8 w-16" />
+                              )}
                               <div className="flex items-center gap-0.5">
                                 <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
                                   <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
