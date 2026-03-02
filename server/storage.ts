@@ -64,6 +64,7 @@ export interface IStorage {
   // Contact Messages
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
   getContactMessages(): Promise<ContactMessage[]>;
+  updateContactMessage(id: string, data: { name?: string; email?: string; phone?: string; subject?: string; message?: string; status?: string }): Promise<ContactMessage>;
 
   // Customer Reviews
   getCustomerReviews(published?: boolean): Promise<CustomerReview[]>;
@@ -605,6 +606,20 @@ export class DatabaseStorage implements IStorage {
     const [updatedMessage] = await db
       .update(contactMessages)
       .set({ status })
+      .where(eq(contactMessages.id, id))
+      .returning();
+    
+    if (!updatedMessage) {
+      throw new Error("Contact message not found");
+    }
+    
+    return updatedMessage;
+  }
+
+  async updateContactMessage(id: string, data: { name?: string; email?: string; phone?: string; subject?: string; message?: string; status?: string }): Promise<ContactMessage> {
+    const [updatedMessage] = await db
+      .update(contactMessages)
+      .set(data)
       .where(eq(contactMessages.id, id))
       .returning();
     

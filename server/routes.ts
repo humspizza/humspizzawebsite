@@ -885,6 +885,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/contact/:id", requireAuth, async (req, res) => {
+    try {
+      const { name, email, phone, subject, message, status } = req.body;
+      const updated = await storage.updateContactMessage(req.params.id, { name, email, phone, subject, message, status });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.delete("/api/contact/:id", requireAuth, async (req, res) => {
     try {
       await storage.deleteContactMessage(req.params.id);

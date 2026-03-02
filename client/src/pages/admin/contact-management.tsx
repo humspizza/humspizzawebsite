@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, Clock, User, MessageSquare, Trash2, Search, Filter, AlertTriangle } from "lucide-react";
+import { Mail, Clock, User, MessageSquare, Trash2, Search, Filter, AlertTriangle, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { apiRequest } from "@/lib/queryClient";
@@ -27,6 +28,9 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState<Set<string>>(new Set());
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingMessage, setEditingMessage] = useState<ContactMessage | null>(null);
+  const [editData, setEditData] = useState({ name: '', email: '', phone: '', subject: '', message: '', status: '' });
   const { toast } = useToast();
   const { language } = useLanguage();
   const queryClient = useQueryClient();
@@ -80,6 +84,34 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
       });
     },
   });
+
+  const updateContactMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PATCH", `/api/contact/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contact"] });
+      setIsEditModalOpen(false);
+      toast({
+        title: language === 'vi' ? 'Đã cập nhật' : 'Updated',
+        description: language === 'vi' ? 'Tin nhắn đã được cập nhật' : 'Message updated successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'vi' ? 'Lỗi' : 'Error',
+        description: error.message || 'Failed to update message',
+        variant: "destructive",
+      });
+    },
+  });
+
+  const openEditModal = (msg: ContactMessage) => {
+    setEditingMessage(msg);
+    setEditData({ name: msg.name, email: msg.email, phone: msg.phone || '', subject: msg.subject, message: msg.message, status: msg.status });
+    setIsEditModalOpen(true);
+  };
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids: string[]) => {
@@ -327,7 +359,7 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
       )}
 
       {/* Bulk Actions Bar */}
-      <div className="flex items-center justify-between">
+      {showDeleteButton && <div className="flex items-center justify-between">
         {!isMultiSelectMode ? (
           <Button 
             size="sm"
@@ -408,7 +440,7 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
             </Button>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Messages List */}
       <div className="space-y-4">
@@ -487,6 +519,11 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
                     </Select>
                   </div>
 
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => openEditModal(message)} className="text-yellow-400 hover:text-yellow-300 border-zinc-700 hover:bg-zinc-800" title={language === 'vi' ? 'Chỉnh sửa' : 'Edit'}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+
                   {showDeleteButton && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -520,12 +557,67 @@ export default function ContactManagement({ showDeleteButton = true }: ContactMa
                       </AlertDialogContent>
                     </AlertDialog>
                   )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))
         )}
       </div>
+
+      {/* Edit Contact Message Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{language === 'vi' ? 'Chỉnh sửa tin nhắn' : 'Edit Message'}</DialogTitle>
+          </DialogHeader>
+          {editingMessage && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{language === 'vi' ? 'Tên' : 'Name'}</label>
+                  <Input value={editData.name} onChange={(e) => setEditData({...editData, name: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">Email</label>
+                  <Input value={editData.email} onChange={(e) => setEditData({...editData, email: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{language === 'vi' ? 'Số điện thoại' : 'Phone'}</label>
+                  <Input value={editData.phone} onChange={(e) => setEditData({...editData, phone: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-zinc-300">{language === 'vi' ? 'Trạng thái' : 'Status'}</label>
+                  <Select value={editData.status} onValueChange={(v) => setEditData({...editData, status: v})}>
+                    <SelectTrigger className="mt-1 bg-zinc-800 border-zinc-700 text-white"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700">
+                      <SelectItem value="new" className="text-white">{language === 'vi' ? 'Mới' : 'New'}</SelectItem>
+                      <SelectItem value="replied" className="text-white">{language === 'vi' ? 'Đã trả lời' : 'Replied'}</SelectItem>
+                      <SelectItem value="archived" className="text-white">{language === 'vi' ? 'Lưu trữ' : 'Archived'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium text-zinc-300">{language === 'vi' ? 'Chủ đề' : 'Subject'}</label>
+                  <Input value={editData.subject} onChange={(e) => setEditData({...editData, subject: e.target.value})} className="mt-1 bg-zinc-800 border-zinc-700 text-white" />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-zinc-300">{language === 'vi' ? 'Nội dung tin nhắn' : 'Message'}</label>
+                <textarea value={editData.message} onChange={(e) => setEditData({...editData, message: e.target.value})} className="mt-1 w-full p-3 bg-zinc-800 border border-zinc-700 rounded text-white text-sm" rows={5} />
+              </div>
+              <div className="flex justify-end gap-2 pt-4 border-t border-zinc-700">
+                <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="border-zinc-600 text-white hover:bg-zinc-800">
+                  {language === 'vi' ? 'Hủy' : 'Cancel'}
+                </Button>
+                <Button onClick={() => updateContactMutation.mutate({ id: editingMessage.id, data: editData })} className="bg-yellow-600 hover:bg-yellow-700 text-white" disabled={updateContactMutation.isPending}>
+                  {updateContactMutation.isPending ? (language === 'vi' ? 'Đang lưu...' : 'Saving...') : (language === 'vi' ? 'Lưu thay đổi' : 'Save Changes')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
