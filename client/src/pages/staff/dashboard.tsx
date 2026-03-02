@@ -544,19 +544,36 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                                   <p className="text-sm text-zinc-400">{currentLanguage === 'vi' ? 'Yêu cầu:' : 'Requests:'} {reservation.specialRequests}</p>
                                 )}
                               </div>
-                              <div className="flex items-center justify-end gap-0.5 pt-2 border-t border-zinc-800">
-                                <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
-                                  <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
-                                </Button>
-                                <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Sao chép' : 'Copy'}>
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                                <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setIsReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                                <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setEditReservationData({ name: reservation.name, email: reservation.email, phone: reservation.phone, guests: reservation.guests.toString(), date: reservation.date, time: reservation.time, status: reservation.status, specialRequests: reservation.specialRequests || '' }); setIsEditReservationModalOpen(true); }} className="text-yellow-400 hover:text-yellow-300 h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Chỉnh sửa' : 'Edit'}>
-                                  <Edit className="w-4 h-4" />
-                                </Button>
+                              <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+                                <input
+                                  key={tableNumbers[reservation.id] || ''}
+                                  defaultValue={tableNumbers[reservation.id] || ''}
+                                  placeholder="Bàn..."
+                                  className="h-8 w-16 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-yellow-400 placeholder-zinc-500 text-center font-medium"
+                                  onBlur={(e) => {
+                                    const val = e.target.value.trim();
+                                    if (val !== (tableNumbers[reservation.id] || '')) {
+                                      setTableNumberMutation.mutate({ id: reservation.id, tableNumber: val });
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                  }}
+                                />
+                                <div className="flex items-center gap-0.5">
+                                  <Button size="sm" variant="ghost" asChild className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Gọi điện' : 'Call'}>
+                                    <a href={`tel:${reservation.phone}`}><Phone className="w-4 h-4" /></a>
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={() => copyAllInfo('reservation', reservation)} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Sao chép' : 'Copy'}>
+                                    <Copy className="w-4 h-4" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setIsReservationModalOpen(true); }} className="text-zinc-400 hover:text-white h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Xem chi tiết' : 'View details'}>
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={() => { setSelectedReservation(reservation); setEditReservationData({ name: reservation.name, email: reservation.email, phone: reservation.phone, guests: reservation.guests.toString(), date: reservation.date, time: reservation.time, status: reservation.status, specialRequests: reservation.specialRequests || '' }); setIsEditReservationModalOpen(true); }} className="text-yellow-400 hover:text-yellow-300 h-8 w-8 p-0" title={currentLanguage === 'vi' ? 'Chỉnh sửa' : 'Edit'}>
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </div>
