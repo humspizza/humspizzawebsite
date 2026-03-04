@@ -286,7 +286,8 @@ export const insertMenuItemCustomizationSchemaSchema = createInsertSchema(menuIt
 export const insertReservationSchema = createInsertSchema(reservations).omit({
   id: true,
   createdAt: true,
-  status: true,
+}).extend({
+  status: z.enum(["pending", "confirmed", "seated", "cancelled"]).optional().default("pending"),
 });
 
 export const insertOrderSchema = createInsertSchema(orders).omit({
