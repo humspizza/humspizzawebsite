@@ -903,10 +903,12 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                            <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
-                            <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
-                            <SelectItem value="completed" className="text-white">{currentLanguage === 'vi' ? 'Hoàn thành' : 'Completed'}</SelectItem>
-                            <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</SelectItem>
+                            <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Chờ Xử Lý' : 'Pending'}</SelectItem>
+                            <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed'}</SelectItem>
+                            <SelectItem value="preparing" className="text-white">{currentLanguage === 'vi' ? 'Đang Chuẩn Bị' : 'Preparing'}</SelectItem>
+                            <SelectItem value="ready" className="text-white">{currentLanguage === 'vi' ? 'Sẵn Sàng' : 'Ready'}</SelectItem>
+                            <SelectItem value="completed" className="text-white">{currentLanguage === 'vi' ? 'Hoàn Thành' : 'Completed'}</SelectItem>
+                            <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã Hủy' : 'Cancelled'}</SelectItem>
                           </SelectContent>
                         </Select>
                         <div className="flex items-center gap-0.5">
