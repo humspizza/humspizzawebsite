@@ -881,7 +881,8 @@ export default function AdminDashboard() {
     const statusColors = {
       reservation: {
         pending: "bg-yellow-500",
-        confirmed: "bg-green-500", 
+        confirmed: "bg-blue-500",
+        seated: "bg-green-500",
         cancelled: "bg-red-500"
       },
       order: {
@@ -896,11 +897,13 @@ export default function AdminDashboard() {
 
     const reservationLabels: Record<string, string> = currentLanguage === 'vi' ? {
       pending: 'Đặt Bàn',
-      confirmed: 'Nhận Bàn',
+      confirmed: 'Đã Xác Nhận',
+      seated: 'Nhận Bàn',
       cancelled: 'Đã Hủy'
     } : {
       pending: 'Pending',
       confirmed: 'Confirmed',
+      seated: 'Seated',
       cancelled: 'Cancelled'
     };
 
@@ -1483,7 +1486,8 @@ export default function AdminDashboard() {
                                 </SelectTrigger>
                                 <SelectContent className="bg-zinc-800 border-zinc-700">
                                   <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
-                                  <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
+                                  <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed'}</SelectItem>
+                                  <SelectItem value="seated" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Seated'}</SelectItem>
                                   <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
                                 </SelectContent>
                               </Select>
@@ -1556,9 +1560,15 @@ export default function AdminDashboard() {
                       },
                       {
                         status: 'confirmed',
-                        label: currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed',
-                        style: { color: '#34d399' },
+                        label: currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed',
+                        style: { color: '#60a5fa' },
                         items: filteredReservations.filter((r: any) => r.status === 'confirmed').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)),
+                      },
+                      {
+                        status: 'seated',
+                        label: currentLanguage === 'vi' ? 'Nhận Bàn' : 'Seated',
+                        style: { color: '#34d399' },
+                        items: filteredReservations.filter((r: any) => r.status === 'seated').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)),
                       },
                       {
                         status: 'cancelled',
@@ -1619,7 +1629,8 @@ export default function AdminDashboard() {
                                           </SelectTrigger>
                                           <SelectContent className="bg-zinc-800 border-zinc-700">
                                             <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
-                                            <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
+                                            <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed'}</SelectItem>
+                                            <SelectItem value="seated" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Seated'}</SelectItem>
                                             <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
                                           </SelectContent>
                                         </Select>
@@ -2678,7 +2689,8 @@ export default function AdminDashboard() {
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-800 border-zinc-700">
                       <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
-                      <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
+                      <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed'}</SelectItem>
+                      <SelectItem value="seated" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Seated'}</SelectItem>
                       <SelectItem value="cancelled" className="text-white">{t('admin.cancelled')}</SelectItem>
                     </SelectContent>
                   </Select>

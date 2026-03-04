@@ -259,14 +259,16 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
   const getStatusBadge = (status: string) => {
     const statusText = currentLanguage === 'vi' ? {
       pending: 'Đặt Bàn',
-      confirmed: 'Nhận Bàn',
+      confirmed: 'Đã Xác Nhận',
+      seated: 'Nhận Bàn',
       completed: 'Hoàn thành',
       cancelled: 'Đã hủy',
       preparing: 'Đang chuẩn bị',
       ready: 'Sẵn sàng'
     } : {
       pending: 'Pending',
-      confirmed: 'Confirmed', 
+      confirmed: 'Confirmed',
+      seated: 'Seated',
       completed: 'Completed',
       cancelled: 'Cancelled',
       preparing: 'Preparing',
@@ -275,7 +277,8 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
 
     const colors: Record<string, string> = {
       pending: 'bg-yellow-500',
-      confirmed: 'bg-green-500',
+      confirmed: 'bg-blue-500',
+      seated: 'bg-green-500',
       completed: 'bg-blue-500',
       cancelled: 'bg-red-500',
       preparing: 'bg-orange-500',
@@ -757,7 +760,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                       }
                     `}</style>
                     {reservations
-                      .filter((reservation: any) => reservation.status === 'pending' || reservation.status === 'confirmed')
+                      .filter((reservation: any) => reservation.status === 'pending' || reservation.status === 'confirmed' || reservation.status === 'seated')
                       .slice(0, 10)
                       .map((reservation: any) => (
                         <div key={reservation.id} className="p-4 border rounded-lg border-zinc-800">
@@ -801,7 +804,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                           </div>
                         </div>
                       ))}
-                    {reservations.filter((reservation: any) => reservation.status === 'pending' || reservation.status === 'confirmed').length === 0 && (
+                    {reservations.filter((reservation: any) => reservation.status === 'pending' || reservation.status === 'confirmed' || reservation.status === 'seated').length === 0 && (
                       <p className="text-zinc-400 text-center py-4">
                         {currentLanguage === 'vi' ? 'Không có đặt bàn mới hoặc đã nhận bàn' : 'No pending or confirmed reservations'}
                       </p>
@@ -1020,7 +1023,8 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
 
                 const groups = [
                   { status: 'pending', label: currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending', color: '#facc15', items: filteredReservations.filter((r: any) => r.status === 'pending').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
-                  { status: 'confirmed', label: currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed', color: '#34d399', items: filteredReservations.filter((r: any) => r.status === 'confirmed').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
+                  { status: 'confirmed', label: currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed', color: '#60a5fa', items: filteredReservations.filter((r: any) => r.status === 'confirmed').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
+                  { status: 'seated', label: currentLanguage === 'vi' ? 'Nhận Bàn' : 'Seated', color: '#34d399', items: filteredReservations.filter((r: any) => r.status === 'seated').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
                   { status: 'cancelled', label: currentLanguage === 'vi' ? 'Đã Hủy' : 'Cancelled', color: '#f87171', items: filteredReservations.filter((r: any) => r.status === 'cancelled').sort((a: any, b: any) => (a.date + a.time).localeCompare(b.date + b.time)) },
                 ];
 
@@ -1054,7 +1058,8 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                             <SelectTrigger className="w-32 h-8 bg-zinc-800 border-zinc-700 text-white text-sm"><SelectValue /></SelectTrigger>
                             <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
                               <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
-                              <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
+                              <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed'}</SelectItem>
+                              <SelectItem value="seated" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Seated'}</SelectItem>
                               <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã hủy' : 'Cancelled'}</SelectItem>
                             </SelectContent>
                           </Select>
@@ -1689,7 +1694,8 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                     <SelectTrigger className="mt-1 bg-zinc-800 border-zinc-700 text-white"><SelectValue /></SelectTrigger>
                     <SelectContent className="bg-zinc-800 border-zinc-700">
                       <SelectItem value="pending" className="text-white">{currentLanguage === 'vi' ? 'Đặt Bàn' : 'Pending'}</SelectItem>
-                      <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Confirmed'}</SelectItem>
+                      <SelectItem value="confirmed" className="text-white">{currentLanguage === 'vi' ? 'Đã Xác Nhận' : 'Confirmed'}</SelectItem>
+                      <SelectItem value="seated" className="text-white">{currentLanguage === 'vi' ? 'Nhận Bàn' : 'Seated'}</SelectItem>
                       <SelectItem value="cancelled" className="text-white">{currentLanguage === 'vi' ? 'Đã Hủy' : 'Cancelled'}</SelectItem>
                     </SelectContent>
                   </Select>
