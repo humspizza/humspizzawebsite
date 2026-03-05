@@ -376,6 +376,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/reservation-table-numbers"] });
+      toast({ title: currentLanguage === 'vi' ? 'Đã lưu số bàn' : 'Table number saved', duration: 1500 });
     },
     onError: () => {
       toast({ title: currentLanguage === 'vi' ? 'Lỗi lưu số bàn' : 'Failed to save table number', variant: 'destructive' });
