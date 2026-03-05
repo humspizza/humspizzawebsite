@@ -500,6 +500,9 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/reservation-table-numbers"] });
     },
+    onError: () => {
+      toast({ title: currentLanguage === 'vi' ? 'Lỗi lưu số bàn' : 'Failed to save table number', variant: 'destructive' });
+    },
   });
 
   const updateOrderMutation = useMutation({
