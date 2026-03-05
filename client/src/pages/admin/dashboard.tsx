@@ -122,7 +122,6 @@ export default function AdminDashboard() {
   const [isEditReservationModalOpen, setIsEditReservationModalOpen] = useState(false);
   const [isConfirmEditOrderOpen, setIsConfirmEditOrderOpen] = useState(false);
   const [isConfirmEditReservationOpen, setIsConfirmEditReservationOpen] = useState(false);
-  const [pendingTableChange, setPendingTableChange] = useState<{ id: string; newValue: string; el: HTMLInputElement } | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   
@@ -1505,13 +1504,8 @@ export default function AdminDashboard() {
                                 className="h-8 w-16 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-yellow-400 placeholder-zinc-500 text-center font-medium"
                                 onBlur={(e) => {
                                   const val = e.target.value.trim();
-                                  const existing = tableNumbers[reservation.id] || '';
-                                  if (val !== existing) {
-                                    if (existing) {
-                                      setPendingTableChange({ id: reservation.id, newValue: val, el: e.target as HTMLInputElement });
-                                    } else {
-                                      setTableNumberMutation.mutate({ id: reservation.id, tableNumber: val });
-                                    }
+                                  if (val !== (tableNumbers[reservation.id] || '')) {
+                                    setTableNumberMutation.mutate({ id: reservation.id, tableNumber: val });
                                   }
                                 }}
                                 onKeyDown={(e) => {
@@ -1653,13 +1647,8 @@ export default function AdminDashboard() {
                                           className="h-8 w-16 px-2 rounded bg-zinc-800 border border-zinc-700 text-white text-xs focus:outline-none focus:border-yellow-400 placeholder-zinc-500 text-center font-medium"
                                           onBlur={(e) => {
                                             const val = e.target.value.trim();
-                                            const existing = tableNumbers[reservation.id] || '';
-                                            if (val !== existing) {
-                                              if (existing) {
-                                                setPendingTableChange({ id: reservation.id, newValue: val, el: e.target as HTMLInputElement });
-                                              } else {
-                                                setTableNumberMutation.mutate({ id: reservation.id, tableNumber: val });
-                                              }
+                                            if (val !== (tableNumbers[reservation.id] || '')) {
+                                              setTableNumberMutation.mutate({ id: reservation.id, tableNumber: val });
                                             }
                                           }}
                                           onKeyDown={(e) => {
@@ -2730,37 +2719,6 @@ export default function AdminDashboard() {
           )}
         </DialogContent>
       </Dialog>
-      <AlertDialog open={!!pendingTableChange} onOpenChange={(open) => {
-        if (!open && pendingTableChange) {
-          pendingTableChange.el.value = tableNumbers[pendingTableChange.id] || '';
-          setPendingTableChange(null);
-        }
-      }}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Thay đổi số bàn?' : 'Change Table Number?'}</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400">
-              {currentLanguage === 'vi'
-                ? `Số bàn hiện tại là "${tableNumbers[pendingTableChange?.id || ''] || ''}". Bạn có chắc muốn thay thành "${pendingTableChange?.newValue}"?`
-                : `Current table is "${tableNumbers[pendingTableChange?.id || ''] || ''}". Change to "${pendingTableChange?.newValue}"?`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-zinc-600 text-white hover:bg-zinc-800">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-yellow-600 hover:bg-yellow-700 text-white"
-              onClick={() => {
-                if (pendingTableChange) {
-                  setTableNumberMutation.mutate({ id: pendingTableChange.id, tableNumber: pendingTableChange.newValue });
-                }
-              }}
-            >
-              {currentLanguage === 'vi' ? 'Xác nhận thay đổi' : 'Confirm Change'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       <AlertDialog open={isConfirmEditOrderOpen} onOpenChange={setIsConfirmEditOrderOpen}>
         <AlertDialogContent className="bg-zinc-900 border-zinc-800">
           <AlertDialogHeader>
