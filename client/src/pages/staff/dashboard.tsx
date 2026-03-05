@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -36,6 +37,8 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [isEditOrderModalOpen, setIsEditOrderModalOpen] = useState(false);
   const [isEditReservationModalOpen, setIsEditReservationModalOpen] = useState(false);
+  const [isConfirmEditOrderOpen, setIsConfirmEditOrderOpen] = useState(false);
+  const [isConfirmEditReservationOpen, setIsConfirmEditReservationOpen] = useState(false);
   const [editOrderData, setEditOrderData] = useState({
     customerName: '', customerEmail: '', customerPhone: '', customerAddress: '',
     status: '', orderType: '',
@@ -1647,10 +1650,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 <Button variant="outline" onClick={() => setIsEditOrderModalOpen(false)} className="border-zinc-600 text-white hover:bg-zinc-800">
                   {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
                 </Button>
-                <Button onClick={() => {
-                  const total = editOrderData.items.reduce((t, i) => t + i.price * i.quantity, 0);
-                  updateFullOrderMutation.mutate({ id: selectedOrder.id, data: { customerName: editOrderData.customerName, customerEmail: editOrderData.customerEmail, customerPhone: editOrderData.customerPhone, customerAddress: editOrderData.customerAddress, orderType: editOrderData.orderType, status: editOrderData.status, items: editOrderData.items, totalAmount: total.toString() } });
-                }} className="bg-yellow-600 hover:bg-yellow-700 text-white" disabled={updateFullOrderMutation.isPending}>
+                <Button onClick={() => setIsConfirmEditOrderOpen(true)} className="bg-yellow-600 hover:bg-yellow-700 text-white" disabled={updateFullOrderMutation.isPending}>
                   {updateFullOrderMutation.isPending ? (currentLanguage === 'vi' ? 'Đang lưu...' : 'Saving...') : (currentLanguage === 'vi' ? 'Lưu thay đổi' : 'Save Changes')}
                 </Button>
               </div>
@@ -1715,9 +1715,7 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
                 <Button variant="outline" onClick={() => setIsEditReservationModalOpen(false)} className="border-zinc-600 text-white hover:bg-zinc-800">
                   {currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}
                 </Button>
-                <Button onClick={() => {
-                  updateFullReservationMutation.mutate({ id: selectedReservation.id, data: { name: editReservationData.name, email: editReservationData.email, phone: editReservationData.phone, guests: parseInt(editReservationData.guests), date: editReservationData.date, time: editReservationData.time, status: editReservationData.status, specialRequests: editReservationData.specialRequests } });
-                }} className="bg-yellow-600 hover:bg-yellow-700 text-white" disabled={updateFullReservationMutation.isPending}>
+                <Button onClick={() => setIsConfirmEditReservationOpen(true)} className="bg-yellow-600 hover:bg-yellow-700 text-white" disabled={updateFullReservationMutation.isPending}>
                   {updateFullReservationMutation.isPending ? (currentLanguage === 'vi' ? 'Đang lưu...' : 'Saving...') : (currentLanguage === 'vi' ? 'Lưu thay đổi' : 'Save Changes')}
                 </Button>
               </div>
@@ -1725,6 +1723,50 @@ export default function StaffDashboard({ user, onLogout }: StaffDashboardProps) 
           )}
         </DialogContent>
       </Dialog>
+      <AlertDialog open={isConfirmEditOrderOpen} onOpenChange={setIsConfirmEditOrderOpen}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận lưu thay đổi?' : 'Confirm Save Changes?'}</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              {currentLanguage === 'vi' ? 'Bạn có chắc muốn lưu các thay đổi cho đơn hàng này không?' : 'Are you sure you want to save changes to this order?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-zinc-600 text-white hover:bg-zinc-800">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+              onClick={() => {
+                const total = editOrderData.items.reduce((t, i) => t + i.price * i.quantity, 0);
+                updateFullOrderMutation.mutate({ id: selectedOrder!.id, data: { customerName: editOrderData.customerName, customerEmail: editOrderData.customerEmail, customerPhone: editOrderData.customerPhone, customerAddress: editOrderData.customerAddress, orderType: editOrderData.orderType, status: editOrderData.status, items: editOrderData.items, totalAmount: total.toString() } });
+              }}
+            >
+              {currentLanguage === 'vi' ? 'Xác nhận lưu' : 'Confirm Save'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isConfirmEditReservationOpen} onOpenChange={setIsConfirmEditReservationOpen}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận lưu thay đổi?' : 'Confirm Save Changes?'}</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              {currentLanguage === 'vi' ? 'Bạn có chắc muốn lưu các thay đổi cho đặt bàn này không?' : 'Are you sure you want to save changes to this reservation?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-zinc-600 text-white hover:bg-zinc-800">{currentLanguage === 'vi' ? 'Hủy' : 'Cancel'}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+              onClick={() => {
+                updateFullReservationMutation.mutate({ id: selectedReservation!.id, data: { name: editReservationData.name, email: editReservationData.email, phone: editReservationData.phone, guests: parseInt(editReservationData.guests), date: editReservationData.date, time: editReservationData.time, status: editReservationData.status, specialRequests: editReservationData.specialRequests } });
+              }}
+            >
+              {currentLanguage === 'vi' ? 'Xác nhận lưu' : 'Confirm Save'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

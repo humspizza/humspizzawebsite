@@ -120,6 +120,8 @@ export default function AdminDashboard() {
   // Edit modal states
   const [isEditOrderModalOpen, setIsEditOrderModalOpen] = useState(false);
   const [isEditReservationModalOpen, setIsEditReservationModalOpen] = useState(false);
+  const [isConfirmEditOrderOpen, setIsConfirmEditOrderOpen] = useState(false);
+  const [isConfirmEditReservationOpen, setIsConfirmEditReservationOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   
@@ -2454,22 +2456,7 @@ export default function AdminDashboard() {
                   {t('admin.cancel')}
                 </Button>
                 <Button 
-                  onClick={() => {
-                    const newTotalAmount = editOrderData.items.reduce((total, item) => total + (item.price * item.quantity), 0);
-                    updateFullOrderMutation.mutate({
-                      id: selectedOrder.id,
-                      data: {
-                        customerName: editOrderData.customerName,
-                        customerEmail: editOrderData.customerEmail,
-                        customerPhone: editOrderData.customerPhone,
-                        customerAddress: editOrderData.customerAddress,
-                        orderType: editOrderData.orderType,
-                        status: editOrderData.status,
-                        items: editOrderData.items,
-                        totalAmount: newTotalAmount.toString()
-                      }
-                    });
-                  }}
+                  onClick={() => setIsConfirmEditOrderOpen(true)}
                   className="bg-yellow-600 hover:bg-yellow-700 text-white"
                   disabled={updateFullOrderMutation.isPending}
                 >
@@ -2721,21 +2708,7 @@ export default function AdminDashboard() {
                   {t('admin.cancel')}
                 </Button>
                 <Button 
-                  onClick={() => {
-                    updateFullReservationMutation.mutate({
-                      id: selectedReservation.id,
-                      data: {
-                        name: editReservationData.name,
-                        email: editReservationData.email,
-                        phone: editReservationData.phone,
-                        guests: parseInt(editReservationData.guests),
-                        date: editReservationData.date,
-                        time: editReservationData.time,
-                        status: editReservationData.status,
-                        specialRequests: editReservationData.specialRequests
-                      }
-                    });
-                  }}
+                  onClick={() => setIsConfirmEditReservationOpen(true)}
                   className="bg-yellow-600 hover:bg-yellow-700 text-white"
                   disabled={updateFullReservationMutation.isPending}
                 >
@@ -2746,6 +2719,50 @@ export default function AdminDashboard() {
           )}
         </DialogContent>
       </Dialog>
+      <AlertDialog open={isConfirmEditOrderOpen} onOpenChange={setIsConfirmEditOrderOpen}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận lưu thay đổi?' : 'Confirm Save Changes?'}</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              {currentLanguage === 'vi' ? 'Bạn có chắc muốn lưu các thay đổi cho đơn hàng này không?' : 'Are you sure you want to save changes to this order?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-zinc-600 text-white hover:bg-zinc-800">{t('admin.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+              onClick={() => {
+                const newTotalAmount = editOrderData.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+                updateFullOrderMutation.mutate({ id: selectedOrder!.id, data: { customerName: editOrderData.customerName, customerEmail: editOrderData.customerEmail, customerPhone: editOrderData.customerPhone, customerAddress: editOrderData.customerAddress, orderType: editOrderData.orderType, status: editOrderData.status, items: editOrderData.items, totalAmount: newTotalAmount.toString() } });
+              }}
+            >
+              {currentLanguage === 'vi' ? 'Xác nhận lưu' : 'Confirm Save'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isConfirmEditReservationOpen} onOpenChange={setIsConfirmEditReservationOpen}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">{currentLanguage === 'vi' ? 'Xác nhận lưu thay đổi?' : 'Confirm Save Changes?'}</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              {currentLanguage === 'vi' ? 'Bạn có chắc muốn lưu các thay đổi cho đặt bàn này không?' : 'Are you sure you want to save changes to this reservation?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-zinc-600 text-white hover:bg-zinc-800">{t('admin.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+              onClick={() => {
+                updateFullReservationMutation.mutate({ id: selectedReservation!.id, data: { name: editReservationData.name, email: editReservationData.email, phone: editReservationData.phone, guests: parseInt(editReservationData.guests), date: editReservationData.date, time: editReservationData.time, status: editReservationData.status, specialRequests: editReservationData.specialRequests } });
+              }}
+            >
+              {currentLanguage === 'vi' ? 'Xác nhận lưu' : 'Confirm Save'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
