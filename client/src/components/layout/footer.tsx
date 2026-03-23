@@ -100,7 +100,7 @@ export default function Footer() {
             <img
               src={upseinLogo}
               alt="UpSEIN"
-              className="h-4 w-auto grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+              className="h-6 w-auto grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
             />
           </a>
         </div>
