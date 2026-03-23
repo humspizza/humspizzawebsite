@@ -84,25 +84,25 @@ export default function Footer() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-zinc-800 mt-6 pt-3 pb-3">
-          <div className="flex items-center justify-between">
-            <span className="text-zinc-500 text-xs">Copyright © 2025 Hum's Pizza. All rights reserved.</span>
-            <a
-              href="https://upsein.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 group"
-            >
-              <span className="text-zinc-600 text-xs group-hover:text-zinc-400 transition-colors">Developed By</span>
-              <img
-                src={upseinLogo}
-                alt="UpSEIN"
-                className="h-4 w-auto grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
-              />
-            </a>
-          </div>
+      {/* Bottom Bar - full width */}
+      <div className="border-t border-zinc-800 mt-6 pt-3 pb-3 px-8">
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-500 text-xs">Copyright © 2025 Hum's Pizza. All rights reserved.</span>
+          <a
+            href="https://upsein.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 group"
+          >
+            <span className="text-zinc-600 text-xs group-hover:text-zinc-400 transition-colors">Developed By</span>
+            <img
+              src={upseinLogo}
+              alt="UpSEIN"
+              className="h-4 w-auto grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+            />
+          </a>
         </div>
       </div>
     </footer>
