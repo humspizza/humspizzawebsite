@@ -14,7 +14,7 @@ export default function Footer() {
             {/* Contact Info */}
             <div>
               <h4 className="text-sm font-bold mb-3 text-white">
-                {currentLanguage === 'vi' ? 'Thông Tin Liên Hệ' : 'Contact Information'}
+                {t('footer.contactInfo') || 'Thông Tin Liên Hệ'}
               </h4>
               <div className="text-zinc-400 text-sm leading-relaxed space-y-1">
                 <div>{t('footer.address')}: {t('footer.addressLine1')}</div>

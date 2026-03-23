@@ -248,6 +248,7 @@ const translations = {
     "footer.description": "Where authentic Vietnamese flavors meet modern culinary artistry, creating memorable moments for every family through exceptional food and warm experiences.",
     "footer.hours": "Hours",
     "footer.contact": "Contact",
+    "footer.contactInfo": "Contact Information",
     "footer.contactUs": "Contact Us",
     "footer.address": "Address",
     "footer.addressLine1": "108 Ngo Gia Tu Street, Chanh Nghia Ward",
@@ -1085,6 +1086,7 @@ const translations = {
     // Footer
     "footer.hours": "Giờ Mở Cửa",
     "footer.contact": "Liên Hệ",
+    "footer.contactInfo": "Thông Tin Liên Hệ",
     "footer.contactUs": "Liên hệ với chúng tôi",
     "footer.address": "Địa chỉ",
     "footer.addressLine1": "108 Ngô Gia Tự, Phường Chánh Nghĩa",
