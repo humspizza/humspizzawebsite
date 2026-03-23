@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { SiFacebook, SiInstagram, SiLinkedin, SiTiktok } from "react-icons/si";
 import { useLanguage } from "@/contexts/LanguageContext";
+import upseinLogo from "@assets/UpSEIN_Logo_1774251943589.png";
 
 export default function Footer() {
   const { t } = useLanguage();
@@ -86,8 +87,21 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-zinc-800 mt-12 pt-3 pb-3">
-          <div className="text-center text-zinc-500 text-sm">
-            © 2025 Hum's Pizza.
+          <div className="flex items-center justify-between">
+            <span className="text-zinc-500 text-xs">Copyright © 2025 Hum's Pizza. All rights reserved.</span>
+            <a
+              href="https://upsein.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 group"
+            >
+              <span className="text-zinc-600 text-xs group-hover:text-zinc-400 transition-colors">Developed By</span>
+              <img
+                src={upseinLogo}
+                alt="UpSEIN"
+                className="h-4 w-auto grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+              />
+            </a>
           </div>
         </div>
       </div>
