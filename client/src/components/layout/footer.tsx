@@ -4,29 +4,19 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import upseinLogo from "@assets/UpSEIN_Logo_1774251943589.png";
 
 export default function Footer() {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   
   return (
     <footer className="bg-black border-t border-zinc-800 pt-6 pb-0">
-      <div className="container mx-auto px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-4">
+      <div className="px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            {/* Restaurant Info */}
-            <div className="lg:col-span-6">
-              <div className="mb-3">
-                <img 
-                  src="/logo.humpizza.png" 
-                  alt="Hum's Pizza Logo" 
-                  className="h-12 w-auto mb-3"
-                  onError={(e) => {
-                    // Fallback if logo not found
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/favicon.png";
-                  }}
-                />
-              </div>
-              <div className="text-zinc-400 text-sm mb-0 leading-relaxed space-y-1">
+            {/* Contact Info */}
+            <div>
+              <h4 className="text-sm font-bold mb-3 text-white">
+                {currentLanguage === 'vi' ? 'Thông Tin Liên Hệ' : 'Contact Information'}
+              </h4>
+              <div className="text-zinc-400 text-sm leading-relaxed space-y-1">
                 <div>{t('footer.address')}: {t('footer.addressLine1')}</div>
                 <div>{t('footer.addressLine2')}</div>
                 <div>{t('footer.hotline')}: 0934 699 798</div>
@@ -34,9 +24,9 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className="lg:col-span-6 lg:flex lg:justify-end">
-              {/* Contact Us */}
-              <div className="lg:w-auto">
+            {/* Social Media */}
+            <div className="lg:flex lg:justify-end lg:items-start">
+              <div>
                 <h4 className="text-sm font-bold mb-3 text-white">{t('footer.contactUs')}</h4>
                 <div className="flex space-x-2">
                   <a 
@@ -83,7 +73,6 @@ export default function Footer() {
               </div>
             </div>
           </div>
-        </div>
       </div>
 
       {/* Bottom Bar - full width */}
