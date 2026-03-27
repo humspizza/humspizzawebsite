@@ -78,14 +78,14 @@ export default function Footer() {
       {/* Bottom Bar - full width */}
       <div className="border-t border-zinc-800 mt-6 pt-3 pb-3 px-8">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-zinc-500 text-xs min-w-0 truncate">Copyright © 2025 Hum's Pizza. All rights reserved.</span>
+          <span className="text-zinc-500 text-[10px] sm:text-xs">Copyright © 2025 Hum's Pizza. All rights reserved.</span>
           <a
             href="https://upsein.com"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 group shrink-0"
           >
-            <span className="text-zinc-600 text-xs group-hover:text-zinc-400 transition-colors">Developed By</span>
+            <span className="text-zinc-600 text-[10px] sm:text-xs group-hover:text-zinc-400 transition-colors">Developed By</span>
             <img
               src={upseinLogo}
               alt="UpSEIN"
