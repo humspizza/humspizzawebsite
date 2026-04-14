@@ -15,7 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, DollarSign, Upload, FolderPlus, Search, Filter, GripVertical, X } from "lucide-react";
+import { Plus, Edit, Trash2, DollarSign, Upload, FolderPlus, Search, Filter, GripVertical, X, Copy } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { ObjectUploader } from "@/components/ObjectUploader";
 // Remove unused import
@@ -473,6 +473,24 @@ export default function MenuManagement() {
       categoryId: item.categoryId || "",
       customizationSchemaId: item.customizationSchemaId || "none",
       multipleSchemas: multipleSchemas,
+      isAvailable: item.isAvailable,
+      tags: item.tags ? item.tags.join(", ") : "",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDuplicate = (item: MenuItem) => {
+    setEditingItem(null);
+    form.reset({
+      name: `Bản sao - ${item.name}`,
+      nameVi: item.nameVi ? `Bản sao - ${item.nameVi}` : "",
+      description: item.description,
+      descriptionVi: item.descriptionVi || "",
+      price: item.price,
+      imageUrl: item.imageUrl || "",
+      categoryId: item.categoryId || "",
+      customizationSchemaId: item.customizationSchemaId || "none",
+      multipleSchemas: [],
       isAvailable: item.isAvailable,
       tags: item.tags ? item.tags.join(", ") : "",
     });
@@ -1011,6 +1029,16 @@ export default function MenuManagement() {
                           </svg>
                         </Button>
                         
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDuplicate(item)}
+                          className="border-zinc-700 text-blue-400 hover:bg-zinc-800 hover:text-blue-300"
+                          title="Sao chép món ăn"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+
                         <Button
                           size="sm"
                           variant="outline"
