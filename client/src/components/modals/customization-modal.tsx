@@ -161,10 +161,10 @@ export default function CustomizationModal({
         const selectedSecondPizza = menuItems.find((item) => item.id === secondFlavor);
         const secondPizzaPrice = selectedSecondPizza ? (typeof selectedSecondPizza.price === 'string' ? parseFloat(selectedSecondPizza.price) : selectedSecondPizza.price) : 0;
         
-        // Get service fee from schema configuration or use default 10,000 VND
+        // Get service fee from schema configuration or use default 20,000 VND
         const serviceFee = schema.config?.halfAndHalfFee || 
                           (schema as any).pricingConfig?.halfAndHalfFee || 
-                          10000;
+                          20000;
         
         total = roundPrice((P_base * 0.5) + (secondPizzaPrice * 0.5) + serviceFee);
       } else {
@@ -407,7 +407,7 @@ export default function CustomizationModal({
                       {(() => {
                         const serviceFee = schema.config?.halfAndHalfFee || 
                                           (schema as any).pricingConfig?.halfAndHalfFee || 
-                                          10000;
+                                          20000;
                         return `+ ${formatPrice(serviceFee)}`;
                       })()}
                     </span>
