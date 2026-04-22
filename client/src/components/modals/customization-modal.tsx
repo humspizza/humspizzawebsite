@@ -163,7 +163,7 @@ export default function CustomizationModal({
         
         // Get service fee from schema configuration or use default 20,000 VND
         const serviceFee = schema.config?.halfAndHalfFee || 
-                          (schema as any).pricingConfig?.halfAndHalfFee || 
+                          (schema as any).pricingConfig?.half_and_half_service_fee || 
                           20000;
         
         total = roundPrice((P_base * 0.5) + (secondPizzaPrice * 0.5) + serviceFee);
@@ -406,7 +406,7 @@ export default function CustomizationModal({
                     <span className="text-yellow-500 font-medium text-sm" data-testid="price-half-and-half">
                       {(() => {
                         const serviceFee = schema.config?.halfAndHalfFee || 
-                                          (schema as any).pricingConfig?.halfAndHalfFee || 
+                                          (schema as any).pricingConfig?.half_and_half_service_fee || 
                                           20000;
                         return `+ ${formatPrice(serviceFee)}`;
                       })()}

@@ -170,7 +170,8 @@ export default function MultiCustomizationModal({
         const secondPizzaPrice = selectedSecondPizza ? 
           (typeof selectedSecondPizza.price === 'string' ? parseFloat(selectedSecondPizza.price) : selectedSecondPizza.price) : 0;
         
-        const serviceFee = schema.config?.halfAndHalfFee || 20000;
+        const serviceFee = schema.config?.halfAndHalfFee || 
+          schema.pricingConfig?.half_and_half_service_fee || 20000;
         basePrice = (P_base * 0.5) + (secondPizzaPrice * 0.5) + serviceFee;
       }
     });
@@ -475,7 +476,7 @@ export default function MultiCustomizationModal({
                 <span className="text-yellow-500 font-medium text-sm">
                   {(() => {
                     const serviceFee = schema.config?.halfAndHalfFee || 
-                                      schema.pricingConfig?.halfAndHalfFee || 
+                                      schema.pricingConfig?.half_and_half_service_fee || 
                                       20000;
                     return `+ ${formatPrice(serviceFee)}`;
                   })()}
